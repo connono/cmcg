@@ -5,11 +5,11 @@ import { useModel } from '@umijs/max';
 import styles from './index.less';
 
 const HomePage: React.FC = () => {
-  const { name } = useModel('global');
+  const { userToken } = useModel('userToken');
   return (
     <PageContainer ghost>
       <div className={styles.container}>
-        <Guide name={trim(name)} />
+        <Guide name={trim(userToken.username)} />
       </div>
     </PageContainer>
   );
