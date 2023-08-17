@@ -31,9 +31,9 @@ export default defineConfig({
       component: './Access',
     },
     {
-      name: ' CRUD 示例',
-      path: '/table',
-      component: './Table',
+      name: '设备页面管理',
+      path: '/equipment',
+      component: './Equipment',
     },
   ],
   npmClient: 'npm',

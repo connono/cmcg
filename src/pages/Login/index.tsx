@@ -9,7 +9,7 @@ const loginRequest = (username: string, password: string) => {
   return  axios.post(`${SERVER_HOST}/authorizations`,{
     name: username,
     password,
-})
+  })
 }
 
 const LoginPage: React.FC = () => {
