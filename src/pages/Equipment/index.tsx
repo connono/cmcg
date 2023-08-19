@@ -12,6 +12,7 @@ import {
 import { Button, Divider, Dropdown, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
+import { useRequest } from '@umijs/max';
 import { SERVER_HOST } from '@/constants';
 import CreateForm from './components/CreateForm';
 import UpdateForm, { FormValueType } from './components/UpdateForm';
@@ -98,6 +99,19 @@ const EquipmentPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [row, setRow] = useState<API.EquipmentRecordInfo>();
   const [selectedRowsState, setSelectedRows] = useState<API.EquipmentRecordInfo[]>([]);
+  const { data, error, loading, run } = useRequest(getEquipmentList,{
+    manual: true,
+    onSuccess: (result, params) => {
+      if(result){
+        console.log('result:', result);
+      } else {
+        message.error('错误');
+      }
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  })
   const columns: ProDescriptionsItemProps<API.EquipmentRecordInfo>[] = [
     {
       title: '申请编号',
@@ -153,8 +167,8 @@ const EquipmentPage: React.FC<unknown> = () => {
           >
             配置
           </a>
-          <Divider type="vertical" />
-          <a href="">订阅警报</a>
+          {/* <Divider type="vertical" />
+          <a href="">订阅警报</a> */}
         </>
       ),
     },
@@ -169,7 +183,7 @@ const EquipmentPage: React.FC<unknown> = () => {
       <ProTable<API.EquipmentRecordInfo>
         columns={columns}
         cardBordered
-        request={getEquipmentList}
+        request={run}
         rowKey='serial_number'
         search={{
           labelWidth: 'auto',

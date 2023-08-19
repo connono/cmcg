@@ -35,6 +35,10 @@ export default defineConfig({
       path: '/equipment',
       component: './Equipment',
     },
+    {
+      path: '/equipment/detail',
+      component: './Equipment/Detail',
+    }
   ],
   npmClient: 'npm',
 });
