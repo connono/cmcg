@@ -80,25 +80,32 @@ declare namespace API {
     TEMPORARY,// 临时采购
   }
 
+  enum EquipmentPurchaseType {
+    EXHIBITION, // 展会采购
+    BID,        // 招标
+    ONESELF,    // 自行采购
+  }
+
   interface EquipmentRecordInfo {
-    id: number,                     // 主键
-    serial_number: string,          // 设备申请记录序列号
-    status: EquipmentApplyStep,     // 状态
-    equipment: string,              // 申请设备名称
-    department: string,             // 申请科室名称
-    count: number,                  // 数量
-    budget: number,                 // 预算
-    apply_type: EquipmentApplyType, // 申请方式
-    survey_date: Date,              // 调研日期
-    survey_record: string,          // 调研记录
-    meeting_record: string,         // 会议记录
-    approve_date: Date,             // 审批日期
-    execute_date: Date,             // 预算执行单日期
-    purchase_date: Date,            // 合同日期
-    arrive_date: Date,              // 到货日期
-    price: number,                  // 合同价格
-    install_date: Date,             // 安装日期
-    create_at: Date,                // 记录创建时间
-    update_at: Date,                // 记录更新时间
+    id?: number,                     // 主键
+    serial_number?: string,          // 设备申请记录序列号
+    status?: EquipmentApplyStep,     // 状态
+    equipment?: string,              // 申请设备名称
+    department?: string,             // 申请科室名称
+    count?: number,                  // 数量
+    budget?: number,                 // 预算
+    apply_type?: EquipmentApplyType, // 申请方式
+    survey_date?: Date,              // 调研日期
+    purchase_type?: EquipmentPurchaseType, //采购方式
+    survey_record?: string,          // 调研记录
+    meeting_record?: string,         // 会议记录
+    approve_date?: Date,             // 审批日期
+    execute_date?: Date,             // 预算执行单日期
+    purchase_date?: Date,            // 合同日期
+    arrive_date?: Date,              // 到货日期
+    price?: number,                  // 合同价格
+    install_date?: Date,             // 安装日期
+    create_at?: Date,                // 记录创建时间
+    update_at?: Date,                // 记录更新时间
   }
 }
