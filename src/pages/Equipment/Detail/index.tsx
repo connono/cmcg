@@ -12,11 +12,12 @@ import {
   ProFormUploadDragger,
   StepsForm,
 } from '@ant-design/pro-components';
-import { message, Button, Modal } from 'antd';
+import { message, Button, Modal, Steps } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { SERVER_HOST } from '@/constants';
 import { useNavigate, useModel } from '@umijs/max';
+import _ from 'lodash';
 
 
 export const departmentData = [{
@@ -44,6 +45,9 @@ const applyOptions = [{
   label: '临时采购'
 }]
 
+const formatDate = (date: any) => {
+  return date.format('YYYY-MM-DD');
+}
 
 const purchaseOptions = [{
   value: '0',
@@ -55,7 +59,7 @@ const purchaseOptions = [{
   value: '2',
   label: '自行采购',
 }]
-
+ 
 const getItem = async (id: string) => {
   return await axios.get(`${SERVER_HOST}/equipment/item?id=${id}`);
 }
@@ -64,44 +68,75 @@ const getSerialNumber = async () => {
   return await axios.get(`${SERVER_HOST}/equipment/serialNumber`);
 }
 
-const apply = async (serial_number: number, equipment: string, department: string, count: number, budget: number, apply_type: number) => {
-  return await axios.post(`${SERVER_HOST}/equipment/store`,{
-    serial_number,
-    equipment,
-    department,
-    count,
-    budget,
-    apply_type,
+const apply = async (serial_number: number, equipment: string, department: string, count: number, budget: number, apply_type: number, apply_picture: File) => {
+  const form = new FormData();
+  form.append('serial_number', serial_number.toString());
+  form.append('equipment', equipment);
+  form.append('department', department);
+  form.append('count', count.toString());
+  form.append('budget', budget.toString());
+  form.append('apply_type', apply_type.toString());
+  form.append('apply_picture', apply_picture);
+  
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/store`
   });
 }
 
-const survey = async (id: string, survey_date: Date, purchase_type: number, survey_record: string, meeting_record: string) => {
-  return await axios.patch(`${SERVER_HOST}/equipment/update/survey/${id}`,{
-    survey_date,
-    purchase_type,
-    survey_record,
-    meeting_record,
+const survey = async (id: string, survey_date: Date, purchase_type: number, survey_record: string, meeting_record: string, survey_picture: File) => {
+  console.log('lodash', _);
+  const form = new FormData();
+  form.append('survey_date', formatDate(survey_date));
+  form.append('purchase_type', purchase_type.toString());
+  form.append('survey_record', survey_record);
+  form.append('meeting_record', meeting_record);
+  form.append('survey_picture', survey_picture);
+
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/update/survey/${id}`
   });
 }
 
-const approve = async (id: string, approve_date: Date, execute_date: Date) => {
-  return await axios.patch(`${SERVER_HOST}/equipment/update/approve/${id}`,{
-    approve_date,
-    execute_date,
+const approve = async (id: string, approve_date: Date, execute_date: Date, approve_picture: File) => {
+  const form = new FormData();
+  form.append('approve_date', formatDate(approve_date));
+  form.append('execute_date', formatDate(execute_date));
+  form.append('approve_picture', approve_picture);
+ 
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/update/approve/${id}`
   });
 }
 
-const purchase = async (id: string, purchase_date: Date, arrive_date: Date, price: number) => {
-  return await axios.patch(`${SERVER_HOST}/equipment/update/purchase/${id}`,{
-    purchase_date,
-    arrive_date,
-    price
+const purchase = async (id: string, purchase_date: Date, arrive_date: Date, price: number, purchase_picture: File) => {
+  const form = new FormData();
+  form.append('purchase_date', formatDate(purchase_date));
+  form.append('arrive_date', formatDate(arrive_date));
+  form.append('price', price.toString());
+  form.append('purchase_picture', purchase_picture);
+
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/update/purchase/${id}`
   });
 }
 
-const install = async (id: string, install_date: Date) => {
-  return await axios.patch(`${SERVER_HOST}/equipment/update/install/${id}`,{
-    install_date,
+const install = async (id: string, install_date: Date, install_picture: File) => {
+  const form = new FormData();
+  form.append('install_date', formatDate(install_date));
+  form.append('install_picture', install_picture);
+  
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/update/install/${id}`
   });
 }
 
@@ -126,6 +161,8 @@ const EquipmentDetailPage: React.FC = () => {
     })
   }
   const formRef = useRef<ProFormInstance>();
+  console.log(formRef);
+  const [current, setCurrent] = useState<number>(0);
   const { run : runGetItem } = useRequest(getItem,{
     manual: true,
     onSuccess: (result: any, params: any) => {
@@ -133,6 +170,26 @@ const EquipmentDetailPage: React.FC = () => {
         ...result.data,
         status: parseInt(result.data.status),
       });
+      setCurrent(parseInt(result.data.status));
+      // setApplyVisible(true);
+      _.forEach(result.data, (key: any, value: any) => {
+        if (value.split('_')[1]==='picture'){
+          const length = key ? key.split('/').length : 0;
+          const name = key? key.split('/')[length-1] : '';
+          if (name) {
+            formRef.current?.setFieldValue(value, [{
+              uid: '0',
+              name,
+              status: 'done',
+              url: key,
+            }]);
+          }
+        } else if (value.split('_')[1]==='date'){
+          formRef.current?.setFieldValue(value, key);
+        } else {
+          formRef.current?.setFieldValue(value, key);
+        }
+      })
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -148,6 +205,7 @@ const EquipmentDetailPage: React.FC = () => {
           status: 0,
         }
       );
+      formRef.current?.setFieldValue('serial_number', result.serial_number);
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -157,6 +215,7 @@ const EquipmentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: (result: any, params: any) => {
       message.success('创建成功');
+      
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -202,6 +261,30 @@ const EquipmentDetailPage: React.FC = () => {
       message.error(error.message);
     },
   })
+
+  const onStepChange = (current: number) => {
+    _.forEach(equipmentItem, (key: any, value: any) => {
+      if (value.split('_')[1]==='picture'){
+        const length = key ? key.split('/').length : 0;
+        const name = key? key.split('/')[length-1] : '';
+        if (name) {
+          formRef.current?.setFieldValue(value, [{
+            uid: '0',
+            name,
+            status: 'done',
+            url: key,
+          }]);
+        }
+      } else if (value.split('_')[1]==='date'){
+        console.log('value:', value, 'key', key);
+        formRef.current?.setFieldValue(value, key);
+      } else {
+        formRef.current?.setFieldValue(value, key);
+      }
+    })
+    setCurrent(current)
+  }
+
   useEffect(()=>{
     if(method ==='create') {
       runGetSerialNumber();
@@ -223,12 +306,29 @@ const EquipmentDetailPage: React.FC = () => {
               required: '此项为必填项',
             },
           }}
-          current={equipmentItem.status}
+          current={current}
+          stepsRender={(steps, dom) => {
+            const items = _.map(steps,(value: any, key: any)=>{
+              const status = equipmentItem.status < key ? 'wait' : (current === key ? 'process' : 'finish');
+              return {
+                ...value,
+                status,
+              }
+            })
+            return (
+              <Steps
+                type="navigation"
+                current={current}
+                items={items}
+                onChange={onStepChange}
+              />
+            )
+          }}
           // @ts-ignore
           submitter={{
             render: (props: any, doms: any) => {
               return [
-                <Button htmlType="button" type="primary" onClick={props.onSubmit} key="submit">
+                <Button disabled={equipmentItem.status>current} htmlType="button" type="primary" onClick={props.onSubmit} key="submit">
                   提交
                 </Button>
               ]
@@ -240,26 +340,23 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="base"
             title="申请"
-            // stepProps={{
-            //   description: '这里填入的都是基本信息',
-            // }}
+            disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
+              console.log(values.apply_picture[0].originFileObj)
               confirm();
               //@ts-ignore
-              await runApply(equipmentItem.serial_number, values.equipment, values.department, values.count, values.budget, values.apply_type);
+              await runApply(equipmentItem.serial_number, values.equipment, values.department, values.count, values.budget, values.apply_type, values.apply_picture[0].originFileObj);
               return true;
             }}
           >
-            {/* <ProFormText
+            <ProFormText
               name="serial_number"
               label="申请单号"
               width="md"
-              valu
-              initialValue={equipmentItem.serial_number}
               disabled
               rules={[{ required: true }]}
-            /> */}
+            />
             <ProFormText
               name="equipment"
               label="设备名称"
@@ -292,17 +389,18 @@ const EquipmentDetailPage: React.FC = () => {
             />
             <ProFormUploadDragger 
               label="上传图片：" 
-              name="picture" 
-              action="upload.do"
-              // rules={[{ required: true }]} 
+              name="apply_picture" 
+              rules={[{ required: true }]} 
+              max={1}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="time"
             title="调研"
+            disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runSurvey(id, values.survey_date, values.purchase_type, values.survey_record, values.meeting_record);
+              await runSurvey(id, values.survey_date, values.purchase_type, values.survey_record, values.meeting_record, values.survey_picture[0].originFileObj);
               return true;
             }}
           >
@@ -332,9 +430,9 @@ const EquipmentDetailPage: React.FC = () => {
             />
             <ProFormUploadDragger 
               label="执行单附件：" 
-              name="file" 
-              action="upload.do"
-              // rules={[{ required: true }]} 
+              name="survey_picture" 
+              max={1}
+              rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
@@ -342,9 +440,10 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="checkbox"
             title="政府审批"
+            disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runApprove(id, values.approve_date, values.execute_date);
+              await runApprove(id, values.approve_date, values.execute_date, values.approve_picture[0].originFileObj);
               return true;
             }}
           >
@@ -362,17 +461,18 @@ const EquipmentDetailPage: React.FC = () => {
             />
             <ProFormUploadDragger 
               label="执行单附件：" 
-              name="file" 
-              action="upload.do"
-              // rules={[{ required: true }]} 
+              name="approve_picture" 
+              max={1}
+              rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ad"
             title="合同"
+            disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runPurchase(id, values.purchase_date, values.arrive_date, values.price);
+              await runPurchase(id, values.purchase_date, values.arrive_date, values.price, values.purchase_picture[0].originFileObj);
               return true;
             }}
           >
@@ -396,17 +496,18 @@ const EquipmentDetailPage: React.FC = () => {
             />
             <ProFormUploadDragger 
               label="合同附件：" 
-              name="file" 
-              action="upload.do"
-              // rules={[{ required: true }]} 
+              name="purchase_picture" 
+              max={1}
+              rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ys"
             title="安装验收"
+            disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(id, values.install_date);
+              await runInstall(id, values.install_date, values.install_picture[0].originFileObj);
               return true;
             }}
           >
@@ -418,9 +519,9 @@ const EquipmentDetailPage: React.FC = () => {
             />
             <ProFormUploadDragger 
               label="验收资料：" 
-              name="file" 
-              action="upload.do"
-              // rules={[{ required: true }]} 
+              name="install_picture" 
+              max={1}
+              rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
         </StepsForm>

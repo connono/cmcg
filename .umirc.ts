@@ -31,7 +31,7 @@ export default defineConfig({
       component: './Access',
     },
     {
-      name: '设备页面管理',
+      name: '设备采购管理',
       path: '/equipment',
       component: './Equipment',
     },
