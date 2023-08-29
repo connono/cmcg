@@ -70,6 +70,7 @@ declare namespace API {
     APPLY,    // 申请
     SURVEY,   // 调研
     APPROVE,  // 政府审批
+    TENDER,   // 投标
     CHECK,    // 合同
     PURCHASE, // 安装验收
   }
@@ -82,7 +83,7 @@ declare namespace API {
 
   enum EquipmentPurchaseType {
     EXHIBITION, // 展会采购
-    BID,        // 招标
+    TENDER,     // 招标
     ONESELF,    // 自行采购
   }
 
@@ -101,6 +102,12 @@ declare namespace API {
     meeting_record?: string,         // 会议记录
     approve_date?: Date,             // 审批日期
     execute_date?: Date,             // 预算执行单日期
+    tender_date?: Date,              // 招标书日期
+    tender_file?: string,            // 招标书附件        
+    tender_boardcast_file?: string,  // 招标公告附件
+    tender_out_date: Date,           // 招标日期
+    bid_winning_file: string,        // 中标通知书
+    send_tender_file: string,        // 投标文件
     purchase_date?: Date,            // 合同日期
     arrive_date?: Date,              // 到货日期
     price?: number,                  // 合同价格

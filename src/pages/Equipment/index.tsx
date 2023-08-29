@@ -159,9 +159,10 @@ const EquipmentPage: React.FC<unknown> = () => {
         0: { text: '申请', status: '0' },
         1: { text: '调研', status: '1' },
         2: { text: '政府审批', status: '2' },
-        3: { text: '合同', status: '3' },
-        4: { text: '安装验收', status: '4' },
-        5: { text: '完成', status: '5' },
+        3: { text: '投标', status: '3'},
+        4: { text: '合同', status: '4' },
+        5: { text: '安装验收', status: '5' },
+        6: { text: '完成', status: '6' },
       },
     },
     {
@@ -206,7 +207,7 @@ const EquipmentPage: React.FC<unknown> = () => {
               history.push(`./equipment/detail#update&${id}`);
             }}
           >
-            更新
+            录入
           </a>
           <Divider type="vertical" />
           <a

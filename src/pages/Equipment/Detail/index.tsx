@@ -86,7 +86,6 @@ const apply = async (serial_number: number, equipment: string, department: strin
 }
 
 const survey = async (id: string, survey_date: Date, purchase_type: number, survey_record: string, meeting_record: string, survey_picture: File) => {
-  console.log('lodash', _);
   const form = new FormData();
   form.append('survey_date', formatDate(survey_date));
   form.append('purchase_type', purchase_type.toString());
@@ -111,6 +110,22 @@ const approve = async (id: string, approve_date: Date, execute_date: Date, appro
     method: 'POST',
     data: form,
     url: `${SERVER_HOST}/equipment/update/approve/${id}`
+  });
+}
+
+const tender = async (id: string, tender_date: Date, tender_file: File, tender_boardcast_file: File, tender_out_date: Date, bid_winning_file: File, send_tender_file: File) => {
+  const form = new FormData();
+  form.append('tender_date', formatDate(tender_date));
+  form.append('tender_file', tender_file);
+  form.append('tender_boardcast_file', tender_boardcast_file);
+  form.append('tender_out_date', formatDate(tender_out_date));
+  form.append('bid_winning_file', bid_winning_file);
+  form.append('send_tender_file', send_tender_file);
+
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/update/tender/${id}`
   });
 }
 
@@ -171,9 +186,10 @@ const EquipmentDetailPage: React.FC = () => {
         status: parseInt(result.data.status),
       });
       setCurrent(parseInt(result.data.status));
-      // setApplyVisible(true);
       _.forEach(result.data, (key: any, value: any) => {
-        if (value.split('_')[1]==='picture'){
+        const length = value.split('_').length;
+        const extension = value.split('_')[length-1];
+        if (extension==='picture' || extension==='file'){
           const length = key ? key.split('/').length : 0;
           const name = key? key.split('/')[length-1] : '';
           if (name) {
@@ -184,7 +200,7 @@ const EquipmentDetailPage: React.FC = () => {
               url: key,
             }]);
           }
-        } else if (value.split('_')[1]==='date'){
+        } else if (extension==='date') {
           formRef.current?.setFieldValue(value, key);
         } else {
           formRef.current?.setFieldValue(value, key);
@@ -241,6 +257,16 @@ const EquipmentDetailPage: React.FC = () => {
       message.error(error.message);
     },
   })
+  const { run: runTender } = useRequest(tender,{
+    manual: true,
+    onSuccess: (result: any, params: any) => {
+      message.success('增加投标记录成功，正在返回设备列表...');
+      history.push('/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  })
   const { run: runPurchase } = useRequest(purchase,{
     manual: true,
     onSuccess: (result: any, params: any) => {
@@ -263,8 +289,13 @@ const EquipmentDetailPage: React.FC = () => {
   })
 
   const onStepChange = (current: number) => {
+    if(!equipmentItem.status) return;
+    if(equipmentItem.status<current) return;
+    if(current===3 && equipmentItem.purchase_type && equipmentItem.purchase_type !== 1) return;
     _.forEach(equipmentItem, (key: any, value: any) => {
-      if (value.split('_')[1]==='picture'){
+      const length = value.split('_').length;
+      const extension = value.split('_')[length-1];
+      if (extension==='picture' || extension==='file'){
         const length = key ? key.split('/').length : 0;
         const name = key? key.split('/')[length-1] : '';
         if (name) {
@@ -275,14 +306,13 @@ const EquipmentDetailPage: React.FC = () => {
             url: key,
           }]);
         }
-      } else if (value.split('_')[1]==='date'){
-        console.log('value:', value, 'key', key);
+      } else if (extension==='date'){
         formRef.current?.setFieldValue(value, key);
       } else {
         formRef.current?.setFieldValue(value, key);
       }
     })
-    setCurrent(current)
+    setCurrent(current);
   }
 
   useEffect(()=>{
@@ -309,17 +339,26 @@ const EquipmentDetailPage: React.FC = () => {
           current={current}
           stepsRender={(steps, dom) => {
             const items = _.map(steps,(value: any, key: any)=>{
-              const status = equipmentItem.status < key ? 'wait' : (current === key ? 'process' : 'finish');
-              return {
-                ...value,
-                status,
+              if (key === 3 && equipmentItem.purchase_type && equipmentItem.purchase_type !== '1') {
+                return {
+                  ...value,
+                  status: "error"
+                }
+              } else {
+                const status = equipmentItem.status < key ? 'wait' : (current === key ? 'process' : 'finish');
+                return {
+                  ...value,
+                  status,
+                }
               }
+              
             })
             return (
               <Steps
                 type="navigation"
                 current={current}
                 items={items}
+                
                 onChange={onStepChange}
               />
             )
@@ -343,7 +382,6 @@ const EquipmentDetailPage: React.FC = () => {
             disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              console.log(values.apply_picture[0].originFileObj)
               confirm();
               //@ts-ignore
               await runApply(equipmentItem.serial_number, values.equipment, values.department, values.count, values.budget, values.apply_type, values.apply_picture[0].originFileObj);
@@ -438,7 +476,7 @@ const EquipmentDetailPage: React.FC = () => {
           <StepsForm.StepForm<{
             checkbox: string;
           }>
-            name="checkbox"
+            name="tender"
             title="政府审批"
             disabled={current<equipmentItem.status}
             onFinish={async () => {
@@ -462,6 +500,55 @@ const EquipmentDetailPage: React.FC = () => {
             <ProFormUploadDragger 
               label="执行单附件：" 
               name="approve_picture" 
+              max={1}
+              rules={[{ required: true }]} 
+            />
+          </StepsForm.StepForm>
+          <StepsForm.StepForm<{
+            checkbox: string;
+          }>
+            name="checkbox"
+            title="招标"
+            disabled={current<equipmentItem.status}
+            onFinish={async () => {
+              const values = formRef.current?.getFieldsValue();
+              await runTender(id, values.tender_date, values.tender_file[0].originFileObj, values.tender_boardcast_file[0].originFileObj, values.tender_out_date, values.bid_winning_file[0].originFileObj, values.send_tender_file[0].originFileObj);
+              return true;
+            }}
+          >
+            <ProFormDatePicker
+              name="tender_date"
+              label="招标书日期："
+              width="sm"
+              rules={[{ required: true }]} 
+            />
+            <ProFormDatePicker
+              name="tender_out_date"
+              label="招标日期："
+              width="sm"
+              rules={[{ required: true }]} 
+            />
+            <ProFormUploadDragger 
+              label="招标书附件：" 
+              name="tender_file" 
+              max={1}
+              rules={[{ required: true }]} 
+            />
+            <ProFormUploadDragger 
+              label="招标公告附件：" 
+              name="tender_boardcast_file" 
+              max={1}
+              rules={[{ required: true }]} 
+            />
+            <ProFormUploadDragger 
+              label="中标通知书：" 
+              name="bid_winning_file" 
+              max={1}
+              rules={[{ required: true }]} 
+            />
+            <ProFormUploadDragger 
+              label="投标文件：" 
+              name="send_tender_file" 
               max={1}
               rules={[{ required: true }]} 
             />
