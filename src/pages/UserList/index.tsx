@@ -1,17 +1,14 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Access, useAccess, useModel } from '@umijs/max';
+import { Access, useAccess } from '@umijs/max';
 import { Button } from 'antd';
 
 const AccessPage: React.FC = () => {
   const access = useAccess();
-  const { initialState, loading, error, refresh, setInitialState } =
-    useModel('@@initialState');
-  console.log('initialState:', initialState, setInitialState)
   return (
     <PageContainer
       ghost
       header={{
-        title: '权限示例',
+        title: '用户列表管理',
       }}
     >
       {/* <Access accessible={access.canSeeAdmin}>

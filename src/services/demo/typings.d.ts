@@ -46,22 +46,29 @@ declare namespace API {
 
   type UserGenderEnum = 'MALE' | 'FEMALE';
 
-  interface UserInfo {
-    id?: string;
-    name?: string;
-    /** nick */
-    nickName?: string;
-    /** email */
-    email?: string;
-    gender?: UserGenderEnum;
-  }
+  // interface UserInfo {
+  //   id?: string;
+  //   name?: string;
+  //   /** nick */
+  //   nickName?: string;
+  //   /** email */
+  //   email?: string;
+  //   gender?: UserGenderEnum;
+  // }
 
-  interface UserInfoVO {
-    name?: string;
-    /** nick */
-    nickName?: string;
-    /** email */
-    email?: string;
+  // interface UserInfoVO {
+  //   name?: string;
+  //   /** nick */
+  //   nickName?: string;
+  //   /** email */
+  //   email?: string;
+  // }
+
+  interface UserToken {
+    id: number;
+    username: string;
+    permissions: Set<string>;
+    access_token: string;
   }
 
   type definitions_0 = null;

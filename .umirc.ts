@@ -18,6 +18,7 @@ export default defineConfig({
       name: '首页',
       path: '/home',
       component: './Home',
+      access: 'canSeeHome',
     },
     {
       name: '登录',
@@ -34,10 +35,18 @@ export default defineConfig({
       name: '设备采购管理',
       path: '/equipment',
       component: './Equipment',
+      access: 'canSeeEquipment',
+    },
+    {
+      name: '用户列表管理',
+      path: '/userList',
+      component: './UserList',
+      access: 'canSeeUserList',
     },
     {
       path: '/equipment/detail',
       component: './Equipment/Detail',
+      access: 'canSeeEquipment',
     }
   ],
   npmClient: 'npm',

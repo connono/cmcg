@@ -1,11 +1,80 @@
 // 运行时配置
-import { RequestConfig } from 'umi';
+import { RequestConfig, history } from 'umi';
 import { message, notification } from 'antd';
+import axios from 'axios';
+import _ from 'lodash';
+import { SERVER_HOST } from '@/constants';
+
+
+const getUser = async (token: string) => {
+  return await axios({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    url: `${SERVER_HOST}/user`
+  }).then((response) => {
+    return response.data.data;
+  }).catch((err) => {
+    message.error(err);
+  });
+}
+
+const getPermissions = async (id: number) => {
+  return await axios({
+    method: 'GET',
+    url: `${SERVER_HOST}/user/permissions/${id}`,
+  }).then((response)=>{
+    if(response.data.length!==0){
+      const permissions = new Set();
+      _.forEach(response.data, (value: any, key: any)=>{
+        return permissions.add(value.name);
+      })
+      return permissions;
+    } else {
+      return [];
+    }
+  }).catch((err) => {
+    message.error(err);
+  });
+}
 
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
-export async function getInitialState(): Promise<{ name: string }> {
-  return { name: '@umijs/max' };
+export async function getInitialState(): Promise<{ id: number, name: string, permissions: Set<string> }> {
+  if (history.location.pathname === '/login') {
+    return {
+      id: -1,
+      name: '',
+      permissions: new Set()
+    }
+  } else if (localStorage.getItem('access_token')) {
+    const access_token = localStorage.getItem('access_token');
+    let data, permissions;
+    try {
+      // @ts-ignore
+      data = await getUser(access_token);
+      permissions = await getPermissions(data.id);
+    } catch (error) {
+      console.log(error);
+      localStorage.removeItem('access_token');
+      message.error('登录已过期，请重新登录！');
+      history.push('/login');
+    }
+    return {
+      id: data.id,
+      name: data.name,
+      permissions,
+    }
+  } else {
+    message.error('请先登录再访问');
+    history.push('./login');
+    return {
+      id: -1,
+      name: '',
+      permissions: new Set()
+    }
+  }
 }
 
 export const layout = () => {

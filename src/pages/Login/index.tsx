@@ -2,30 +2,33 @@ import React from 'react';
 import axios from 'axios';
 import { message } from 'antd';
 import { PageContainer, ProForm, ProFormText } from '@ant-design/pro-components';
-import { useRequest, useModel, history } from '@umijs/max';
+import { useRequest, history } from '@umijs/max';
 import { SERVER_HOST } from '@/constants';
 
-const loginRequest = (username: string, password: string) => {
-  return  axios.post(`${SERVER_HOST}/authorizations`,{
-    name: username,
-    password,
+const login = async (username: string, password: string) => {
+  return await axios({
+    method: 'POST',
+    data: {
+      name: username,
+      password,
+    },
+    url: `${SERVER_HOST}/authorizations`,
   })
 }
 
 const LoginPage: React.FC = () => {
-  const { userToken, setUserToken } = useModel('userToken');
-  const { data, error, loading, run } = useRequest(loginRequest,{
+  const { run : runLogin } = useRequest(login,{
     manual: true,
-    onSuccess: (result, params) => {
+    onSuccess: async (result: any, params: any) => {
       if(result.access_token){
+        localStorage.setItem('access_token', result.access_token);
         message.success('登录成功！正在跳转~');
-        setUserToken({username: params[0], access_token: result.access_token});
         history.push('/home');
       } else {
         message.error('用户名或密码错误，请重试');
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       message.error(error.message);
     },
   })
@@ -45,10 +48,10 @@ const LoginPage: React.FC = () => {
                         }
                       }
                     }}
-                    onValuesChange={(_, values) => {
-                      console.log(values);
-                    }}
-                    onFinish={(values)=>run(values.username, values.password)}
+                    // onValuesChange={(_, values) => {
+                    //   console.log(values);
+                    // }}
+                    onFinish={(values)=>runLogin(values.username, values.password)}
                 >
                     <ProFormText
                       name="username"

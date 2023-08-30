@@ -1,7 +1,9 @@
 
 
 export const DEFAULT_USER_TOKEN = {
+    id: -1,
     username: '',
+    permissions: new Set(),
     access_token: '',
 }
 

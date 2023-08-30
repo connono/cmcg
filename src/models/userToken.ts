@@ -2,13 +2,8 @@
 import { DEFAULT_USER_TOKEN } from '@/constants';
 import { useState } from 'react';
 
-interface UserToken {
-  username: string;
-  access_token: string;
-}
-
 const useUserToken = () => {
-  const [userToken, setUserToken] = useState<UserToken>(DEFAULT_USER_TOKEN);
+  const [userToken, setUserToken] = useState<API.UserToken>(DEFAULT_USER_TOKEN);
   return {
     userToken,
     setUserToken,
