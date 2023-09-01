@@ -57,24 +57,28 @@ const deleteUser = async (id: number) => {
   return await axios.delete(`${SERVER_HOST}/users/${id}`);
 }
 
-const createUser = async (name: string, phone_number: number, department: string) => {
+const createUser = async (name: string, phone_number: number, department: string, roles: string[]) => {
+  console.log('roles:', roles);
   return await axios({
     method: 'POST',
     data: {
       name,
       department,
       phone_number,
+      roles,
     },
     url: `${SERVER_HOST}/users`
   });
 }
 
-const updateUser = async (id: number, phone_number: number, department: string) => {
+const updateUser = async (id: number, phone_number: number, department: string, roles: string[]) => {
+  console.log('roles:', roles);
   return await axios({
     method: 'PATCH',
     data: {
       phone_number,
       department,
+      roles,
     },
     url: `${SERVER_HOST}/users/${id}`,
   });
@@ -278,8 +282,8 @@ const UserListPage: React.FC = () => {
         submitTimeout={2000}
         onFinish={async (values: any) => {
           mode === MODE.CREATE 
-            ? await runCreateUser(values.name, values.phone_number, values.department)
-            : await runUpdateUser(selectedId ,values.phone_number, values.department);
+            ? await runCreateUser(values.name, values.phone_number, values.department, values.roles)
+            : await runUpdateUser(selectedId ,values.phone_number, values.department, values.roles);
           actionRef.current?.reload();
         }}
       >
@@ -307,7 +311,9 @@ const UserListPage: React.FC = () => {
             />
           <ProFormSelect
             request = {roles}
-            name="role"
+            mode="multiple"
+            allowClear
+            name="roles"
             label="权限设置"
             rules={[{ required: true }]}
           />

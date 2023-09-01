@@ -42,6 +42,11 @@ export default defineConfig({
       path: '/userList',
       component: './UserList',
       access: 'canSeeUserList',
+    },{
+      name: '修改账号密码',
+      path: '/resetPassword',
+      component: './ResetPassword',
+      access: 'canSeeHome',
     },
     {
       path: '/equipment/detail',

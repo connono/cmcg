@@ -32,7 +32,7 @@ const getPermissions = async (id: number) => {
       })
       return permissions;
     } else {
-      return [];
+      return new Set();
     }
   }).catch((err) => {
     message.error(err);
@@ -71,7 +71,7 @@ export async function getInitialState(): Promise<{ id: number, name: string, per
       return {
         id: data.id,
         name: data.name,
-        permissions: permissions ? permissions : [],
+        permissions: permissions ? permissions : new Set(),
         allRoles: allRoles,
       }
     } catch (error) {
