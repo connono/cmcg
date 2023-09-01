@@ -23,7 +23,7 @@ const getUser = async (token: string) => {
 const getPermissions = async (id: number) => {
   return await axios({
     method: 'GET',
-    url: `${SERVER_HOST}/user/permissions/${id}`,
+    url: `${SERVER_HOST}/permissions/${id}`,
   }).then((response)=>{
     if(response.data.length!==0){
       const permissions = new Set();
@@ -39,40 +39,62 @@ const getPermissions = async (id: number) => {
   });
 }
 
+const getAllRoles = async () => {
+  return await axios({
+    method: 'GET',
+    url: `${SERVER_HOST}/allRoles`,
+  }).then((response)=>{
+    return response.data;
+  }).catch((err) => {
+    message.error(err);
+  });
+}
+
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
-export async function getInitialState(): Promise<{ id: number, name: string, permissions: Set<string> }> {
+export async function getInitialState(): Promise<{ id: number, name: string, permissions: Set<string>, allRoles: string[] }> {
   if (history.location.pathname === '/login') {
     return {
       id: -1,
       name: '',
-      permissions: new Set()
+      permissions: new Set(),
+      allRoles: [],
     }
   } else if (localStorage.getItem('access_token')) {
     const access_token = localStorage.getItem('access_token');
-    let data, permissions;
+    let data, permissions, allRoles;
     try {
       // @ts-ignore
       data = await getUser(access_token);
       permissions = await getPermissions(data.id);
+      allRoles = await getAllRoles();
+      return {
+        id: data.id,
+        name: data.name,
+        permissions: permissions ? permissions : [],
+        allRoles: allRoles,
+      }
     } catch (error) {
       console.log(error);
       localStorage.removeItem('access_token');
       message.error('登录已过期，请重新登录！');
       history.push('/login');
+      return {
+        id: -1,
+        name: '',
+        permissions: new Set(),
+        allRoles: [],
+      }
     }
-    return {
-      id: data.id,
-      name: data.name,
-      permissions,
-    }
+    
   } else {
     message.error('请先登录再访问');
     history.push('./login');
     return {
       id: -1,
       name: '',
-      permissions: new Set()
+      permissions: new Set(),
+      allRoles: [],
     }
   }
 }
