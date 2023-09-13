@@ -6,12 +6,14 @@ export default (initialState: API.UserToken) => {
   //   initialState && initialState.name !== 'dontHaveAccess'
   // );
   console.log('permissions:', permissions);
-  const canSeeHome = permissions && permissions.has('can_see_home')
-  const canSeeEquipment =  permissions && permissions.has('can_see_equipment')
-  const canSeeUserList =  permissions && permissions.has('can_see_userlist')
+  const canSeeHome = permissions && permissions.has('can_see_home');
+  const canSeeEquipment =  permissions && permissions.has('can_see_equipment');
+  const canSeeUserList =  permissions && permissions.has('can_see_userlist');
+  const canSeePaymentMonitor =  permissions && permissions.has('can_see_paymentmonitor');
   return {
     canSeeHome,
     canSeeEquipment,
     canSeeUserList,
+    canSeePaymentMonitor,
   };
 };

@@ -32,17 +32,24 @@ export default defineConfig({
       component: './Access',
     },
     {
+      name: '用户列表管理',
+      path: '/userList',
+      component: './UserList',
+      access: 'canSeeUserList',
+    },
+    {
       name: '设备采购管理',
       path: '/equipment',
       component: './Equipment',
       access: 'canSeeEquipment',
     },
     {
-      name: '用户列表管理',
-      path: '/userList',
-      component: './UserList',
-      access: 'canSeeUserList',
-    },{
+      name: '付款流程监控',
+      path: '/paymentMonitor',
+      component: './PaymentMonitor',
+      assess: 'canSeePaymentMonitor',
+    },
+    {
       name: '修改账号密码',
       path: '/resetPassword',
       component: './ResetPassword',
@@ -52,7 +59,17 @@ export default defineConfig({
       path: '/equipment/detail',
       component: './Equipment/Detail',
       access: 'canSeeEquipment',
-    }
+    },
+    {
+      path: '/paymentRecord',
+      component: './PaymentRecord',
+      access: 'canSeePaymentMonitor',
+    },
+    {
+      path: '/paymentMonitor/detail',
+      component: './PaymentMonitor/Detail',
+      access: 'canSeePaymentMonitor',
+    },
   ],
   npmClient: 'npm',
 });

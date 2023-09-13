@@ -16,7 +16,11 @@ import { Button, message } from 'antd';
 import axios from 'axios';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import _ from 'lodash';
-import { ConsoleSqlOutlined } from '@ant-design/icons';
+
+enum MODE {
+  CREATE,
+  UPDATE,
+}
 
 type UserInfo = {
   id: number,
@@ -24,11 +28,6 @@ type UserInfo = {
   phone_number: number,
   department: string,
 };
-
-enum MODE {
-  CREATE,
-  UPDATE,
-}
 
 export const departmentData = [{
   value: 'bf013',
