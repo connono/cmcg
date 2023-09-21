@@ -16,7 +16,7 @@ import { message, Button, Modal, Steps } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { SERVER_HOST } from '@/constants';
-import { useNavigate, useModel } from '@umijs/max';
+import { useNavigate, useModel, useAccess, Access } from '@umijs/max';
 import _ from 'lodash';
 
 
@@ -76,6 +76,14 @@ const process = async (plan_id: string, record_id: string, assessment_date: stri
   });
 }
 
+const back = async (plan_id: string, record_id: string) => {
+  return await axios({
+    method: 'PATCH',
+    data: {plan_id},
+    url: `${SERVER_HOST}/payment/records/back/${record_id}`,
+  });
+}
+
 const PaymentRecordDetailPage: React.FC = () => {
   const [ paymentRecord, setPaymentRecord ] = useState({});
   const hashArray = history.location.hash.split('#')[1].split('&');
@@ -84,8 +92,8 @@ const PaymentRecordDetailPage: React.FC = () => {
   const id = hashArray[2];
   const [ modal, contextHolder ] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
-  console.log(formRef);
   const [current, setCurrent] = useState<number>(0);
+  const access = useAccess();
   
   const { run : runGetItem } = useRequest(getItem,{
     manual: true,
@@ -142,7 +150,17 @@ const PaymentRecordDetailPage: React.FC = () => {
     onError: (error: any) => {
       message.error(error.message);
     },
-  })
+  });
+  const { run: runBack } = useRequest(back,{
+    manual: true,
+    onSuccess: (result: any, params: any) => {
+      message.success('已驳回，正在返回计划列表...');
+      history.push('/paymentMonitor');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
   const { run: runProcess } = useRequest(process,{
     manual: true,
     onSuccess: (result: any, params: any) => {
@@ -155,7 +173,6 @@ const PaymentRecordDetailPage: React.FC = () => {
   })
 
   const onStepChange = (current: number) => {
-    console.log(method, current);
     if(int_status(method)===-1) return;
     if(int_status(method)<current) return;
     _.forEach(paymentRecord, (key: any, value: any) => {
@@ -243,11 +260,22 @@ const PaymentRecordDetailPage: React.FC = () => {
             name="apply"
             title="申请"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runApply(plan_id, id, values.assessment, values.payment_voucher_file[0].originFileObj);
-              return true;
+              if (!access.canApplyPaymentRecord) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                await runApply(plan_id, id, values.assessment, values.payment_voucher_file[0].originFileObj);
+                return true;
+              }
+              
             }}
           >
+            <ProFormText
+              name="contract_name"
+              label="合同名称"
+              width="md"
+              disabled
+            />
             <ProFormText
               name="department"
               label="职能科室"
@@ -277,10 +305,15 @@ const PaymentRecordDetailPage: React.FC = () => {
             name="audit"
             title="审核"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              if (values.audit) await runAudit(plan_id, id);
-              else message.error('审核已驳回');
-              return true;
+              if (!access.canAuditPaymentRecord) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (values.audit) await runAudit(plan_id, id);
+                else await runBack(plan_id, id);
+                return true;
+              }
+              
             }}
           >
             <ProFormUploadDragger
@@ -312,9 +345,13 @@ const PaymentRecordDetailPage: React.FC = () => {
             name="process"
             title={history.location.state.is_pay === 'true' ? '付款' : '收款'}
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runProcess(plan_id, id, values.assessment_date, values.payment_file[0].originFileObj);
-              return true;
+              if (!access.canProcessPaymentRecord) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                await runProcess(plan_id, id, values.assessment_date, values.payment_file[0].originFileObj);
+                return true;
+              }
             }}
           >
             <ProFormDatePicker

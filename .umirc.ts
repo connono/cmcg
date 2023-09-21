@@ -27,11 +27,6 @@ export default defineConfig({
       layout: false,
     },
     {
-      name: '权限演示',
-      path: '/access',
-      component: './Access',
-    },
-    {
       name: '用户列表管理',
       path: '/userList',
       component: './UserList',
@@ -47,7 +42,7 @@ export default defineConfig({
       name: '付款流程监控',
       path: '/paymentMonitor',
       component: './PaymentMonitor',
-      assess: 'canSeePaymentMonitor',
+      access: 'canSeePaymentMonitor',
     },
     {
       name: '修改账号密码',

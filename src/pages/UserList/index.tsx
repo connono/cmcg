@@ -11,8 +11,8 @@ import {
   ProFormSelect,
   ActionType,
 } from '@ant-design/pro-components';
-import { Access, useAccess, useRequest, } from '@umijs/max';
-import { Button, message } from 'antd';
+import { Access, useAccess, useRequest } from '@umijs/max';
+import { Affix, Button, message } from 'antd';
 import axios from 'axios';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import _ from 'lodash';
@@ -50,6 +50,10 @@ const getUserList = async () => {
 
 const getAllRoles = async () => {
   return await axios.get(`${SERVER_HOST}/allRoles`);
+}
+
+const getAllDepartments = async () => {
+  return await axios.get(`${SERVER_HOST}/department/index`);
 }
 
 const deleteUser = async (id: number) => {
@@ -118,6 +122,14 @@ const UserListPage: React.FC = () => {
       message.error(error.message);
     }
   });
+  const { run : runGetAllDepartments } = useRequest(getAllDepartments, {
+    manual: true,
+    onSuccess: (result, params) => {
+    },
+    onError: (error) => {
+      message.error(error.message);
+    }
+  });
   const { run : runCreateUser } = useRequest(createUser, {
     manual: true,
     onSuccess: (result, params) => {
@@ -170,6 +182,17 @@ const UserListPage: React.FC = () => {
     return data;
   }
 
+  const departments = async () => {
+    const {data : departmentsData} = await runGetAllDepartments();
+    const data =  _.map(departmentsData, (value: any, index: any) => {
+      return {
+        value: value.name,
+        label: value.label,
+      }
+    })
+    return data;
+  }
+
   const columns: ProColumns<UserInfo>[] = [
     {
       dataIndex: 'id',
@@ -195,12 +218,16 @@ const UserListPage: React.FC = () => {
         <a
           key="patch"
           onClick={() => {
-            setSelectedId(record.id);
-            setMode(MODE.UPDATE);
-            setModalVisible(true);
-            setTimeout(()=>{
-              formRef.current?.setFieldsValue(record)
-            },1000)
+            if (!access.canUpdateUser) {
+              message.error('你没有权限进行操作');
+            } else {
+              setSelectedId(record.id);
+              setMode(MODE.UPDATE);
+              setModalVisible(true);
+              setTimeout(()=>{
+                formRef.current?.setFieldsValue(record)
+              },1000)
+            }
           }}
         >
           编辑
@@ -208,8 +235,12 @@ const UserListPage: React.FC = () => {
         <a
           key="password_reset"
           onClick={async () => {
-            await runInitialPassword(record.id);
-            action?.reload();
+            if (!access.canUpdateUser) {
+              message.error('你没有权限进行操作');
+            } else {
+              await runInitialPassword(record.id);
+              action?.reload();
+            }
           }}
         >
           密码重置
@@ -217,8 +248,12 @@ const UserListPage: React.FC = () => {
         <a 
           key="delete"
           onClick={async () => {
-            await runDeleteUser(record.id);
-            action?.reload();
+            if (!access.canUpdateUser) {
+              message.error('你没有权限进行操作');
+            } else {
+              await runDeleteUser(record.id);
+              action?.reload();
+            }
           }}
         >
           删除
@@ -254,24 +289,27 @@ const UserListPage: React.FC = () => {
         }}
         dateFormatter="string"
         toolBarRender={(action) => [
-          <Button
-            key="button"
-            onClick={() => {
-              setModalVisible(true);
-              setMode(MODE.CREATE);
-              action?.reload();
-            }}
-            type="primary"
-          >
-            新建
-          </Button>,
+          <Access accessible={access.canCreateUser}>
+            <Button
+              key="button"
+              onClick={() => {
+                setModalVisible(true);
+                setMode(MODE.CREATE);
+                action?.reload();
+              }}
+              type="primary"
+            >
+              新建
+            </Button>
+          </Access>
+          ,
         ]}
       />
       <ModalForm<{
         name: string;
         company: string;
       }>
-        title="新建用户"
+        title={mode === MODE.CREATE ? "新建用户" : "更新用户"}
         formRef={formRef}
         modalProps={{
           destroyOnClose: true,
@@ -305,7 +343,7 @@ const UserListPage: React.FC = () => {
           <ProFormSelect
               label="所属科室"
               name="department"
-              options={departmentData}
+              request={departments}
               rules={[{ required: true }]}
             />
           <ProFormSelect

@@ -37,8 +37,9 @@ const getPlansList = async () => {
   return await axios.get(`${SERVER_HOST}/payment/plans/index`);
 }
 
-const createPlan = async (department: string, company: string, category: string, is_pay: boolean, finish_date: string, payment_file: File, contract_date: string) => {
+const createPlan = async (contract_name: string, department: string, company: string, category: string, is_pay: boolean, finish_date: string, payment_file: File, contract_date: string) => {
   const form = new FormData();
+  form.append('contract_name', contract_name);
   form.append('department', department);
   form.append('company', company);
   form.append('category', category);
@@ -59,8 +60,9 @@ const deletePlan = async (id: number) => {
   return await axios.delete(`${SERVER_HOST}/payment/plans/delete/${id}`);
 }
 
-const createRecord = async (department: string, company: string,  plan_id: number, next_date: string) => {
+const createRecord = async (contract_name: string, department: string, company: string,  plan_id: number, next_date: string) => {
   const form = new FormData();
+  form.append('contract_name', contract_name);
   form.append('department', department);
   form.append('company', company);
   form.append('next_date', next_date);
@@ -129,6 +131,10 @@ const PaymentMonitorPage: React.FC = () => {
       title: 'ID',
     },
     {
+      dataIndex: 'contract_name',
+      title: '合同名称',
+    },
+    {
       dataIndex: 'department',
       title: '职能科室',
     },
@@ -164,6 +170,18 @@ const PaymentMonitorPage: React.FC = () => {
         </a>,
     },
     {
+      dataIndex: 'payment_file',
+      title: '合同附件',
+      render:(_, record) => 
+        <a key="history"
+        onClick={() => {
+          window.open(record.payment_file, 'newindow');
+          // history.push(record.payment_file);
+        }}>
+            点此跳转
+        </a>,
+    },
+    {
       dataIndex: 'finish_date',
       title: '结束时间',
     },
@@ -188,9 +206,13 @@ const PaymentMonitorPage: React.FC = () => {
           update = (<a
                       key="update"
                       onClick={() => {
-                        setMode(MODE.UPDATE);
-                        setModalVisible(true);
-                        setSelectedRecord(record);
+                        if (!access.canUpdatePaymentPlan) {
+                          message.error('你无权进行此操作');
+                        } else {
+                          setMode(MODE.UPDATE);
+                          setModalVisible(true);
+                          setSelectedRecord(record);
+                        }
                       }}
                     >
                       设置下次时间
@@ -228,14 +250,18 @@ const PaymentMonitorPage: React.FC = () => {
           <a 
             key="delete"
             onClick={async () => {
-              await runDeletePlan(record.id);
-              action?.reload();
+              if (!access.canUpdatePaymentPlan) {
+                message.error('你无权进行此操作');
+              } else {
+                await runDeletePlan(record.id);
+                action?.reload();
+              }
             }}
           >
             删除
           </a>,
         ]
-      }
+      } 
     }
   ]
 
@@ -270,16 +296,18 @@ const PaymentMonitorPage: React.FC = () => {
         }}
         dateFormatter="string"
         toolBarRender={(action) => [
-          <Button
-            key="button"
-            onClick={() => {
-              setModalVisible(true);
-              setMode(MODE.CREATE);
-            }}
-            type="primary"
-          >
-            新建
-          </Button>,
+          <Access accessible={access.canCreatePaymentPlan}>
+            <Button
+              key="button"
+              onClick={() => {
+                setModalVisible(true);
+                setMode(MODE.CREATE);
+              }}
+              type="primary"
+            >
+              新建
+            </Button>
+          </Access>,
         ]}
       />
       {
@@ -298,23 +326,31 @@ const PaymentMonitorPage: React.FC = () => {
             open={modalVisible}
             submitTimeout={2000}
             onFinish={async (values: any) => {
-              await runCreatePlan(values.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].originFileObj, values.contract_date);
+              await runCreatePlan(values.contract_name, values.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].originFileObj, values.contract_date);
               actionRef.current?.reload();
             }}
           >
-
               <ProFormText
                 width="md"
-                name="department"
-                label="职能科室"
+                name="contract_name"
+                label="合同名称"
                 rules={[{ required: true }]}
               />
-              <ProFormText
-                width="md"
-                name="company"
-                label="合作商户"
-                rules={[{ required: true }]}
-              />
+              <ProFormGroup>
+                <ProFormText
+                  width="md"
+                  name="department"
+                  label="职能科室"
+                  rules={[{ required: true }]}
+                />
+                <ProFormText
+                  width="md"
+                  name="company"
+                  label="合作商户"
+                  rules={[{ required: true }]}
+                />
+              </ProFormGroup>
+              
               <ProFormText
                 width="md"
                 name="category"
@@ -368,7 +404,7 @@ const PaymentMonitorPage: React.FC = () => {
           open={modalVisible}
           submitTimeout={2000}
           onFinish={async (values: any) => {
-            await runCreateRecords(selectedRecord.department, selectedRecord.company, selectedRecord.id, values.next_date);
+            await runCreateRecords(selectedRecord.contract_name, selectedRecord.department, selectedRecord.company, selectedRecord.id, values.next_date);
             actionRef.current?.reload();
           }}
         >
