@@ -18,7 +18,6 @@
     "axios": "^1.4.0",
     "binconv": "^0.2.0",
     "lodash": "^4.17.21",
-    "minio": "^7.1.3",
     "react-pdf": "^7.4.0"
   },
   "devDependencies": {
