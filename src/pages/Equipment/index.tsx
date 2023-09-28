@@ -255,7 +255,6 @@ const EquipmentPage: React.FC<unknown> = () => {
         }}
         pagination={{
           pageSize: 5,
-          onChange: (page) => console.log(page),
         }}
         dateFormatter="string"
         headerTitle="设备申请记录列表"

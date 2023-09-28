@@ -5,7 +5,6 @@ export default (initialState: API.UserToken) => {
   // const canSeeAdmin = !!(
   //   initialState && initialState.name !== 'dontHaveAccess'
   // );
-  console.log('permissions:', permissions);
   const canSeeHome = permissions && permissions.has('can_see_home');
   const canSeeEquipment =  permissions && permissions.has('can_see_equipment');
   const canSeeInstrument =  permissions && permissions.has('can_see_instrument');
@@ -19,8 +18,6 @@ export default (initialState: API.UserToken) => {
   const canAuditPaymentRecord =  permissions && permissions.has('can_audit_payment_record');
   const canProcessPaymentRecord = permissions && permissions.has('can_process_payment_record');
   const canStopPaymentRecord =  permissions && permissions.has('can_stop_payment_record');
-
-console.log('canSeePaymentMonitor',canSeePaymentMonitor);
 
   return {
     canSeeHome,

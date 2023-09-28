@@ -48,9 +48,7 @@ const LoginPage: React.FC = () => {
                         }
                       }
                     }}
-                    // onValuesChange={(_, values) => {
-                    //   console.log(values);
-                    // }}
+
                     onFinish={(values)=>runLogin(values.username, values.password)}
                 >
                     <ProFormText

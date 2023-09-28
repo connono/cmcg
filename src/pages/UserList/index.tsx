@@ -61,7 +61,6 @@ const deleteUser = async (id: number) => {
 }
 
 const createUser = async (name: string, phone_number: number, department: string, roles: string[]) => {
-  console.log('roles:', roles);
   return await axios({
     method: 'POST',
     data: {
@@ -75,7 +74,6 @@ const createUser = async (name: string, phone_number: number, department: string
 }
 
 const updateUser = async (id: number, phone_number: number, department: string, roles: string[]) => {
-  console.log('roles:', roles);
   return await axios({
     method: 'PATCH',
     data: {
@@ -285,7 +283,6 @@ const UserListPage: React.FC = () => {
         }}
         pagination={{
           pageSize: 5,
-          onChange: (page) => console.log(page),
         }}
         dateFormatter="string"
         toolBarRender={(action) => [

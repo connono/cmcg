@@ -56,7 +56,6 @@ const HomePage: React.FC = () => {
   const { run : runGetNotificationsList } = useRequest(getNotificationsList, {
     manual: true,
     onSuccess: (result, params) => {
-      console.log('result:', result);
       const notificaitons = _.map(result.data, (value: any, key: any)=>{
         const data =  JSON.parse(value.body);
         return {

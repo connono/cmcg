@@ -5,29 +5,26 @@ import {
   ProTable, 
   ModalForm, 
   ProFormText,
-  ProFormMoney,
   ProFormRadio,
   ProFormUploadButton,
   ProFormDatePicker,
   ProFormGroup,
   ActionType,
 } from '@ant-design/pro-components';
-import { Access, useAccess, useModel, useRequest, history } from '@umijs/max';
+import { Access, useAccess, useRequest, history } from '@umijs/max';
 import { Button, message } from 'antd';
 import axios from 'axios';
 import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
+import {  upload, isPDF, isPicture} from '../../utils/file-uploader';
+import PdfPreview from '@/components/PdfPreview'; 
+import PicturePreview from '@/components/PicturePreview';
 import styles from './index.less';
-
 
 enum MODE {
   CREATE,
   UPDATE,
 }
-// const formatDate = (date: any) => {
-//   console.log('date:', date);
-//   return date.format('YYYY-MM-DD');
-// }
 
 const formatBoolean = (bool: boolean) => {
   return bool ? "true" : "false";
@@ -37,7 +34,7 @@ const getPlansList = async () => {
   return await axios.get(`${SERVER_HOST}/payment/plans/index`);
 }
 
-const createPlan = async (contract_name: string, department: string, company: string, category: string, is_pay: boolean, finish_date: string, payment_file: File, contract_date: string) => {
+const createPlan = async (contract_name: string, department: string, company: string, category: string, is_pay: boolean, finish_date: string, payment_file: string, contract_date: string) => {
   const form = new FormData();
   form.append('contract_name', contract_name);
   form.append('department', department);
@@ -79,6 +76,7 @@ const PaymentMonitorPage: React.FC = () => {
   const access = useAccess();
   const formRef = useRef<ProFormInstance>();
   const actionRef = useRef<ActionType>();
+  const previewRef = useRef<any>({});
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [mode, setMode] = useState<MODE>(MODE.CREATE);
   const [selectedRecord, setSelectedRecord] = useState<any>({});
@@ -86,7 +84,6 @@ const PaymentMonitorPage: React.FC = () => {
   const { run : runGetPlansList } = useRequest(getPlansList, {
     manual: true,
     onSuccess: (result, params) => {
-      console.log('result:', result);
     },
     onError: (error) => {
       message.error(error.message);
@@ -124,6 +121,28 @@ const PaymentMonitorPage: React.FC = () => {
       message.error(error.message);
     },
   });
+
+  const handleUpload = (isSuccess: boolean, filename: string, field: string) => {
+    const current_payment_file = formRef.current?.getFieldValue(field)[0];
+    if (isSuccess) {
+      formRef.current?.setFieldValue(field, [{
+        ...current_payment_file,
+        status: "done",
+        percent: 100,
+        filename,
+      }])
+    } else {
+      formRef.current?.setFieldValue(field, [{
+        ...current_payment_file,
+        status: "error",
+        percent: 100,
+        filename,
+      }])
+    }
+  }
+
+  console.log('formRef:', formRef);
+  console.log('previewRef:', previewRef);
 
   const columns: ProColumns<any>[] = [
     {
@@ -172,14 +191,11 @@ const PaymentMonitorPage: React.FC = () => {
     {
       dataIndex: 'payment_file',
       title: '合同附件',
-      render:(_, record) => 
-        <a key="history"
-        onClick={() => {
-          window.open(record.payment_file, 'newindow');
-          // history.push(record.payment_file);
-        }}>
-            点此跳转
-        </a>,
+      render:(_, record) => {
+        if (isPDF(record.payment_file)) return <PdfPreview url={record.payment_file} />
+        if(isPicture(record.payment_file)) return <PicturePreview url={record.payment_file} />
+      }
+      
     },
     {
       dataIndex: 'finish_date',
@@ -287,19 +303,17 @@ const PaymentMonitorPage: React.FC = () => {
           },
         }}
         rowClassName={(record, index)=>{
-          console.log(record);
           return record.is_pay === 'true' ? styles.pay_row : styles.charge_row ;
         }}
         pagination={{
           pageSize: 5,
-          onChange: (page) => console.log(page),
         }}
         dateFormatter="string"
         toolBarRender={(action) => [
           <Access accessible={access.canCreatePaymentPlan}>
             <Button
               key="button"
-              onClick={() => {
+              onClick={async () => {
                 setModalVisible(true);
                 setMode(MODE.CREATE);
               }}
@@ -326,7 +340,7 @@ const PaymentMonitorPage: React.FC = () => {
             open={modalVisible}
             submitTimeout={2000}
             onFinish={async (values: any) => {
-              await runCreatePlan(values.contract_name, values.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].originFileObj, values.contract_date);
+              await runCreatePlan(values.contract_name, values.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].filename, values.contract_date);
               actionRef.current?.reload();
             }}
           >
@@ -391,6 +405,9 @@ const PaymentMonitorPage: React.FC = () => {
                 label="合同附件："
                 name="payment_file"
                 max={1}
+                fieldProps={{
+                  customRequest: (options)=>{upload(options.file, (isSuccess: boolean, filename: string) => handleUpload(isSuccess, filename, 'payment_file'))}
+                }}
                 rules={[{ required: true }]} 
               />
           </ModalForm>

@@ -6,7 +6,6 @@ const AccessPage: React.FC = () => {
   const access = useAccess();
   const { initialState, loading, error, refresh, setInitialState } =
     useModel('@@initialState');
-  console.log('initialState:', initialState, setInitialState)
   return (
     <PageContainer
       ghost

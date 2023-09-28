@@ -1,6 +1,6 @@
 import { SERVER_HOST } from '@/constants';
-import { ModalForm, PageContainer, ProFormDatePicker, ProFormInstance, ProFormText, ProFormUploadButton, ProFormUploadDragger } from '@ant-design/pro-components';
-import { Access, useAccess, useModel, useRequest, history } from '@umijs/max';
+import { PageContainer, ProFormInstance} from '@ant-design/pro-components';
+import { useAccess, useRequest, history } from '@umijs/max';
 import { Collapse, message, Image, Button } from 'antd';
 import type { CollapseProps } from 'antd';
 import axios from 'axios';

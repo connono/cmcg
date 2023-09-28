@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { SERVER_HOST } from '@/constants';
 import { useNavigate, useModel } from '@umijs/max';
+import { retrieveGetNewURL, retrievePutNewURL, upload } from '../../../utils/file-uploader';
 import _ from 'lodash';
 
 
@@ -68,7 +69,7 @@ const getSerialNumber = async () => {
   return await axios.get(`${SERVER_HOST}/equipment/serialNumber`);
 }
 
-const apply = async (serial_number: number, equipment: string, department: string, count: number, budget: number, apply_type: number, apply_picture: File) => {
+const apply = async (serial_number: number, equipment: string, department: string, count: number, budget: number, apply_type: number, apply_picture: string) => {
   const form = new FormData();
   form.append('serial_number', serial_number.toString());
   form.append('equipment', equipment);
@@ -85,7 +86,7 @@ const apply = async (serial_number: number, equipment: string, department: strin
   });
 }
 
-const survey = async (id: string, survey_date: Date, purchase_type: number, survey_record: string, meeting_record: string, survey_picture: File) => {
+const survey = async (id: string, survey_date: Date, purchase_type: number, survey_record: string, meeting_record: string, survey_picture: string) => {
   const form = new FormData();
   form.append('survey_date', formatDate(survey_date));
   form.append('purchase_type', purchase_type.toString());
@@ -100,7 +101,7 @@ const survey = async (id: string, survey_date: Date, purchase_type: number, surv
   });
 }
 
-const approve = async (id: string, approve_date: Date, execute_date: Date, approve_picture: File) => {
+const approve = async (id: string, approve_date: Date, execute_date: Date, approve_picture: string) => {
   const form = new FormData();
   form.append('approve_date', formatDate(approve_date));
   form.append('execute_date', formatDate(execute_date));
@@ -113,7 +114,7 @@ const approve = async (id: string, approve_date: Date, execute_date: Date, appro
   });
 }
 
-const tender = async (id: string, tender_date: Date, tender_file: File, tender_boardcast_file: File, tender_out_date: Date, bid_winning_file: File, send_tender_file: File) => {
+const tender = async (id: string, tender_date: Date, tender_file: string, tender_boardcast_file: string, tender_out_date: Date, bid_winning_file: string, send_tender_file: string) => {
   const form = new FormData();
   form.append('tender_date', formatDate(tender_date));
   form.append('tender_file', tender_file);
@@ -129,7 +130,7 @@ const tender = async (id: string, tender_date: Date, tender_file: File, tender_b
   });
 }
 
-const purchase = async (id: string, purchase_date: Date, arrive_date: Date, price: number, purchase_picture: File) => {
+const purchase = async (id: string, purchase_date: Date, arrive_date: Date, price: number, purchase_picture: string) => {
   const form = new FormData();
   form.append('purchase_date', formatDate(purchase_date));
   form.append('arrive_date', formatDate(arrive_date));
@@ -143,7 +144,7 @@ const purchase = async (id: string, purchase_date: Date, arrive_date: Date, pric
   });
 }
 
-const install = async (id: string, install_date: Date, install_picture: File) => {
+const install = async (id: string, install_date: Date, install_picture: string) => {
   const form = new FormData();
   form.append('install_date', formatDate(install_date));
   form.append('install_picture', install_picture);
@@ -176,7 +177,6 @@ const EquipmentDetailPage: React.FC = () => {
     })
   }
   const formRef = useRef<ProFormInstance>();
-  console.log(formRef);
   const [current, setCurrent] = useState<number>(0);
   const { run : runGetItem } = useRequest(getItem,{
     manual: true,
@@ -314,6 +314,23 @@ const EquipmentDetailPage: React.FC = () => {
     })
     setCurrent(current);
   }
+  
+  const handleUpload = (isSuccess: boolean, field: string) => {
+    const current_payment_file = formRef.current?.getFieldValue(field)[0];
+    if (isSuccess) {
+      formRef.current?.setFieldValue(field, [{
+        ...current_payment_file,
+        status: "done",
+        percent: 100,
+      }])
+    } else {
+      formRef.current?.setFieldValue(field, [{
+        ...current_payment_file,
+        status: "error",
+        percent: 100,
+      }])
+    }
+  }
 
   useEffect(()=>{
     if(method ==='create') {
@@ -384,7 +401,7 @@ const EquipmentDetailPage: React.FC = () => {
               const values = formRef.current?.getFieldsValue();
               confirm();
               //@ts-ignore
-              await runApply(equipmentItem.serial_number, values.equipment, values.department, values.count, values.budget, values.apply_type, values.apply_picture[0].originFileObj);
+              await runApply(equipmentItem.serial_number, values.equipment, values.department, values.count, values.budget, values.apply_type, values.apply_picture[0].filename);
               return true;
             }}
           >
@@ -428,7 +445,10 @@ const EquipmentDetailPage: React.FC = () => {
             <ProFormUploadDragger 
               label="上传图片：" 
               name="apply_picture" 
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'apply_picture'))}
+              }}
               max={1}
             />
           </StepsForm.StepForm>
@@ -438,7 +458,7 @@ const EquipmentDetailPage: React.FC = () => {
             disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runSurvey(id, values.survey_date, values.purchase_type, values.survey_record, values.meeting_record, values.survey_picture[0].originFileObj);
+              await runSurvey(id, values.survey_date, values.purchase_type, values.survey_record, values.meeting_record, values.survey_picture[0].filename);
               return true;
             }}
           >
@@ -470,6 +490,9 @@ const EquipmentDetailPage: React.FC = () => {
               label="执行单附件：" 
               name="survey_picture" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'survey_picture'))}
+              }}
               rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
@@ -481,7 +504,7 @@ const EquipmentDetailPage: React.FC = () => {
             disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runApprove(id, values.approve_date, values.execute_date, values.approve_picture[0].originFileObj);
+              await runApprove(id, values.approve_date, values.execute_date, values.approve_picture[0].filename);
               return true;
             }}
           >
@@ -501,6 +524,9 @@ const EquipmentDetailPage: React.FC = () => {
               label="执行单附件：" 
               name="approve_picture" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'approve_picture'))}
+              }}
               rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
@@ -512,7 +538,7 @@ const EquipmentDetailPage: React.FC = () => {
             disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runTender(id, values.tender_date, values.tender_file[0].originFileObj, values.tender_boardcast_file[0].originFileObj, values.tender_out_date, values.bid_winning_file[0].originFileObj, values.send_tender_file[0].originFileObj);
+              await runTender(id, values.tender_date, values.tender_file[0].filename, values.tender_boardcast_file[0].filename, values.tender_out_date, values.bid_winning_file[0].filename, values.send_tender_file[0].filename);
               return true;
             }}
           >
@@ -532,24 +558,36 @@ const EquipmentDetailPage: React.FC = () => {
               label="招标书附件：" 
               name="tender_file" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'tender_file'))}
+              }}
               rules={[{ required: true }]} 
             />
             <ProFormUploadDragger 
               label="招标公告附件：" 
               name="tender_boardcast_file" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'tender_boardcast_file'))}
+              }}
               rules={[{ required: true }]} 
             />
             <ProFormUploadDragger 
               label="中标通知书：" 
               name="bid_winning_file" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'bid_winning_file'))}
+              }}
               rules={[{ required: true }]} 
             />
             <ProFormUploadDragger 
               label="投标文件：" 
               name="send_tender_file" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'send_tender_file'))}
+              }}
               rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
@@ -559,7 +597,7 @@ const EquipmentDetailPage: React.FC = () => {
             disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runPurchase(id, values.purchase_date, values.arrive_date, values.price, values.purchase_picture[0].originFileObj);
+              await runPurchase(id, values.purchase_date, values.arrive_date, values.price, values.purchase_picture[0].filename);
               return true;
             }}
           >
@@ -585,6 +623,9 @@ const EquipmentDetailPage: React.FC = () => {
               label="合同附件：" 
               name="purchase_picture" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'purchase_picture'))}
+              }}
               rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
@@ -594,7 +635,7 @@ const EquipmentDetailPage: React.FC = () => {
             disabled={current<equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(id, values.install_date, values.install_picture[0].originFileObj);
+              await runInstall(id, values.install_date, values.install_picture[0].filename);
               return true;
             }}
           >
@@ -608,6 +649,9 @@ const EquipmentDetailPage: React.FC = () => {
               label="验收资料：" 
               name="install_picture" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'install_picture'))}
+              }}
               rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>

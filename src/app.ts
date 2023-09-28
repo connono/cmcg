@@ -75,7 +75,6 @@ export async function getInitialState(): Promise<{ id: number, name: string, per
         allRoles: allRoles,
       }
     } catch (error) {
-      console.log(error);
       localStorage.removeItem('access_token');
       message.error('登录已过期，请重新登录！');
       history.push('/login');

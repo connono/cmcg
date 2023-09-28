@@ -5,10 +5,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
   ProFormDatePicker,
-  ProFormSelect,
   ProFormText,
-  ProFormMoney,
-  ProFormTextArea,
   ProFormUploadDragger,
   StepsForm,
 } from '@ant-design/pro-components';
@@ -16,7 +13,8 @@ import { message, Button, Modal, Steps } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { SERVER_HOST } from '@/constants';
-import { useNavigate, useModel, useAccess, Access } from '@umijs/max';
+import { useAccess } from '@umijs/max';
+import { upload } from '../../../utils/file-uploader';
 import _ from 'lodash';
 
 
@@ -37,7 +35,7 @@ const getItem = async (id: string) => {
   return await axios.get(`${SERVER_HOST}/payment/records/getItem?id=${id}`);
 }
 
-const apply = async (plan_id: string, record_id: string, assessment: string, payment_voucher_file: File) => {
+const apply = async (plan_id: string, record_id: string, assessment: string, payment_voucher_file: string) => {
   const form = new FormData();
   form.append('method', 'apply');
   form.append('plan_id', plan_id);
@@ -62,7 +60,7 @@ const audit = async (plan_id: string, record_id: string) => {
   });
 }
 
-const process = async (plan_id: string, record_id: string, assessment_date: string, payment_file: File) => {
+const process = async (plan_id: string, record_id: string, assessment_date: string, payment_file: string) => {
   const form = new FormData();
   form.append('method', 'process');
   form.append('plan_id', plan_id);
@@ -198,13 +196,29 @@ const PaymentRecordDetailPage: React.FC = () => {
     setCurrent(current);
   }
 
+  const handleUpload = (isSuccess: boolean, field: string) => {
+    const current_payment_file = formRef.current?.getFieldValue(field)[0];
+    if (isSuccess) {
+      formRef.current?.setFieldValue(field, [{
+        ...current_payment_file,
+        status: "done",
+        percent: 100,
+      }])
+    } else {
+      formRef.current?.setFieldValue(field, [{
+        ...current_payment_file,
+        status: "error",
+        percent: 100,
+      }])
+    }
+  }
+
   useEffect(()=>{
     if(id) {
       runGetItem(id);
     } else {
       history.push('/paymentMonitor');
     }
-    console.log('history,', history);
 
   },[]);
   return (
@@ -264,7 +278,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                await runApply(plan_id, id, values.assessment, values.payment_voucher_file[0].originFileObj);
+                await runApply(plan_id, id, values.assessment, values.payment_voucher_file[0].filename);
                 return true;
               }
               
@@ -292,12 +306,16 @@ const PaymentRecordDetailPage: React.FC = () => {
               name="assessment"
               label={history.location.state.is_pay === 'true' ? '应付款金额' : '应收款金额'}
               width="md"
+              
               rules={[{ required: true }]}
             />
             <ProFormUploadDragger
               name="payment_voucher_file"
               label={history.location.state.is_pay === 'true' ? '付款凭证' : '收款凭证'}
               rules={[{ required: true }]}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'payment_voucher_file'))}
+              }}
               max={1}
             />
           </StepsForm.StepForm>
@@ -321,6 +339,9 @@ const PaymentRecordDetailPage: React.FC = () => {
               label="合同附件："
               disabled
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'contract_file'))}
+              }}
               initialValue={[{
                 uid: '0',
                 name: 'name',
@@ -349,7 +370,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                await runProcess(plan_id, id, values.assessment_date, values.payment_file[0].originFileObj);
+                await runProcess(plan_id, id, values.assessment_date, values.payment_file[0].filename);
                 return true;
               }
             }}
@@ -364,6 +385,9 @@ const PaymentRecordDetailPage: React.FC = () => {
               label="付款收据：" 
               name="payment_file" 
               max={1}
+              fieldProps={{
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'payment_file'))}
+              }}
               rules={[{ required: true }]} 
             />
           </StepsForm.StepForm>
