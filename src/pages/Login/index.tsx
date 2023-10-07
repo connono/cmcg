@@ -3,7 +3,7 @@ import axios from 'axios';
 import { message } from 'antd';
 import { PageContainer, ProForm, ProFormText } from '@ant-design/pro-components';
 import { useRequest, history } from '@umijs/max';
-import { SERVER_HOST } from '@/constants';
+import { SERVER_HOST, APPLICATION_HOST } from '@/constants';
 
 const login = async (username: string, password: string) => {
   return await axios({
@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
       if(result.access_token){
         localStorage.setItem('access_token', result.access_token);
         message.success('登录成功！正在跳转~');
-        history.push('/home');
+        window.location.replace(APPLICATION_HOST);
       } else {
         message.error('用户名或密码错误，请重试');
       }
