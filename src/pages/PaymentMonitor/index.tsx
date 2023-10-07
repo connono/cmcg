@@ -374,7 +374,7 @@ const PaymentMonitorPage: React.FC = () => {
               />
               <ProFormGroup>
                 <ProFormSelect
-                  label="所属科室"
+                  label="职能科室"
                   name="department"
                   request={departments}
                   rules={[{ required: true }]}

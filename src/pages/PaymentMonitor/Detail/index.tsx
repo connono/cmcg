@@ -94,8 +94,6 @@ const PaymentRecordDetailPage: React.FC = () => {
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
   const access = useAccess();
-
-  console.log('formRef:', formRef);
   
   const { run : runGetItem } = useRequest(getItem,{
     manual: true,
