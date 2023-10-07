@@ -1,4 +1,4 @@
-import { PageContainer, ProFormDigit, ProFormRadio } from '@ant-design/pro-components';
+import { PageContainer, ProFormDigit, ProFormItem, ProFormRadio } from '@ant-design/pro-components';
 //@ts-ignore
 import { useRequest, history } from '@umijs/max';
 import type { ProFormInstance } from '@ant-design/pro-components';
@@ -14,7 +14,9 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { SERVER_HOST } from '@/constants';
 import { useAccess } from '@umijs/max';
-import { upload } from '../../../utils/file-uploader';
+import { upload, isPDF, isPicture } from '../../../utils/file-uploader';
+import PdfPreview from '@/components/PdfPreview';
+import PicturePreview from '@/components/PicturePreview';
 import _ from 'lodash';
 
 
@@ -92,6 +94,8 @@ const PaymentRecordDetailPage: React.FC = () => {
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
   const access = useAccess();
+
+  console.log('formRef:', formRef);
   
   const { run : runGetItem } = useRequest(getItem,{
     manual: true,
@@ -196,21 +200,29 @@ const PaymentRecordDetailPage: React.FC = () => {
     setCurrent(current);
   }
 
-  const handleUpload = (isSuccess: boolean, field: string) => {
+  const handleUpload = (isSuccess: boolean, filename: string, field: string) => {
     const current_payment_file = formRef.current?.getFieldValue(field)[0];
     if (isSuccess) {
       formRef.current?.setFieldValue(field, [{
         ...current_payment_file,
         status: "done",
         percent: 100,
+        filename,
       }])
     } else {
       formRef.current?.setFieldValue(field, [{
         ...current_payment_file,
         status: "error",
         percent: 100,
+        filename,
       }])
     }
+  }
+
+  const preview = (payment_file: any) => {
+    if(!payment_file) return <div></div>;
+    if (isPDF(payment_file)) return <PdfPreview url={payment_file} />
+    if(isPicture(payment_file)) return <PicturePreview url={payment_file} />
   }
 
   useEffect(()=>{
@@ -225,7 +237,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     <PageContainer
       ghost
       header={{
-        title: '服务型付款流程记录',
+        title: '服务型收付款流程记录',
       }}
     >
       <ProCard>
@@ -314,7 +326,7 @@ const PaymentRecordDetailPage: React.FC = () => {
               label={history.location.state.is_pay === 'true' ? '付款凭证' : '收款凭证'}
               rules={[{ required: true }]}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'payment_voucher_file'))}
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean, filename: string) => handleUpload(isSuccess, filename, 'payment_voucher_file'))}
               }}
               max={1}
             />
@@ -334,21 +346,13 @@ const PaymentRecordDetailPage: React.FC = () => {
               
             }}
           >
-            <ProFormUploadDragger
-              name="contract_file"
+            <ProFormItem
               label="合同附件："
-              disabled
-              max={1}
-              fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'contract_file'))}
-              }}
-              initialValue={[{
-                uid: '0',
-                name: 'name',
-                status: 'done',
-                url: history.location.state.payment_file,
-              }]}
-            />
+            >
+              {
+                preview(history.location.state.payment_file)
+              }
+            </ProFormItem>
             <ProFormRadio.Group 
               name="audit"
               options={[{
@@ -386,7 +390,7 @@ const PaymentRecordDetailPage: React.FC = () => {
               name="payment_file" 
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'payment_file'))}
+                customRequest: (options)=>{upload(options.file, (isSuccess: boolean, filename: string) => handleUpload(isSuccess, filename, 'payment_file'))}
               }}
               rules={[{ required: true }]} 
             />

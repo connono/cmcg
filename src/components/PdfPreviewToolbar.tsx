@@ -13,13 +13,13 @@ const PdfPreviewToolbar: React.FC<Props> = (props) => {
 
   return (
     (<div style={{display:'flex'}}>
-      <div onClick={props.handleBack}>回退</div>
-      <div onClick={props.handleForward}>前进</div>
+      <div onClick={props.handleBack} style={{marginRight: '10px'}}>前一页</div>
+      <div onClick={props.handleForward} style={{marginRight: '10px'}}>后一页</div>
       <p>
           当前页面： {props.pageNumber} 总页数： {props.numPages}
       </p>
-      <div onClick={props.handleShrink}>缩小</div>
-      <div onClick={props.handleAlt}>放大</div>
+      <div onClick={props.handleShrink} style={{marginRight: '10px'}}>缩小</div>
+      <div onClick={props.handleAlt} style={{marginRight: '10px'}}>放大</div>
     </div>)
   );
 };

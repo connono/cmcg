@@ -10,6 +10,7 @@ import {
   ProFormDatePicker,
   ProFormGroup,
   ActionType,
+  ProFormSelect,
 } from '@ant-design/pro-components';
 import { Access, useAccess, useRequest, history } from '@umijs/max';
 import { Button, message } from 'antd';
@@ -72,6 +73,10 @@ const createRecord = async (contract_name: string, department: string, company: 
   });
 }
 
+const getAllDepartments = async () => {
+  return await axios.get(`${SERVER_HOST}/department/index`);
+}
+
 const PaymentMonitorPage: React.FC = () => {
   const access = useAccess();
   const formRef = useRef<ProFormInstance>();
@@ -122,6 +127,15 @@ const PaymentMonitorPage: React.FC = () => {
     },
   });
 
+  const { run : runGetAllDepartments } = useRequest(getAllDepartments, {
+    manual: true,
+    onSuccess: (result, params) => {
+    },
+    onError: (error) => {
+      message.error(error.message);
+    }
+  });
+
   const handleUpload = (isSuccess: boolean, filename: string, field: string) => {
     const current_payment_file = formRef.current?.getFieldValue(field)[0];
     if (isSuccess) {
@@ -141,8 +155,16 @@ const PaymentMonitorPage: React.FC = () => {
     }
   }
 
-  console.log('formRef:', formRef);
-  console.log('previewRef:', previewRef);
+  const departments = async () => {
+    const {data : departmentsData} = await runGetAllDepartments();
+    const data =  _.map(departmentsData, (value: any, index: any) => {
+      return {
+        value: value.name,
+        label: value.label,
+      }
+    })
+    return data;
+  }
 
   const columns: ProColumns<any>[] = [
     {
@@ -237,7 +259,7 @@ const PaymentMonitorPage: React.FC = () => {
           update = (<a
                       key="update"
                       onClick={() => {
-                        history.push(`/paymentMonitor/detail#$apply&${record.id}&${record.current_payment_record_id}`,record);
+                        history.push(`/paymentMonitor/detail#apply&${record.id}&${record.current_payment_record_id}`,record);
                       }}
                     >
                       待申请
@@ -246,7 +268,7 @@ const PaymentMonitorPage: React.FC = () => {
           update = (<a
                       key="update"
                       onClick={() => {
-                        history.push(`/paymentMonitor/detail#$audit&${record.id}&${record.current_payment_record_id}`,record);
+                        history.push(`/paymentMonitor/detail#audit&${record.id}&${record.current_payment_record_id}`,record);
                       }}
                     >
                       待审核
@@ -255,7 +277,7 @@ const PaymentMonitorPage: React.FC = () => {
           update = (<a
                       key="update"
                       onClick={() => {
-                        history.push(`/paymentMonitor/detail#$process&${record.id}&${record.current_payment_record_id}`,record);
+                        history.push(`/paymentMonitor/detail#process&${record.id}&${record.current_payment_record_id}`,record);
                       }}
                     >
                       {record.is_pay === 'true' ? '付款' : '收款'}
@@ -351,10 +373,10 @@ const PaymentMonitorPage: React.FC = () => {
                 rules={[{ required: true }]}
               />
               <ProFormGroup>
-                <ProFormText
-                  width="md"
+                <ProFormSelect
+                  label="所属科室"
                   name="department"
-                  label="职能科室"
+                  request={departments}
                   rules={[{ required: true }]}
                 />
                 <ProFormText
