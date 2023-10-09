@@ -1,9 +1,10 @@
 // 运行时配置
 import { RequestConfig, history } from 'umi';
 import { message, notification } from 'antd';
+import { RunTimeLayoutConfig } from '@umijs/max';
 import axios from 'axios';
 import _ from 'lodash';
-import { SERVER_HOST } from '@/constants';
+import { SERVER_HOST, APPLICATION_HOST } from '@/constants';
 
 
 const getUser = async (token: string) => {
@@ -98,12 +99,17 @@ export async function getInitialState(): Promise<{ id: number, name: string, per
   }
 }
 
-export const layout = () => {
+export const layout: RunTimeLayoutConfig = (initialState: any) => {
   return {
     logo: 'https://img.alicdn.com/tfs/TB1YHEpwUT1gK0jSZFhXXaAtVXa-28-27.svg',
     menu: {
       locale: false,
     },
+    logout: (initialState) => {
+      localStorage.removeItem('access_token');
+      message.success('已退出登录');
+      window.location.replace(`${APPLICATION_HOST}/login`);
+    }
   };
 };
 

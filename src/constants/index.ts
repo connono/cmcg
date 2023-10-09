@@ -37,4 +37,4 @@ export const DEFAULT_EQUIPMENT_RECORD_ITEM = {
 }
 
 export const SERVER_HOST = "http://homestead.test/api/v1";
-export const APPLICATION_HOST= "http://localhost:8001";
+export const APPLICATION_HOST= "http://localhost:8000";

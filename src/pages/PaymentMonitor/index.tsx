@@ -259,7 +259,11 @@ const PaymentMonitorPage: React.FC = () => {
           update = (<a
                       key="update"
                       onClick={() => {
-                        history.push(`/paymentMonitor/detail#apply&${record.id}&${record.current_payment_record_id}`,record);
+                        if (!access.canApplyPaymentRecord) {
+                          message.error('你无权进行此操作');                      
+                        } else {
+                          history.push(`/paymentMonitor/detail#apply&${record.id}&${record.current_payment_record_id}`,record);
+                        }
                       }}
                     >
                       待申请
@@ -268,7 +272,11 @@ const PaymentMonitorPage: React.FC = () => {
           update = (<a
                       key="update"
                       onClick={() => {
-                        history.push(`/paymentMonitor/detail#audit&${record.id}&${record.current_payment_record_id}`,record);
+                        if (!access.canAuditPaymentRecord){
+                          message.error('你无权进行此操作');
+                        } else {
+                          history.push(`/paymentMonitor/detail#audit&${record.id}&${record.current_payment_record_id}`,record);
+                        }
                       }}
                     >
                       待审核
@@ -277,7 +285,11 @@ const PaymentMonitorPage: React.FC = () => {
           update = (<a
                       key="update"
                       onClick={() => {
-                        history.push(`/paymentMonitor/detail#process&${record.id}&${record.current_payment_record_id}`,record);
+                        if (!access.canProcessPaymentRecord) {
+                          message.error('你无权进行此操作');
+                        } else {
+                          history.push(`/paymentMonitor/detail#process&${record.id}&${record.current_payment_record_id}`,record);
+                        }
                       }}
                     >
                       {record.is_pay === 'true' ? '付款' : '收款'}
@@ -288,7 +300,7 @@ const PaymentMonitorPage: React.FC = () => {
           <a 
             key="delete"
             onClick={async () => {
-              if (!access.canUpdatePaymentPlan) {
+              if (!access.canDeletePaymentPlan) {
                 message.error('你无权进行此操作');
               } else {
                 await runDeletePlan(record.id);

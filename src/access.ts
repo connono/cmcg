@@ -14,6 +14,7 @@ export default (initialState: API.UserToken) => {
   const canSeePaymentMonitor =  permissions && permissions.has('can_see_payment_monitor');
   const canCreatePaymentPlan =  permissions && permissions.has('can_create_payment_plan');
   const canUpdatePaymentPlan =  permissions && permissions.has('can_update_payment_plan');
+  const canDeletePaymentPlan =  permissions && permissions.has('can_delete_payment_plan');
   const canApplyPaymentRecord =  permissions && permissions.has('can_apply_payment_record');
   const canAuditPaymentRecord =  permissions && permissions.has('can_audit_payment_record');
   const canProcessPaymentRecord = permissions && permissions.has('can_process_payment_record');
@@ -29,6 +30,7 @@ export default (initialState: API.UserToken) => {
     canSeePaymentMonitor,
     canCreatePaymentPlan,
     canUpdatePaymentPlan,
+    canDeletePaymentPlan,
     canApplyPaymentRecord,
     canAuditPaymentRecord,
     canProcessPaymentRecord,

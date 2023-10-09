@@ -28,7 +28,7 @@ export function upload(file, handleUpload) {
 // `retrieveNewURL` accepts the name of the current file and invokes the `/presignedUrl` endpoint to
 // generate a pre-signed URL for use in uploading that file: 
 export function retrievePutNewURL(file, filename, cb) {
-    fetch(`http://localhost:3000/presignedPutUrl?name=${filename}`).then((response) => {
+    fetch(`http://10.10.0.27:3300/presignedPutUrl?name=${filename}`).then((response) => {
         response.text().then((url) => {
             cb(file, url);
         });
@@ -56,7 +56,7 @@ export function uploadFile(file, url, handleUpload, filename) {
 }
 
 export function retrieveGetNewURL(name, cb) {
-    fetch(`http://localhost:3000/presignedGetUrl?name=${name}`).then((response) => {
+    fetch(`http://10.10.0.27:3300/presignedGetUrl?name=${name}`).then((response) => {
         response.text().then((body) => {
             cb(body);
         });

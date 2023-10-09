@@ -8,16 +8,23 @@ import { SERVER_HOST } from '@/constants';
 import React, { useEffect, useState } from 'react';
 import _ from 'lodash';
 
-const getNotificationsList = async () => {
-  return await axios.get(`${SERVER_HOST}/notifications/index`);
+const getNotificationsList = async (id?: string) => {
+  return await axios({
+    method: 'GET',
+    url: `${SERVER_HOST}/notifications/index/${id}`
+  }).then((response) => {
+    return response.data;
+  }).catch((err) => {
+    message.error(err);
+  });
 }
 
 const NotificationCard: React.FC = (props: any) => {
   if (!props.data) return (<div></div>);
   const listTitleMap = new Map([
-    ["can_audit_paymentplan", "待审核"],
-    ["can_process_paymentplan", "待收款"],
-    ["can_apply_paymentplan", "待申请"],
+    ["can_audit_payment_record", "待审核"],
+    ["can_process_payment_record", "待收款"],
+    ["can_apply_payment_record", "待申请"],
   ]);
   const procardlists = _.map(props.data, (value: any, key: any) => {
     const procardlist = _.map(value, (v: any, k: any) => {
@@ -51,12 +58,13 @@ const NotificationCard: React.FC = (props: any) => {
 }
 
 const HomePage: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
   const { userToken } = useModel('userToken');
   const [notificationData, setNotificationData] = useState([]);
   const { run : runGetNotificationsList } = useRequest(getNotificationsList, {
     manual: true,
-    onSuccess: (result, params) => {
-      const notificaitons = _.map(result.data, (value: any, key: any)=>{
+    onSuccess: (result: any, params: any) => {
+      const notificaitons = _.map(result, (value: any, key: any)=>{
         const data =  JSON.parse(value.body);
         return {
           notification_id : value.id,
@@ -69,12 +77,12 @@ const HomePage: React.FC = () => {
       const group_notificaitons = _.groupBy(notificaitons,  'permission');
       setNotificationData(group_notificaitons);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       message.error(error.message);
     }
   });
   useEffect(()=>{
-    runGetNotificationsList();
+    runGetNotificationsList(initialState?.id);
   },[]);
   return (
     <PageContainer ghost>
