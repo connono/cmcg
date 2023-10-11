@@ -380,7 +380,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                await runProcess(plan_id, id, values.assessment_date, values.payment_file[0].filename);
+                await runProcess(plan_id, id, values.assessment_date.format('YYYY-MM-DD'), values.payment_file[0].filename);
                 return true;
               }
             }}

@@ -51,6 +51,10 @@ const createPlan = async (contract_name: string, department?: string, company: s
   });
 }
 
+const stopPlan = async (id: number) => {
+  return await axios.get(`${SERVER_HOST}/payment/plans/stop/${id}`);
+}
+
 const deletePlan = async (id: number) => {
   return await axios.delete(`${SERVER_HOST}/payment/plans/delete/${id}`);
 }
@@ -104,6 +108,16 @@ const PaymentMonitorPage: React.FC = () => {
     onSuccess: (result, params) => {
       message.success('提交计划成功');
       setModalVisible(false);
+    },
+    onError: (error) => {
+      message.error(error.message);
+    }
+  });
+
+  const { run : runStopPlan } = useRequest(stopPlan, {
+    manual: true,
+    onSuccess: (result, params) => {
+      message.success('中止计划成功');
     },
     onError: (error) => {
       message.error(error.message);
@@ -189,7 +203,7 @@ const PaymentMonitorPage: React.FC = () => {
       render:(_, record) => 
         <a key="history"
           onClick={() => {
-            history.push(`/paymentRecord#${record.id}`);
+            history.push(`/paymentRecord#${record.id}`, record);
           }}>
           {_}
         </a>,
@@ -285,6 +299,19 @@ const PaymentMonitorPage: React.FC = () => {
         }
         return [
           update,
+          <a 
+            key="stop"
+            onClick={async () => {
+              if(!access.canStopPaymentRecord) {
+                message.error('你无权进行此操作');
+              } else {
+                await runStopPlan(record.id);
+                action?.reload();
+              }
+            }}
+          >
+            中止
+          </a>,
           <a 
             key="delete"
             onClick={async () => {
