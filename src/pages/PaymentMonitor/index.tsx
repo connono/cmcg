@@ -12,7 +12,7 @@ import {
   ActionType,
   ProFormSelect,
 } from '@ant-design/pro-components';
-import { Access, useAccess, useRequest, history } from '@umijs/max';
+import { Access, useAccess, useRequest, history, useModel } from '@umijs/max';
 import { Button, message } from 'antd';
 import axios from 'axios';
 import { SERVER_HOST } from '@/constants';
@@ -31,11 +31,8 @@ const formatBoolean = (bool: boolean) => {
   return bool ? "true" : "false";
 }
 
-const getPlansList = async () => {
-  return await axios.get(`${SERVER_HOST}/payment/plans/index`);
-}
 
-const createPlan = async (contract_name: string, department: string, company: string, category: string, is_pay: boolean, finish_date: string, payment_file: string, contract_date: string) => {
+const createPlan = async (contract_name: string, department?: string, company: string, category: string, is_pay: boolean, finish_date: string, payment_file: string, contract_date: string) => {
   const form = new FormData();
   form.append('contract_name', contract_name);
   form.append('department', department);
@@ -73,10 +70,6 @@ const createRecord = async (contract_name: string, department: string, company: 
   });
 }
 
-const getAllDepartments = async () => {
-  return await axios.get(`${SERVER_HOST}/department/index`);
-}
-
 const PaymentMonitorPage: React.FC = () => {
   const access = useAccess();
   const formRef = useRef<ProFormInstance>();
@@ -85,6 +78,17 @@ const PaymentMonitorPage: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [mode, setMode] = useState<MODE>(MODE.CREATE);
   const [selectedRecord, setSelectedRecord] = useState<any>({});
+  const { initialState } = useModel('@@initialState');
+
+  const getPlansList = async () => {
+    return await axios({
+      method: 'GET',
+      params: {
+        department: initialState?.department
+      },
+      url: `${SERVER_HOST}/payment/plans/index`,
+    })
+  }
 
   const { run : runGetPlansList } = useRequest(getPlansList, {
     manual: true,
@@ -127,15 +131,6 @@ const PaymentMonitorPage: React.FC = () => {
     },
   });
 
-  const { run : runGetAllDepartments } = useRequest(getAllDepartments, {
-    manual: true,
-    onSuccess: (result, params) => {
-    },
-    onError: (error) => {
-      message.error(error.message);
-    }
-  });
-
   const handleUpload = (isSuccess: boolean, filename: string, field: string) => {
     const current_payment_file = formRef.current?.getFieldValue(field)[0];
     if (isSuccess) {
@@ -153,17 +148,6 @@ const PaymentMonitorPage: React.FC = () => {
         filename,
       }])
     }
-  }
-
-  const departments = async () => {
-    const {data : departmentsData} = await runGetAllDepartments();
-    const data =  _.map(departmentsData, (value: any, index: any) => {
-      return {
-        value: value.name,
-        label: value.label,
-      }
-    })
-    return data;
   }
 
   const columns: ProColumns<any>[] = [
@@ -241,7 +225,10 @@ const PaymentMonitorPage: React.FC = () => {
       render: (text, record, _, action) => {
         let update;
         if (record.status === 'wait') {
-          update = (<a
+          if (record.next_date) {
+            update = (<span>已设置</span>)
+          } else {
+            update = (<a
                       key="update"
                       onClick={() => {
                         if (!access.canUpdatePaymentPlan) {
@@ -255,6 +242,7 @@ const PaymentMonitorPage: React.FC = () => {
                     >
                       设置下次时间
                     </a>)
+          }
         } else if (record.status === 'apply') {
           update = (<a
                       key="update"
@@ -374,7 +362,7 @@ const PaymentMonitorPage: React.FC = () => {
             open={modalVisible}
             submitTimeout={2000}
             onFinish={async (values: any) => {
-              await runCreatePlan(values.contract_name, values.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].filename, values.contract_date);
+              await runCreatePlan(values.contract_name, initialState?.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].filename, values.contract_date);
               actionRef.current?.reload();
             }}
           >
@@ -384,43 +372,38 @@ const PaymentMonitorPage: React.FC = () => {
                 label="合同名称"
                 rules={[{ required: true }]}
               />
-              <ProFormGroup>
-                <ProFormSelect
-                  label="职能科室"
-                  name="department"
-                  request={departments}
-                  rules={[{ required: true }]}
-                />
-                <ProFormText
-                  width="md"
-                  name="company"
-                  label="合作商户"
-                  rules={[{ required: true }]}
-                />
-              </ProFormGroup>
-              
+
               <ProFormText
                 width="md"
-                name="category"
-                label="收款/付款种类"
+                name="company"
+                label="合作商户"
                 rules={[{ required: true }]}
               />
-              <ProFormRadio.Group
-                width="md"
-                name="is_pay"
-                label="收款/付款"
-                options={[
-                  {
-                    label: '收款',
-                    value: false,
-                  },
-                  {
-                    label: '付款',
-                    value: true,
-                  }
-                ]}
-                rules={[{ required: true }]} 
-              />
+              <ProFormGroup>
+                <ProFormText
+                  width="md"
+                  name="category"
+                  label="收款/付款种类"
+                  rules={[{ required: true }]}
+                />
+                <ProFormRadio.Group
+                  width="md"
+                  name="is_pay"
+                  label="收款/付款"
+                  options={[
+                    {
+                      label: '收款',
+                      value: false,
+                    },
+                    {
+                      label: '付款',
+                      value: true,
+                    }
+                  ]}
+                  rules={[{ required: true }]} 
+                />  
+              </ProFormGroup>
+              
               <ProFormGroup>
                 <ProFormDatePicker
                   name="contract_date"

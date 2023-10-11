@@ -351,6 +351,14 @@ const PaymentRecordDetailPage: React.FC = () => {
                 preview(history.location.state.payment_file)
               }
             </ProFormItem>
+            <ProFormItem
+              label="收款凭证："
+            >
+              {
+                // @ts-ignore
+                paymentRecord?.payment_voucher_file ? preview(paymentRecord.payment_voucher_file) : <span>找不到该文件</span>
+              }
+            </ProFormItem>
             <ProFormRadio.Group 
               name="audit"
               options={[{

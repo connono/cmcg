@@ -53,11 +53,12 @@ const getAllRoles = async () => {
 
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
-export async function getInitialState(): Promise<{ id: number, name: string, permissions: Set<string>, allRoles: string[] }> {
+export async function getInitialState(): Promise<{ id: number, name: string, department: string, permissions: Set<string>, allRoles: string[] }> {
   if (history.location.pathname === '/login') {
     return {
       id: -1,
       name: '',
+      department: '',
       permissions: new Set(),
       allRoles: [],
     }
@@ -72,6 +73,7 @@ export async function getInitialState(): Promise<{ id: number, name: string, per
       return {
         id: data.id,
         name: data.name,
+        department: data.department,
         permissions: permissions ? permissions : new Set(),
         allRoles: allRoles,
       }
@@ -82,6 +84,7 @@ export async function getInitialState(): Promise<{ id: number, name: string, per
       return {
         id: -1,
         name: '',
+        department: '',
         permissions: new Set(),
         allRoles: [],
       }
