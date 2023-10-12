@@ -389,8 +389,14 @@ const PaymentMonitorPage: React.FC = () => {
             open={modalVisible}
             submitTimeout={2000}
             onFinish={async (values: any) => {
-              await runCreatePlan(values.contract_name, initialState?.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].filename, values.contract_date);
-              actionRef.current?.reload();
+              if (formRef.current?.getFieldValue('payment_file')[0].status === 'done') {
+                await runCreatePlan(values.contract_name, initialState?.department, values.company, values.category, values.is_pay, values.finish_date, values.payment_file[0].filename, values.contract_date);
+                actionRef.current?.reload();
+              } else if(formRef.current?.getFieldValue('payment_file')[0].status === 'error') {
+                message.error('文件上传失败');
+              } else {
+                message.error('文件上传中，请等待');
+              }
             }}
           >
               <ProFormText

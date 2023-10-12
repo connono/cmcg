@@ -288,10 +288,14 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                await runApply(plan_id, id, values.assessment, values.payment_voucher_file[0].filename);
-                return true;
+                if (formRef.current?.getFieldValue('payment_voucher_file')[0].status === 'done') {
+                  await runApply(plan_id, id, values.assessment, values.payment_voucher_file[0].filename);
+                } else if(formRef.current?.getFieldValue('payment_voucher_file')[0].status === 'error') {
+                  message.error('文件上传失败');
+                } else {
+                  message.error('文件上传中，请等待');
+                }
               }
-              
             }}
           >
             <ProFormText
@@ -380,8 +384,13 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                await runProcess(plan_id, id, values.assessment_date.format('YYYY-MM-DD'), values.payment_file[0].filename);
-                return true;
+                if (formRef.current?.getFieldValue('payment_file')[0].status === 'done') {
+                  await runProcess(plan_id, id, values.assessment_date.format('YYYY-MM-DD'), values.payment_file[0].filename);
+                } else if(formRef.current?.getFieldValue('payment_file')[0].status === 'error') {
+                  message.error('文件上传失败');
+                } else {
+                  message.error('文件上传中，请等待');
+                }
               }
             }}
           >
