@@ -1,9 +1,10 @@
 import React from 'react';
 import axios from 'axios';
-import { message } from 'antd';
+import { message, Row, Col } from 'antd';
 import { PageContainer, ProForm, ProFormText } from '@ant-design/pro-components';
 import { useRequest, history } from '@umijs/max';
 import { SERVER_HOST, APPLICATION_HOST } from '@/constants';
+import './index.less';
 
 const login = async (username: string, password: string) => {
   return await axios({
@@ -34,36 +35,53 @@ const LoginPage: React.FC = () => {
   })
     
     return (
-      <PageContainer ghost>
-        <div className='login-container'>
-            <div className='background' />
-            <div className='login-title'>医疗设备采购管理系统</div>
-            <div className='login-form'>
-                <ProForm
-                    name="login"
-                    submitter={{
-                      resetButtonProps: {
-                        style: {
-                          display: 'none',
-                        }
-                      }
-                    }}
+      <PageContainer className='page-container' ghost>
+        <div className='absolute-container'>
+          <div className='relative-container'>
+            <Row className='login-row'>
+              <Col span={7}></Col>
+              <Col span={10}>
+                <div className='login-container'>
+                  <div className='login-title'>医疗设备采购管理系统</div>
+                  <div className='login-form'>
+                      <ProForm
+                          name="login"
+                          submitter={{
+                            resetButtonProps: {
+                              style: {
+                                display: 'none',
+                              }
+                            },
+                            submitButtonProps: {
+                              style: {
+                                width: '200px',
+                              }
+                            }
+                          }}
 
-                    onFinish={(values)=>runLogin(values.username, values.password)}
-                >
-                    <ProFormText
-                      name="username"
-                      width="sm"
-                      label="用户名"
-                    /> 
-                    <ProFormText.Password
-                      name="password"
-                      width="sm"
-                      label="密码"
-                    /> 
-                </ProForm>
-            </div>
+                          onFinish={(values)=>runLogin(values.username, values.password)}
+                      >
+                          <ProFormText
+                            name="username"
+                            width="sm"
+                            label="用户名"
+                          /> 
+                          <ProFormText.Password
+                            name="password"
+                            width="sm"
+                            label="密码"
+                          /> 
+                      </ProForm>
+                  </div>
+                </div> 
+              </Col>
+              <Col span={7}></Col>
+            </Row>
           </div>
+            
+        </div>
+        
+
       </PageContainer>
     )
 }

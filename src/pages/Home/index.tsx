@@ -1,5 +1,3 @@
-import Guide from '@/components/Guide';
-import { trim } from '@/utils/format';
 import { Badge, Button, message } from 'antd';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { history, useModel, useRequest } from '@umijs/max';
