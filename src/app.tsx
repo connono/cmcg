@@ -106,6 +106,7 @@ export async function getInitialState(): Promise<{
     return {
       id: -1,
       name: '',
+      department: '',
       permissions: new Set(),
       allRoles: [],
     };
