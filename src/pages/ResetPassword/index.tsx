@@ -1,15 +1,14 @@
-import { 
+import { SERVER_HOST } from '@/constants';
+import type { ProFormInstance } from '@ant-design/pro-components';
+import {
   PageContainer,
   ProForm,
   ProFormText,
 } from '@ant-design/pro-components';
-import { useRef } from 'react';
-import { Access, useAccess, useModel, useRequest } from '@umijs/max';
-import axios from 'axios';
+import { useModel, useRequest } from '@umijs/max';
 import { message } from 'antd';
-import { SERVER_HOST } from '@/constants';
-import type { ProFormInstance } from '@ant-design/pro-components';
-
+import axios from 'axios';
+import { useRef } from 'react';
 
 const resetPassword = async (id: number, password: number) => {
   return await axios({
@@ -18,24 +17,23 @@ const resetPassword = async (id: number, password: number) => {
       password,
     },
     url: `${SERVER_HOST}/users/reset/${id}`,
-  })
-}
+  });
+};
 
 const ResetPasswordPage: React.FC = () => {
-  const access = useAccess();
   const formRef = useRef<ProFormInstance>();
   const { initialState } = useModel('@@initialState');
-  const { run : runResetPassword } = useRequest(resetPassword, {
+  const { run: runResetPassword } = useRequest(resetPassword, {
     manual: true,
-    onSuccess: (result, params) => {
+    onSuccess: () => {
       formRef.current?.setFieldValue('password', '');
       message.success('重置密码成功');
     },
     onError: (error) => {
       message.error(error.message);
-    }
+    },
   });
-  
+
   return (
     <PageContainer
       ghost
@@ -50,11 +48,13 @@ const ResetPasswordPage: React.FC = () => {
           resetButtonProps: {
             style: {
               display: 'none',
-            }
-          }
+            },
+          },
         }}
         // @ts-ignore
-        onFinish={ async (values)=> await runResetPassword(initialState?.id, values.password)}
+        onFinish={async (values) =>
+          await runResetPassword(initialState?.id, values.password)
+        }
       >
         <ProFormText
           name="username"
@@ -62,12 +62,8 @@ const ResetPasswordPage: React.FC = () => {
           label="用户名"
           initialValue={initialState?.name}
           disabled
-        /> 
-        <ProFormText.Password
-          name="password"
-          width="sm"
-          label="密码"
-        /> 
+        />
+        <ProFormText.Password name="password" width="sm" label="密码" />
       </ProForm>
     </PageContainer>
   );

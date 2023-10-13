@@ -1,5 +1,4 @@
 import { defineConfig } from '@umijs/max';
-import customRightRender from './src/components/CustomMenuRightRender';
 
 export default defineConfig({
   antd: {},

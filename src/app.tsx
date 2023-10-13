@@ -1,11 +1,10 @@
 // 运行时配置
-import { RequestConfig, history } from 'umi';
-import { message, notification } from 'antd';
+import { APPLICATION_HOST, SERVER_HOST } from '@/constants';
 import { RunTimeLayoutConfig } from '@umijs/max';
+import { message, notification } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
-import { SERVER_HOST, APPLICATION_HOST } from '@/constants';
-
+import { RequestConfig, history } from 'umi';
 
 const getUser = async (token: string) => {
   return await axios({
@@ -13,47 +12,59 @@ const getUser = async (token: string) => {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    url: `${SERVER_HOST}/user`
-  }).then((response) => {
-    return response.data.data;
-  }).catch((err) => {
-    message.error(err);
-  });
-}
+    url: `${SERVER_HOST}/user`,
+  })
+    .then((response) => {
+      return response.data.data;
+    })
+    .catch((err) => {
+      message.error(err);
+    });
+};
 
 const getPermissions = async (id: number) => {
   return await axios({
     method: 'GET',
     url: `${SERVER_HOST}/permissions/${id}`,
-  }).then((response)=>{
-    if(response.data.length!==0){
-      const permissions = new Set();
-      _.forEach(response.data, (value: any, key: any)=>{
-        return permissions.add(value.name);
-      })
-      return permissions;
-    } else {
-      return new Set();
-    }
-  }).catch((err) => {
-    message.error(err);
-  });
-}
+  })
+    .then((response) => {
+      if (response.data.length !== 0) {
+        const permissions = new Set();
+        _.forEach(response.data, (value: any) => {
+          return permissions.add(value.name);
+        });
+        return permissions;
+      } else {
+        return new Set();
+      }
+    })
+    .catch((err) => {
+      message.error(err);
+    });
+};
 
 const getAllRoles = async () => {
   return await axios({
     method: 'GET',
     url: `${SERVER_HOST}/allRoles`,
-  }).then((response)=>{
-    return response.data;
-  }).catch((err) => {
-    message.error(err);
-  });
-}
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      message.error(err);
+    });
+};
 
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
-export async function getInitialState(): Promise<{ id: number, name: string, department: string, permissions: Set<string>, allRoles: string[] }> {
+export async function getInitialState(): Promise<{
+  id: number;
+  name: string;
+  department: string;
+  permissions: Set<string>;
+  allRoles: string[];
+}> {
   if (history.location.pathname === '/login') {
     return {
       id: -1,
@@ -61,7 +72,7 @@ export async function getInitialState(): Promise<{ id: number, name: string, dep
       department: '',
       permissions: new Set(),
       allRoles: [],
-    }
+    };
   } else if (localStorage.getItem('access_token')) {
     const access_token = localStorage.getItem('access_token');
     let data, permissions, allRoles;
@@ -76,7 +87,7 @@ export async function getInitialState(): Promise<{ id: number, name: string, dep
         department: data.department,
         permissions: permissions ? permissions : new Set(),
         allRoles: allRoles,
-      }
+      };
     } catch (error) {
       localStorage.removeItem('access_token');
       message.error('登录已过期，请重新登录！');
@@ -87,9 +98,8 @@ export async function getInitialState(): Promise<{ id: number, name: string, dep
         department: '',
         permissions: new Set(),
         allRoles: [],
-      }
+      };
     }
-    
   } else {
     message.error('请先登录再访问');
     history.push('./login');
@@ -98,21 +108,21 @@ export async function getInitialState(): Promise<{ id: number, name: string, dep
       name: '',
       permissions: new Set(),
       allRoles: [],
-    }
+    };
   }
 }
 
-export const layout: RunTimeLayoutConfig = (initialState: any) => {
+export const layout: RunTimeLayoutConfig = () => {
   return {
     logo: 'https://img.alicdn.com/tfs/TB1YHEpwUT1gK0jSZFhXXaAtVXa-28-27.svg',
     menu: {
       locale: false,
     },
-    logout: (initialState) => {
+    logout: () => {
       localStorage.removeItem('access_token');
       message.success('已退出登录');
       window.location.replace(`${APPLICATION_HOST}/login`);
-    }
+    },
   };
 };
 
@@ -137,7 +147,7 @@ interface ResponseStructure {
 export const request: RequestConfig = {
   // 统一的请求设定
   timeout: 1000,
-  headers: {'X-Requested-With': 'XMLHttpRequest'},
+  headers: { 'X-Requested-With': 'XMLHttpRequest' },
 
   // 错误处理： umi@3 的错误处理方案。
   errorConfig: {
@@ -196,28 +206,27 @@ export const request: RequestConfig = {
         message.error('Request error, please retry.');
       }
     },
-
   },
 
   // 请求拦截器
   requestInterceptors: [
     (config: any) => {
-    // 拦截请求配置，进行个性化处理。
+      // 拦截请求配置，进行个性化处理。
       const url = config.url.concat('?token = 123');
-      return { ...config, url};
-    }
+      return { ...config, url };
+    },
   ],
 
   // 响应拦截器
   responseInterceptors: [
     (response) => {
-       // 拦截响应数据，进行个性化处理
-       const { data } = response;
-       // @ts-ignore
-       if(!data.success){
-         message.error('请求失败！');
-       }
-       return response;
-    }
-  ]
+      // 拦截响应数据，进行个性化处理
+      const { data } = response;
+      // @ts-ignore
+      if (!data.success) {
+        message.error('请求失败！');
+      }
+      return response;
+    },
+  ],
 };

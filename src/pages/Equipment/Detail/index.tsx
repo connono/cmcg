@@ -1,75 +1,94 @@
 import { PageContainer } from '@ant-design/pro-components';
 //@ts-ignore
-import { useRequest, history } from '@umijs/max';
+import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
   ProFormDatePicker,
+  ProFormMoney,
   ProFormSelect,
   ProFormText,
-  ProFormMoney,
   ProFormTextArea,
   ProFormUploadDragger,
   StepsForm,
 } from '@ant-design/pro-components';
-import { message, Button, Modal, Steps } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { history, useModel, useRequest } from '@umijs/max';
+import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
-import { SERVER_HOST } from '@/constants';
-import { useNavigate, useModel } from '@umijs/max';
-import { retrieveGetNewURL, retrievePutNewURL, upload } from '../../../utils/file-uploader';
 import _ from 'lodash';
+import { useEffect, useRef, useState } from 'react';
+import { upload } from '../../../utils/file-uploader';
 
+export const departmentData = [
+  {
+    value: 'bf013',
+    label: '外一科',
+  },
+  {
+    value: 'bf012',
+    label: '外二科',
+  },
+  {
+    value: 'bf010',
+    label: '骨二科',
+  },
+  {
+    value: 'bf006',
+    label: 'ICU病区',
+  },
+];
 
-export const departmentData = [{
-  value: 'bf013',
-  label: '外一科'
-},{
-  value: 'bf012',
-  label: '外二科'
-},{
-  value: 'bf010',
-  label: '骨二科'
-},{
-  value: 'bf006',
-  label: 'ICU病区'
-},]
-
-const applyOptions = [{
-  value: '0',
-  label: '年度采购'
-},{
-  value: '1',
-  label: '经费采购'
-},{
-  value: '2',
-  label: '临时采购'
-}]
+const applyOptions = [
+  {
+    value: '0',
+    label: '年度采购',
+  },
+  {
+    value: '1',
+    label: '经费采购',
+  },
+  {
+    value: '2',
+    label: '临时采购',
+  },
+];
 
 const formatDate = (date: any) => {
   return date.format('YYYY-MM-DD');
-}
+};
 
-const purchaseOptions = [{
-  value: '0',
-  label: '展会采购',
-},{
-  value: '1',
-  label: '招标',
-},{
-  value: '2',
-  label: '自行采购',
-}]
- 
+const purchaseOptions = [
+  {
+    value: '0',
+    label: '展会采购',
+  },
+  {
+    value: '1',
+    label: '招标',
+  },
+  {
+    value: '2',
+    label: '自行采购',
+  },
+];
+
 const getItem = async (id: string) => {
   return await axios.get(`${SERVER_HOST}/equipment/item?id=${id}`);
-}
+};
 
 const getSerialNumber = async () => {
   return await axios.get(`${SERVER_HOST}/equipment/serialNumber`);
-}
+};
 
-const apply = async (serial_number: number, equipment: string, department: string, count: number, budget: number, apply_type: number, apply_picture: string) => {
+const apply = async (
+  serial_number: number,
+  equipment: string,
+  department: string,
+  count: number,
+  budget: number,
+  apply_type: number,
+  apply_picture: string,
+) => {
   const form = new FormData();
   form.append('serial_number', serial_number.toString());
   form.append('equipment', equipment);
@@ -78,15 +97,22 @@ const apply = async (serial_number: number, equipment: string, department: strin
   form.append('budget', budget.toString());
   form.append('apply_type', apply_type.toString());
   form.append('apply_picture', apply_picture);
-  
+
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/equipment/store`
+    url: `${SERVER_HOST}/equipment/store`,
   });
-}
+};
 
-const survey = async (id: string, survey_date: Date, purchase_type: number, survey_record: string, meeting_record: string, survey_picture: string) => {
+const survey = async (
+  id: string,
+  survey_date: Date,
+  purchase_type: number,
+  survey_record: string,
+  meeting_record: string,
+  survey_picture: string,
+) => {
   const form = new FormData();
   form.append('survey_date', formatDate(survey_date));
   form.append('purchase_type', purchase_type.toString());
@@ -97,24 +123,37 @@ const survey = async (id: string, survey_date: Date, purchase_type: number, surv
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/equipment/update/survey/${id}`
+    url: `${SERVER_HOST}/equipment/update/survey/${id}`,
   });
-}
+};
 
-const approve = async (id: string, approve_date: Date, execute_date: Date, approve_picture: string) => {
+const approve = async (
+  id: string,
+  approve_date: Date,
+  execute_date: Date,
+  approve_picture: string,
+) => {
   const form = new FormData();
   form.append('approve_date', formatDate(approve_date));
   form.append('execute_date', formatDate(execute_date));
   form.append('approve_picture', approve_picture);
- 
+
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/equipment/update/approve/${id}`
+    url: `${SERVER_HOST}/equipment/update/approve/${id}`,
   });
-}
+};
 
-const tender = async (id: string, tender_date: Date, tender_file: string, tender_boardcast_file: string, tender_out_date: Date, bid_winning_file: string, send_tender_file: string) => {
+const tender = async (
+  id: string,
+  tender_date: Date,
+  tender_file: string,
+  tender_boardcast_file: string,
+  tender_out_date: Date,
+  bid_winning_file: string,
+  send_tender_file: string,
+) => {
   const form = new FormData();
   form.append('tender_date', formatDate(tender_date));
   form.append('tender_file', tender_file);
@@ -126,11 +165,17 @@ const tender = async (id: string, tender_date: Date, tender_file: string, tender
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/equipment/update/tender/${id}`
+    url: `${SERVER_HOST}/equipment/update/tender/${id}`,
   });
-}
+};
 
-const purchase = async (id: string, purchase_date: Date, arrive_date: Date, price: number, purchase_picture: string) => {
+const purchase = async (
+  id: string,
+  purchase_date: Date,
+  arrive_date: Date,
+  price: number,
+  purchase_picture: string,
+) => {
   const form = new FormData();
   form.append('purchase_date', formatDate(purchase_date));
   form.append('arrive_date', formatDate(arrive_date));
@@ -140,30 +185,144 @@ const purchase = async (id: string, purchase_date: Date, arrive_date: Date, pric
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/equipment/update/purchase/${id}`
+    url: `${SERVER_HOST}/equipment/update/purchase/${id}`,
   });
-}
+};
 
-const install = async (id: string, install_date: Date, install_picture: string) => {
+const install = async (
+  id: string,
+  install_date: Date,
+  install_picture: string,
+) => {
   const form = new FormData();
   form.append('install_date', formatDate(install_date));
   form.append('install_picture', install_picture);
-  
+
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/equipment/update/install/${id}`
+    url: `${SERVER_HOST}/equipment/update/install/${id}`,
   });
-}
-
+};
 
 const EquipmentDetailPage: React.FC = () => {
   const { equipmentItem, setEquipmentItem } = useModel('equipmentRecordItem');
   const hashArray = history.location.hash.split('#')[1].split('&');
   const method = hashArray[0];
   const id = hashArray[1];
-  const [ modal, contextHolder ] = Modal.useModal();
-  const confirm  = () => {
+  const [modal, contextHolder] = Modal.useModal();
+  const formRef = useRef<ProFormInstance>();
+  const [current, setCurrent] = useState<number>(0);
+  const { run: runGetItem } = useRequest(getItem, {
+    manual: true,
+    onSuccess: (result: any) => {
+      setEquipmentItem({
+        ...result.data,
+        status: parseInt(result.data.status),
+      });
+      setCurrent(parseInt(result.data.status));
+      _.forEach(result.data, (key: any, value: any) => {
+        const length = value.split('_').length;
+        const extension = value.split('_')[length - 1];
+        if (extension === 'picture' || extension === 'file') {
+          const length = key ? key.split('/').length : 0;
+          const name = key ? key.split('/')[length - 1] : '';
+          if (name) {
+            formRef.current?.setFieldValue(value, [
+              {
+                uid: '0',
+                name,
+                status: 'done',
+                url: key,
+              },
+            ]);
+          }
+        } else if (extension === 'date') {
+          formRef.current?.setFieldValue(value, key);
+        } else {
+          formRef.current?.setFieldValue(value, key);
+        }
+      });
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runGetSerialNumber } = useRequest(getSerialNumber, {
+    manual: true,
+    onSuccess: (result: any) => {
+      setEquipmentItem({
+        ...equipmentItem,
+        serial_number: result.serial_number,
+        status: 0,
+      });
+      formRef.current?.setFieldValue('serial_number', result.serial_number);
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runApply } = useRequest(apply, {
+    manual: true,
+    onSuccess: () => {
+      message.success('创建成功');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runSurvey } = useRequest(survey, {
+    manual: true,
+    onSuccess: () => {
+      message.success('增加调研记录成功，正在返回设备列表...');
+      history.push('/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runApprove } = useRequest(approve, {
+    manual: true,
+    onSuccess: () => {
+      message.success('增加政府审批记录成功，正在返回设备列表...');
+      history.push('/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runTender } = useRequest(tender, {
+    manual: true,
+    onSuccess: () => {
+      message.success('增加投标记录成功，正在返回设备列表...');
+      history.push('/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runPurchase } = useRequest(purchase, {
+    manual: true,
+    onSuccess: () => {
+      message.success('增加合同记录成功，正在返回设备列表...');
+      history.push('/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runInstall } = useRequest(install, {
+    manual: true,
+    onSuccess: () => {
+      message.success('增加安装验收记录成功，正在返回设备列表...');
+      history.push('/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const confirm = () => {
     modal.confirm({
       content: `你这次创建的序列号为${equipmentItem.serial_number}。确认进入下一个创建页面，取消则进入设备列表。`,
       okText: '确认',
@@ -173,174 +332,74 @@ const EquipmentDetailPage: React.FC = () => {
       },
       onCancel: () => {
         history.push('/equipment');
-      }
-    })
-  }
-  const formRef = useRef<ProFormInstance>();
-  const [current, setCurrent] = useState<number>(0);
-  const { run : runGetItem } = useRequest(getItem,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      setEquipmentItem({
-        ...result.data,
-        status: parseInt(result.data.status),
-      });
-      setCurrent(parseInt(result.data.status));
-      _.forEach(result.data, (key: any, value: any) => {
-        const length = value.split('_').length;
-        const extension = value.split('_')[length-1];
-        if (extension==='picture' || extension==='file'){
-          const length = key ? key.split('/').length : 0;
-          const name = key? key.split('/')[length-1] : '';
-          if (name) {
-            formRef.current?.setFieldValue(value, [{
+      },
+    });
+  };
+
+  const onStepChange = (current: number) => {
+    if (!equipmentItem.status) return;
+    if (equipmentItem.status < current) return;
+    if (
+      current === 3 &&
+      equipmentItem.purchase_type &&
+      equipmentItem.purchase_type !== 1
+    )
+      return;
+    _.forEach(equipmentItem, (key: any, value: any) => {
+      const length = value.split('_').length;
+      const extension = value.split('_')[length - 1];
+      if (extension === 'picture' || extension === 'file') {
+        const length = key ? key.split('/').length : 0;
+        const name = key ? key.split('/')[length - 1] : '';
+        if (name) {
+          formRef.current?.setFieldValue(value, [
+            {
               uid: '0',
               name,
               status: 'done',
               url: key,
-            }]);
-          }
-        } else if (extension==='date') {
-          formRef.current?.setFieldValue(value, key);
-        } else {
-          formRef.current?.setFieldValue(value, key);
+            },
+          ]);
         }
-      })
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run : runGetSerialNumber } = useRequest(getSerialNumber,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      setEquipmentItem(
-        {
-          ...equipmentItem,
-          serial_number: result.serial_number,
-          status: 0,
-        }
-      );
-      formRef.current?.setFieldValue('serial_number', result.serial_number);
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run: runApply } = useRequest(apply,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      message.success('创建成功');
-      
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  })
-  const { run: runSurvey } = useRequest(survey,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      message.success('增加调研记录成功，正在返回设备列表...');
-      history.push('/equipment');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  })
-  const { run: runApprove } = useRequest(approve,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      message.success('增加政府审批记录成功，正在返回设备列表...');
-      history.push('/equipment');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  })
-  const { run: runTender } = useRequest(tender,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      message.success('增加投标记录成功，正在返回设备列表...');
-      history.push('/equipment');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  })
-  const { run: runPurchase } = useRequest(purchase,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      message.success('增加合同记录成功，正在返回设备列表...');
-      history.push('/equipment');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  })
-  const { run: runInstall } = useRequest(install,{
-    manual: true,
-    onSuccess: (result: any, params: any) => {1
-      message.success('增加安装验收记录成功，正在返回设备列表...');
-      history.push('/equipment');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  })
-
-  const onStepChange = (current: number) => {
-    if(!equipmentItem.status) return;
-    if(equipmentItem.status<current) return;
-    if(current===3 && equipmentItem.purchase_type && equipmentItem.purchase_type !== 1) return;
-    _.forEach(equipmentItem, (key: any, value: any) => {
-      const length = value.split('_').length;
-      const extension = value.split('_')[length-1];
-      if (extension==='picture' || extension==='file'){
-        const length = key ? key.split('/').length : 0;
-        const name = key? key.split('/')[length-1] : '';
-        if (name) {
-          formRef.current?.setFieldValue(value, [{
-            uid: '0',
-            name,
-            status: 'done',
-            url: key,
-          }]);
-        }
-      } else if (extension==='date'){
+      } else if (extension === 'date') {
         formRef.current?.setFieldValue(value, key);
       } else {
         formRef.current?.setFieldValue(value, key);
       }
-    })
+    });
     setCurrent(current);
-  }
-  
+  };
+
   const handleUpload = (isSuccess: boolean, field: string) => {
     const current_payment_file = formRef.current?.getFieldValue(field)[0];
     if (isSuccess) {
-      formRef.current?.setFieldValue(field, [{
-        ...current_payment_file,
-        status: "done",
-        percent: 100,
-      }])
+      formRef.current?.setFieldValue(field, [
+        {
+          ...current_payment_file,
+          status: 'done',
+          percent: 100,
+        },
+      ]);
     } else {
-      formRef.current?.setFieldValue(field, [{
-        ...current_payment_file,
-        status: "error",
-        percent: 100,
-      }])
+      formRef.current?.setFieldValue(field, [
+        {
+          ...current_payment_file,
+          status: 'error',
+          percent: 100,
+        },
+      ]);
     }
-  }
+  };
 
-  useEffect(()=>{
-    if(method ==='create') {
+  useEffect(() => {
+    if (method === 'create') {
       runGetSerialNumber();
-    } else if( method === 'update' && id) {
+    } else if (method === 'update' && id) {
       runGetItem(id);
     } else {
       history.push('/equipment');
     }
-  },[]);
+  }, []);
   return (
     <PageContainer ghost>
       <ProCard>
@@ -354,41 +413,54 @@ const EquipmentDetailPage: React.FC = () => {
             },
           }}
           current={current}
-          stepsRender={(steps, dom) => {
-            const items = _.map(steps,(value: any, key: any)=>{
-              if (key === 3 && equipmentItem.purchase_type && equipmentItem.purchase_type !== '1') {
+          stepsRender={(steps) => {
+            const items = _.map(steps, (value: any, key: any) => {
+              if (
+                key === 3 &&
+                equipmentItem.purchase_type &&
+                equipmentItem.purchase_type !== '1'
+              ) {
                 return {
                   ...value,
-                  status: "error"
-                }
+                  status: 'error',
+                };
               } else {
-                const status = equipmentItem.status < key ? 'wait' : (current === key ? 'process' : 'finish');
+                const status =
+                  equipmentItem.status < key
+                    ? 'wait'
+                    : current === key
+                    ? 'process'
+                    : 'finish';
                 return {
                   ...value,
                   status,
-                }
+                };
               }
-              
-            })
+            });
             return (
               <Steps
                 type="navigation"
                 current={current}
                 items={items}
-                
                 onChange={onStepChange}
               />
-            )
+            );
           }}
           // @ts-ignore
           submitter={{
-            render: (props: any, doms: any) => {
+            render: (props: any) => {
               return [
-                <Button disabled={equipmentItem.status>current} htmlType="button" type="primary" onClick={props.onSubmit} key="submit">
+                <Button
+                  disabled={equipmentItem.status > current}
+                  htmlType="button"
+                  type="primary"
+                  onClick={props.onSubmit}
+                  key="submit"
+                >
                   提交
-                </Button>
-              ]
-            }
+                </Button>,
+              ];
+            },
           }}
         >
           <StepsForm.StepForm<{
@@ -396,12 +468,20 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="base"
             title="申请"
-            disabled={current<equipmentItem.status}
+            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               confirm();
               //@ts-ignore
-              await runApply(equipmentItem.serial_number, values.equipment, values.department, values.count, values.budget, values.apply_type, values.apply_picture[0].filename);
+              await runApply(
+                equipmentItem.serial_number,
+                values.equipment,
+                values.department,
+                values.count,
+                values.budget,
+                values.apply_type,
+                values.apply_picture[0].filename,
+              );
               return true;
             }}
           >
@@ -442,12 +522,16 @@ const EquipmentDetailPage: React.FC = () => {
               options={applyOptions}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="上传图片：" 
-              name="apply_picture" 
+            <ProFormUploadDragger
+              label="上传图片："
+              name="apply_picture"
               rules={[{ required: true }]}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'apply_picture'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'apply_picture'),
+                  );
+                },
               }}
               max={1}
             />
@@ -455,10 +539,17 @@ const EquipmentDetailPage: React.FC = () => {
           <StepsForm.StepForm
             name="time"
             title="调研"
-            disabled={current<equipmentItem.status}
+            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runSurvey(id, values.survey_date, values.purchase_type, values.survey_record, values.meeting_record, values.survey_picture[0].filename);
+              await runSurvey(
+                id,
+                values.survey_date,
+                values.purchase_type,
+                values.survey_record,
+                values.meeting_record,
+                values.survey_picture[0].filename,
+              );
               return true;
             }}
           >
@@ -466,7 +557,7 @@ const EquipmentDetailPage: React.FC = () => {
               name="survey_date"
               label="调研日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
             <ProFormSelect
               label="采购方式："
@@ -486,14 +577,18 @@ const EquipmentDetailPage: React.FC = () => {
               width="md"
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="执行单附件：" 
-              name="survey_picture" 
+            <ProFormUploadDragger
+              label="执行单附件："
+              name="survey_picture"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'survey_picture'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'survey_picture'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
@@ -501,10 +596,15 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="tender"
             title="政府审批"
-            disabled={current<equipmentItem.status}
+            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runApprove(id, values.approve_date, values.execute_date, values.approve_picture[0].filename);
+              await runApprove(
+                id,
+                values.approve_date,
+                values.execute_date,
+                values.approve_picture[0].filename,
+              );
               return true;
             }}
           >
@@ -512,22 +612,26 @@ const EquipmentDetailPage: React.FC = () => {
               name="approve_date"
               label="政府审批日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
             <ProFormDatePicker
               name="execute_date"
               label="预算执行单日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="执行单附件：" 
-              name="approve_picture" 
+            <ProFormUploadDragger
+              label="执行单附件："
+              name="approve_picture"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'approve_picture'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'approve_picture'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
@@ -535,10 +639,18 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="checkbox"
             title="招标"
-            disabled={current<equipmentItem.status}
+            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runTender(id, values.tender_date, values.tender_file[0].filename, values.tender_boardcast_file[0].filename, values.tender_out_date, values.bid_winning_file[0].filename, values.send_tender_file[0].filename);
+              await runTender(
+                id,
+                values.tender_date,
+                values.tender_file[0].filename,
+                values.tender_boardcast_file[0].filename,
+                values.tender_out_date,
+                values.bid_winning_file[0].filename,
+                values.send_tender_file[0].filename,
+              );
               return true;
             }}
           >
@@ -546,58 +658,80 @@ const EquipmentDetailPage: React.FC = () => {
               name="tender_date"
               label="招标书日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
             <ProFormDatePicker
               name="tender_out_date"
               label="招标日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="招标书附件：" 
-              name="tender_file" 
+            <ProFormUploadDragger
+              label="招标书附件："
+              name="tender_file"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'tender_file'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'tender_file'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="招标公告附件：" 
-              name="tender_boardcast_file" 
+            <ProFormUploadDragger
+              label="招标公告附件："
+              name="tender_boardcast_file"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'tender_boardcast_file'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'tender_boardcast_file'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="中标通知书：" 
-              name="bid_winning_file" 
+            <ProFormUploadDragger
+              label="中标通知书："
+              name="bid_winning_file"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'bid_winning_file'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'bid_winning_file'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="投标文件：" 
-              name="send_tender_file" 
+            <ProFormUploadDragger
+              label="投标文件："
+              name="send_tender_file"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'send_tender_file'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'send_tender_file'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ad"
             title="合同"
-            disabled={current<equipmentItem.status}
+            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runPurchase(id, values.purchase_date, values.arrive_date, values.price, values.purchase_picture[0].filename);
+              await runPurchase(
+                id,
+                values.purchase_date,
+                values.arrive_date,
+                values.price,
+                values.purchase_picture[0].filename,
+              );
               return true;
             }}
           >
@@ -605,13 +739,13 @@ const EquipmentDetailPage: React.FC = () => {
               name="purchase_date"
               label="合同日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
             <ProFormDatePicker
               name="arrive_date"
               label="合同到货日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
             <ProFormMoney
               name="price"
@@ -619,23 +753,31 @@ const EquipmentDetailPage: React.FC = () => {
               width="md"
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="合同附件：" 
-              name="purchase_picture" 
+            <ProFormUploadDragger
+              label="合同附件："
+              name="purchase_picture"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'purchase_picture'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'purchase_picture'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ys"
             title="安装验收"
-            disabled={current<equipmentItem.status}
+            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(id, values.install_date, values.install_picture[0].filename);
+              await runInstall(
+                id,
+                values.install_date,
+                values.install_picture[0].filename,
+              );
               return true;
             }}
           >
@@ -643,20 +785,24 @@ const EquipmentDetailPage: React.FC = () => {
               name="install_date"
               label="安装日期："
               width="sm"
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
-            <ProFormUploadDragger 
-              label="验收资料：" 
-              name="install_picture" 
+            <ProFormUploadDragger
+              label="验收资料："
+              name="install_picture"
               max={1}
               fieldProps={{
-                customRequest: (options)=>{upload(options.file, (isSuccess: boolean) => handleUpload(isSuccess, 'install_picture'))}
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean) =>
+                    handleUpload(isSuccess, 'install_picture'),
+                  );
+                },
               }}
-              rules={[{ required: true }]} 
+              rules={[{ required: true }]}
             />
           </StepsForm.StepForm>
         </StepsForm>
-        { contextHolder }
+        {contextHolder}
       </ProCard>
     </PageContainer>
   );

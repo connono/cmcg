@@ -1,113 +1,32 @@
-import services from '@/services/demo';
-//import { EllipsisOutlined, PlusOutlined } from '@ant-design/icons';
+import { SERVER_HOST } from '@/constants';
 import {
-  ActionType,
-  FooterToolbar,
   PageContainer,
-  ProDescriptions,
   ProDescriptionsItemProps,
   ProTable,
-  TableDropdown
 } from '@ant-design/pro-components';
-import { Button, Divider, Dropdown, Drawer, message } from 'antd';
-import React, { useRef, useState } from 'react';
+import { history, useRequest } from '@umijs/max';
+import { Button, Divider, message } from 'antd';
 import axios from 'axios';
-import { useRequest } from '@umijs/max';
-import { SERVER_HOST } from '@/constants';
-import { useModel, history } from '@umijs/max';
-
-// const { addUser, queryUserList, deleteUser, modifyUser } =
-//   services.UserController;
-
-// /**
-//  * 添加节点
-//  * @param fields
-//  */
-// const handleAdd = async (fields: API.EquipmentRecordInfo) => {
-//   const hide = message.loading('正在添加');
-//   try {
-//     await addUser({ ...fields });
-//     hide();
-//     message.success('添加成功');
-//     return true;
-//   } catch (error) {
-//     hide();
-//     message.error('添加失败请重试！');
-//     return false;
-//   }
-// };
-
-// /**
-//  * 更新节点
-//  * @param fields
-//  */
-// const handleUpdate = async (fields: FormValueType) => {
-//   const hide = message.loading('正在配置');
-//   try {
-//     await modifyUser(
-//       {
-//         userId: fields.id || '',
-//       },
-//       {
-//         name: fields.name || '',
-//         nickName: fields.nickName || '',
-//         email: fields.email || '',
-//       },
-//     );
-//     hide();
-
-//     message.success('配置成功');
-//     return true;
-//   } catch (error) {
-//     hide();
-//     message.error('配置失败请重试！');
-//     return false;
-//   }
-// };
-
-// /**
-//  *  删除节点
-//  * @param selectedRows
-//  */
-// const handleRemove = async (selectedRows: API.EquipmentRecordInfo[]) => {
-//   const hide = message.loading('正在删除');
-//   if (!selectedRows) return true;
-//   try {
-//     await deleteUser({
-//       userId: selectedRows.find((row) => row.id)?.id || '',
-//     });
-//     hide();
-//     message.success('删除成功，即将刷新');
-//     return true;
-//   } catch (error) {
-//     hide();
-//     message.error('删除失败，请重试');
-//     return false;
-//   }
-// };
+import React from 'react';
 
 const getEquipmentList = async () => {
   return await axios.get(`${SERVER_HOST}/equipment/index`);
-}
+};
 
 const deleteEquipmentItem = async (id?: number) => {
   return await axios.delete(`${SERVER_HOST}/equipment/delete/${id}`);
-}
+};
 
 const backEquipmentItem = async (id?: number) => {
   return await axios.patch(`${SERVER_HOST}/equipment/back/${id}`);
-}
+};
 
 const EquipmentPage: React.FC<unknown> = () => {
-  const actionRef = useRef<ActionType>();
-  const [row, setRow] = useState<API.EquipmentRecordInfo>();
-  const [selectedRowsState, setSelectedRows] = useState<API.EquipmentRecordInfo[]>([]);
-  const { equipmentList, setEquipmentList } = useModel('equipmentRecordList');
-  const { run : runGetEquipmentList } = useRequest(getEquipmentList,{
+  const { run: runGetEquipmentList } = useRequest(getEquipmentList, {
     manual: true,
-    onSuccess: (result, params) => {
-      if(result){
-        setEquipmentList(result.data);
+    onSuccess: (result) => {
+      if (result) {
+        console.log(result);
       } else {
         message.error('错误');
       }
@@ -115,25 +34,25 @@ const EquipmentPage: React.FC<unknown> = () => {
     onError: (error) => {
       message.error(error.message);
     },
-  })
-  const { run : runDeleteEquipmentItem } = useRequest(deleteEquipmentItem,{
+  });
+  const { run: runDeleteEquipmentItem } = useRequest(deleteEquipmentItem, {
     manual: true,
-    onSuccess: (result, params) => {
+    onSuccess: () => {
       message.success('删除成功');
     },
     onError: (error) => {
       message.error(error.message);
     },
-  })
-  const { run : runBackEquipmentItem } = useRequest(backEquipmentItem,{
+  });
+  const { run: runBackEquipmentItem } = useRequest(backEquipmentItem, {
     manual: true,
-    onSuccess: (result, params) => {
+    onSuccess: () => {
       message.success('回退成功');
     },
     onError: (error) => {
       message.error(error.message);
     },
-  })
+  });
   const columns: ProDescriptionsItemProps<API.EquipmentRecordInfo>[] = [
     {
       title: '申请编号',
@@ -154,12 +73,11 @@ const EquipmentPage: React.FC<unknown> = () => {
     {
       title: '状态',
       dataIndex: 'status',
-      // hideInForm: true,
       valueEnum: {
         0: { text: '申请', status: '0' },
         1: { text: '调研', status: '1' },
         2: { text: '政府审批', status: '2' },
-        3: { text: '投标', status: '3'},
+        3: { text: '投标', status: '3' },
         4: { text: '合同', status: '4' },
         5: { text: '安装验收', status: '5' },
         6: { text: '完成', status: '6' },
@@ -244,14 +162,14 @@ const EquipmentPage: React.FC<unknown> = () => {
         columns={columns}
         cardBordered
         request={runGetEquipmentList}
-        rowKey='serial_number'
+        rowKey="serial_number"
         search={{
           labelWidth: 'auto',
         }}
         options={{
           setting: {
             listsHeight: 400,
-          }
+          },
         }}
         pagination={{
           pageSize: 5,
@@ -268,7 +186,7 @@ const EquipmentPage: React.FC<unknown> = () => {
             type="primary"
           >
             新建
-          </Button>
+          </Button>,
         ]}
       />
     </PageContainer>
