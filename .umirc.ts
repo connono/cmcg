@@ -5,6 +5,7 @@ export default defineConfig({
   access: {},
   model: {},
   initialState: {},
+  history: { type: 'hash' },
   request: {},
   layout: {
     title: '设备管理平台',

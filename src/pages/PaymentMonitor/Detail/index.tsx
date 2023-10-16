@@ -103,7 +103,7 @@ const PaymentRecordDetailPage: React.FC = () => {
   const method = history.location.state.status;
   const plan_id = hashArray[1];
   const id = hashArray[2];
-  const [contextHolder] = Modal.useModal();
+  const [modal, contextHolder] = Modal.useModal(); // eslint-disable-line
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
   const access = useAccess();
@@ -456,12 +456,20 @@ const PaymentRecordDetailPage: React.FC = () => {
           >
             <ProFormDatePicker
               name="assessment_date"
-              label="收款日期："
+              label={
+                history.location.state.is_pay === 'true'
+                  ? '付款'
+                  : '收款' + '日期：'
+              }
               width="sm"
               rules={[{ required: true }]}
             />
             <ProFormUploadDragger
-              label="付款收据："
+              label={
+                history.location.state.is_pay === 'true'
+                  ? '付款'
+                  : '收款' + '收据：'
+              }
               name="payment_file"
               max={1}
               fieldProps={{

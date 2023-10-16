@@ -15,7 +15,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Access, history, useAccess, useModel, useRequest } from '@umijs/max';
-import { Button, message } from 'antd';
+import { Button, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import { useRef, useState } from 'react';
 import { isPDF, isPicture, upload } from '../../utils/file-uploader';
@@ -338,9 +338,11 @@ const PaymentMonitorPage: React.FC = () => {
         }
         return [
           update,
-          <a
+          <Popconfirm
             key="stop"
-            onClick={async () => {
+            placement="topLeft"
+            title="确定要中止吗？"
+            onConfirm={async () => {
               if (!access.canStopPaymentRecord) {
                 message.error('你无权进行此操作');
               } else {
@@ -348,9 +350,11 @@ const PaymentMonitorPage: React.FC = () => {
                 action?.reload();
               }
             }}
+            okText="确定"
+            cancelText="取消"
           >
-            中止
-          </a>,
+            <a key="stop">中止</a>
+          </Popconfirm>,
           <a
             key="delete"
             onClick={async () => {

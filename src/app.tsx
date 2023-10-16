@@ -102,7 +102,7 @@ export async function getInitialState(): Promise<{
     }
   } else {
     message.error('请先登录再访问');
-    history.push('./login');
+    history.push('/login');
     return {
       id: -1,
       name: '',
@@ -123,6 +123,7 @@ export const layout: RunTimeLayoutConfig = () => {
       localStorage.removeItem('access_token');
       message.success('已退出登录');
       window.location.replace(`${APPLICATION_HOST}/login`);
+      window.location.reload();
     },
   };
 };

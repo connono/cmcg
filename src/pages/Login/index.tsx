@@ -29,6 +29,7 @@ const LoginPage: React.FC = () => {
         localStorage.setItem('access_token', result.access_token);
         message.success('登录成功！正在跳转~');
         window.location.replace(APPLICATION_HOST);
+        window.location.reload();
       } else {
         message.error('用户名或密码错误，请重试');
       }

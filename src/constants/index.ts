@@ -34,5 +34,5 @@ export const DEFAULT_EQUIPMENT_RECORD_ITEM = {
   update_at: null, // 记录更新时间
 };
 
-export const SERVER_HOST = 'http://homestead.test/api/v1';
-export const APPLICATION_HOST = 'http://localhost:8001';
+export const SERVER_HOST = 'http://10.10.0.27:8000/api/v1';
+export const APPLICATION_HOST = 'http://10.10.0.27/#';
