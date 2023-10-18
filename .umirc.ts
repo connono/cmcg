@@ -52,6 +52,12 @@ export default defineConfig({
       access: 'canSeeHome',
     },
     {
+      name: '数据分析',
+      path: '/dataAnalysis',
+      component: './DataAnalysis',
+      access: 'canSeeHome',
+    },
+    {
       path: '/equipment/detail',
       component: './Equipment/Detail',
       access: 'canSeeEquipment',

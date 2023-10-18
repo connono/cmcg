@@ -71,6 +71,14 @@ declare namespace API {
     access_token: string;
   }
 
+  interface CANVASDATA {
+    id: number;
+    name: string;
+    color: string;
+    width: number;
+    height: number;
+  }
+
   type definitions_0 = null;
 
   enum EquipmentApplyStep {

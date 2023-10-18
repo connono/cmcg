@@ -122,7 +122,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`./equipment/detail#update&${id}`);
+              history.push(`/equipment/detail#update&${id}`);
             }}
           >
             录入
