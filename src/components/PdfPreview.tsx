@@ -66,7 +66,11 @@ const PdfPreview: React.FC<Props> = (props) => {
             <Draggable>
               <div>
                 <Document file={file} onLoadSuccess={onDocumentLoadSuccess}>
-                  <Page pageNumber={pageNumber} scale={scale} />
+                  <Page
+                    pageNumber={pageNumber}
+                    width={window.screen.width - 40}
+                    scale={scale}
+                  />
                 </Document>
               </div>
             </Draggable>
