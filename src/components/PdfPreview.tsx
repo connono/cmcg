@@ -1,6 +1,7 @@
 import { preview } from '@/utils/file-uploader';
 import { Image } from 'antd';
 import React, { useEffect, useState } from 'react';
+import Draggable from 'react-draggable';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -62,9 +63,13 @@ const PdfPreview: React.FC<Props> = (props) => {
       preview={{
         imageRender: () => {
           return (
-            <Document file={file} onLoadSuccess={onDocumentLoadSuccess}>
-              <Page pageNumber={pageNumber} scale={scale} />
-            </Document>
+            <Draggable>
+              <div>
+                <Document file={file} onLoadSuccess={onDocumentLoadSuccess}>
+                  <Page pageNumber={pageNumber} scale={scale} />
+                </Document>
+              </div>
+            </Draggable>
           );
         },
         toolbarRender: () => {
