@@ -11,6 +11,7 @@ export const DEFAULT_CANVAS_DATA = {
   color: 'white',
   height: 1123,
   width: 794,
+  chartList: [],
 };
 
 export const DEFAULT_EQUIPMENT_RECORD_ITEM = {
@@ -112,6 +113,10 @@ export const PICTURE_LIST = [
     component: 'Venn',
   },
 ];
+
+export const ItemTypes = {
+  PICTURECARD: 'PictureCard',
+};
 
 export const SERVER_HOST = 'http://10.10.0.27:8000/api/v1';
 export const APPLICATION_HOST = 'http://10.10.0.27/#';

@@ -77,6 +77,7 @@ declare namespace API {
     color: string;
     width: number;
     height: number;
+    chartList: Array;
   }
 
   type definitions_0 = null;

@@ -11,9 +11,9 @@
     "start": "npm run dev"
   },
   "dependencies": {
+    "@ant-design/charts": "^1.4.2",
     "@ant-design/icons": "^5.0.1",
     "@ant-design/pro-components": "^2.4.4",
-    "@antv/g2plot": "^2.4.31",
     "@umijs/max": "^4.0.75",
     "antd": "^5.4.0",
     "axios": "^1.4.0",
@@ -21,7 +21,10 @@
     "dom-to-image": "^2.6.0",
     "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-draggable": "^4.4.6",
+    "react-grid-layout": "^1.4.2",
     "react-pdf": "^7.4.0"
   },
   "devDependencies": {
