@@ -56,9 +56,6 @@ const ChartComponent: React.FC<Props> = (props) => {
         { data, ...config },
         (c: any) => setChart(c),
       );
-      return () => {
-        chart.destory();
-      };
     }
   }, [data, config]);
   useEffect(() => {

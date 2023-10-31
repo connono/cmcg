@@ -178,7 +178,7 @@ const PaymentRecordDetailPage: React.FC = () => {
   const { run: runProcess } = useRequest(process, {
     manual: true,
     onSuccess: () => {
-      message.success('增加收款记录成功，正在返回计划列表...');
+      message.success('增加记录成功，正在返回计划列表...');
       history.push('/paymentMonitor');
     },
     onError: (error: any) => {
@@ -399,7 +399,13 @@ const PaymentRecordDetailPage: React.FC = () => {
             <ProFormItem label="合同附件：">
               {preview(history.location.state.payment_file)}
             </ProFormItem>
-            <ProFormItem label="收款凭证：">
+            <ProFormItem
+              label={
+                history.location.state.is_pay === 'true'
+                  ? '付款凭证：'
+                  : '收款凭证：'
+              }
+            >
               {
                 // @ts-ignore
                 paymentRecord?.payment_voucher_file ? (
@@ -458,8 +464,8 @@ const PaymentRecordDetailPage: React.FC = () => {
               name="assessment_date"
               label={
                 history.location.state.is_pay === 'true'
-                  ? '付款'
-                  : '收款' + '日期：'
+                  ? '付款日期：'
+                  : '收款日期：'
               }
               width="sm"
               rules={[{ required: true }]}
@@ -467,8 +473,8 @@ const PaymentRecordDetailPage: React.FC = () => {
             <ProFormUploadDragger
               label={
                 history.location.state.is_pay === 'true'
-                  ? '付款'
-                  : '收款' + '收据：'
+                  ? '付款收据：'
+                  : '收款收据：'
               }
               name="payment_file"
               max={1}

@@ -45,7 +45,6 @@ const PaymentRecordPage: React.FC = () => {
     manual: true,
     onSuccess: (result: any) => {
       const i = _.map(result.data, (value: any, key: any) => {
-        console.log('value:', value);
         const apply_date = new Date(value.created_at);
         const apply_date_string = `${apply_date.getFullYear()}-${apply_date.getMonth()}-${apply_date.getDate()}`;
         return {
@@ -85,7 +84,7 @@ const PaymentRecordPage: React.FC = () => {
     <PageContainer
       ghost
       header={{
-        title: '付款记录',
+        title: history.location.state.is_pay ? '付款记录' : '收款记录',
       }}
     >
       <Divider orientation="left">

@@ -546,7 +546,9 @@ const PaymentMonitorPage: React.FC = () => {
         >
           <ProFormDatePicker
             name="next_date"
-            label="下次收款日期"
+            label={
+              selectedRecord.is_pay === 'true' ? '下次付款日期' : '下次收款日期'
+            }
             width="sm"
             rules={[{ required: true }]}
           />
