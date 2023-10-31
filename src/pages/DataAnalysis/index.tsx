@@ -1,9 +1,12 @@
-import { ItemTypes, PICTURE_LIST } from '@/constants';
+import ChartComponent from '@/components/ChartComponent';
+import { ItemTypes } from '@/constants';
+import { PICTURE_LIST } from '@/utils/chart-render';
 import { DomToPng } from '@/utils/file-saver';
 import { PageContainer } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
 import {
   Button,
+  Collapse,
   ColorPicker,
   Drawer,
   Form,
@@ -24,7 +27,7 @@ const PictureCard: React.FC = (props: any) => {
   const [{ opacity }, dragRef] = useDrag(
     () => ({
       type: ItemTypes.PICTURECARD,
-      item: { label: props.label },
+      item: { label: props.label, name: props.name },
       collect: (monitor) => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),
@@ -39,11 +42,98 @@ const PictureCard: React.FC = (props: any) => {
 };
 
 const PictureList: React.FC = () => {
-  const pictures = _.map(PICTURE_LIST, (value: any) => {
-    //@ts-ignore
-    return <PictureCard key={value.label} label={value.label} />;
-  });
-  return <div>{pictures}</div>;
+  const Group_By_TYPE_PICTURE_LIST = _.groupBy(PICTURE_LIST, 'type');
+  const PICTURE_ITEMS = _.map(
+    Group_By_TYPE_PICTURE_LIST,
+    (value: any, key: any) => {
+      const pictures = _.map(value, (v: any) => {
+        //@ts-ignore
+        return <PictureCard key={v.name} label={v.label} name={v.name} />;
+      });
+      if (key === 'Line') {
+        return {
+          key,
+          label: '折线图/曲线图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Area') {
+        return {
+          key,
+          label: '面积图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Column') {
+        return {
+          key,
+          label: '柱状图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Bar') {
+        return {
+          key,
+          label: '条形图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Pie') {
+        return {
+          key,
+          label: '饼图/环图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Process') {
+        return {
+          key,
+          label: '进度图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Scatter') {
+        return {
+          key,
+          label: '散点图/气泡图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Rose') {
+        return {
+          key,
+          label: '玫瑰图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Connection') {
+        return {
+          key,
+          label: '关系图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Heatmap') {
+        return {
+          key,
+          label: '热力图/色块图',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      }
+    },
+  );
+  return <Collapse accordion items={PICTURE_ITEMS} />;
 };
 
 const PureDataAnalysisCanvas: React.FC = (props: any) => {
@@ -62,18 +152,11 @@ const PureDataAnalysisCanvas: React.FC = (props: any) => {
         暂无内容
       </div>
     );
-  const charts = _.map(props.charts, (value: any, key: any) => {
+
+  const charts = _.map(props.charts, (value: any) => {
     return (
-      <div
-        key={key}
-        style={{
-          display: 'block',
-          width: 100,
-          height: 100,
-          border: '1px solid black',
-        }}
-      >
-        {value.name}
+      <div key={value.name}>
+        <ChartComponent chart={value} deleteChart={props.deleteChart} />
       </div>
     );
   });
@@ -101,24 +184,25 @@ const PureDataAnalysisCanvas: React.FC = (props: any) => {
 };
 
 const DataAnalysisCanvas: React.FC = () => {
-  const { canvasData, addChart } = useModel('canvasData', (model) => ({
-    canvasData: model.canvasData,
-    addChart: model.addChart,
-  }));
+  const { canvasData, addChart, deleteChart } = useModel(
+    'canvasData',
+    (model) => ({
+      canvasData: model.canvasData,
+      addChart: model.addChart,
+      deleteChart: model.deleteChart,
+    }),
+  );
   const handleDrop = (item: any) => {
-    addChart(item.label, item);
+    console.log('item:', item);
+    addChart(item.name, item.label);
   };
-  const [drop] = useDrop(
+  const [, drop] = useDrop(
     () => ({
       accept: ItemTypes.PICTURECARD,
       drop: (item) => handleDrop(item),
     }),
     [],
   );
-
-  // useEffect(()=>{
-  //   console.log('drop');
-  // },[canvasData])
 
   return (
     <PureDataAnalysisCanvas
@@ -127,6 +211,7 @@ const DataAnalysisCanvas: React.FC = () => {
       width={canvasData.width}
       color={canvasData.color}
       charts={canvasData.chartList}
+      deleteChart={deleteChart}
     />
   );
 };

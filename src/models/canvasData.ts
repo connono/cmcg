@@ -25,11 +25,13 @@ const useCanvasData = () => {
     },
     [],
   );
-  const addChart = useCallback((label: string, data: any) => {
+  const addChart = useCallback((name: string, label: string) => {
+    console.log('name', name);
     setCanvasData((pre) => {
       const chartList = _.concat(pre.chartList, {
-        ...data,
-        name: label + Date.now(),
+        name: name + Date.now(),
+        label,
+        component: name,
       });
       return {
         ...pre,
@@ -37,10 +39,10 @@ const useCanvasData = () => {
       };
     });
   }, []);
-  const deleteChart = useCallback((label: string) => {
+  const deleteChart = useCallback((name: string) => {
     setCanvasData((pre) => {
       let chartList = _.clone(pre.chartList);
-      _.remove(chartList, (chart: any) => chart.label === label);
+      _.remove(chartList, (chart: any) => chart.name === name);
       return {
         ...pre,
         chartList,

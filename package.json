@@ -11,9 +11,11 @@
     "start": "npm run dev"
   },
   "dependencies": {
-    "@ant-design/charts": "^1.4.2",
-    "@ant-design/icons": "^5.0.1",
+    "@ant-design/icons": "5.2.5",
     "@ant-design/pro-components": "^2.4.4",
+    "@antv/g2plot": "^2.4.31",
+    "@formily/core": "^2.2.0",
+    "@formily/react": "^2.2.0",
     "@umijs/max": "^4.0.75",
     "antd": "^5.4.0",
     "axios": "^1.4.0",
@@ -28,6 +30,7 @@
     "react-pdf": "^7.4.0"
   },
   "devDependencies": {
+    "@formily/antd-v5": "^1.1.7",
     "@types/react": "^18.0.33",
     "@types/react-dom": "^18.0.11",
     "husky": "^8.0.3",
@@ -39,41 +42,5 @@
   },
   "engines": {
     "node": ">=10.0.0"
-  },
-  "checkFiles": [
-    "src/**/*.js*",
-    "src/**/*.ts*",
-    "src/**/*.less",
-    "config/**/*.js*",
-    "scripts/**/*.js"
-  ],
-  "create-umi": {
-    "ignoreScript": [
-      "docker*",
-      "functions*",
-      "site",
-      "generateMock"
-    ],
-    "ignoreDependencies": [
-      "netlify*",
-      "serverless"
-    ],
-    "ignore": [
-      ".dockerignore",
-      ".git",
-      ".github",
-      ".gitpod.yml",
-      "CODE_OF_CONDUCT.md",
-      "Dockerfile",
-      "Dockerfile.*",
-      "lambda",
-      "LICENSE",
-      "netlify.toml",
-      "README.*.md",
-      "azure-pipelines.yml",
-      "docker",
-      "CNAME",
-      "create-umi"
-    ]
   }
 }

@@ -5,6 +5,7 @@ export default defineConfig({
   access: {},
   model: {},
   initialState: {},
+  jsMinifier: 'terser',
   history: { type: 'hash' },
   request: {},
   layout: {
