@@ -1,4 +1,8 @@
 import {
+  BasicAreaRender,
+  basicAreaSchema,
+} from '@/components/charts/BasicArea';
+import {
   BasicCurveRender,
   basicCurveSchema,
 } from '@/components/charts/BasicCurve';
@@ -7,6 +11,10 @@ import {
   basicLineSchema,
 } from '@/components/charts/BasicLine';
 import {
+  DepositAreaRender,
+  DepositAreaSchema,
+} from '@/components/charts/DepositArea';
+import {
   MultipleLineRender,
   multipleLineSchema,
 } from '@/components/charts/MultipleLine';
@@ -14,103 +22,11 @@ import {
   MultipleStepLineRender,
   multipleStepLineSchema,
 } from '@/components/charts/MultipleStepLine';
+import {
+  PercentDepositAreaRender,
+  PercentDepositAreaSchema,
+} from '@/components/charts/PercentDepositArea';
 import { StepLineRender, stepLineSchema } from '@/components/charts/StepLine';
-
-const BasicAreaRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Area;
-  await import('@antv/g2plot/lib/plots/area').then((Module) => {
-    Area = Module.Area;
-  });
-
-  fetch(
-    'https://gw.alipayobjects.com/os/bmw-prod/360c3eae-0c73-46f0-a982-4746a6095010.json',
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      const area = new Area(container, {
-        data,
-        xField: 'timePeriod',
-        yField: 'value',
-        xAxis: {
-          range: [0, 1],
-        },
-      });
-      area.render();
-      callback(area);
-    });
-};
-
-const DepositAreaRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Area;
-  await import('@antv/g2plot/lib/plots/area').then((Module) => {
-    Area = Module.Area;
-  });
-
-  fetch(
-    'https://gw.alipayobjects.com/os/bmw-prod/b21e7336-0b3e-486c-9070-612ede49284e.json',
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      const area = new Area(container, {
-        data,
-        xField: 'date',
-        yField: 'value',
-        seriesField: 'country',
-      });
-      area.render();
-      callback(area);
-    });
-};
-
-const PercentDepositAreaRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Area;
-  await import('@antv/g2plot/lib/plots/area').then((Module) => {
-    Area = Module.Area;
-  });
-
-  fetch(
-    'https://gw.alipayobjects.com/os/bmw-prod/67ef5751-b228-417c-810a-962f978af3e7.json',
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      const area = new Area(container, {
-        data,
-        xField: 'year',
-        yField: 'value',
-        seriesField: 'country',
-        color: ['#82d1de', '#cb302d', '#e3ca8c'],
-        areaStyle: {
-          fillOpacity: 0.7,
-        },
-        appendPadding: 10,
-        isPercent: true,
-        yAxis: {
-          label: {
-            formatter: (value) => {
-              return value * 100;
-            },
-          },
-        },
-      });
-      area.render();
-      callback(area);
-    });
-};
 
 const ColumnRender = async (
   container?: any,
@@ -1738,18 +1654,21 @@ export const PICTURE_LIST = [
     name: 'BasicArea',
     type: 'Area',
     render: BasicAreaRender,
+    schema: basicAreaSchema,
   },
   {
     label: '堆积面积图',
     name: 'DepositArea',
     type: 'Area',
     render: DepositAreaRender,
+    schema: DepositAreaSchema,
   },
   {
     label: '百分比堆叠面积图',
     name: 'PercentDepositArea',
     type: 'Area',
     render: PercentDepositAreaRender,
+    schema: PercentDepositAreaSchema,
   },
   {
     label: '基础柱状图',
