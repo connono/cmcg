@@ -1,4 +1,4 @@
-import { APPLICATION_HOST, SERVER_HOST } from '@/constants';
+import { SERVER_HOST } from '@/constants';
 import {
   PageContainer,
   ProForm,
@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
       if (result.access_token) {
         localStorage.setItem('access_token', result.access_token);
         message.success('登录成功！正在跳转~');
-        window.location.replace(APPLICATION_HOST);
+        window.location.replace('http://10.10.0.27/#/');
         window.location.reload();
       } else {
         message.error('用户名或密码错误，请重试');
@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
           </Row>
         </div>
       </div>
-      <div className="version">版本：1.1.0</div>
+      <div className="version">版本：1.1.1</div>
     </PageContainer>
   );
 };

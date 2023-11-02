@@ -5,7 +5,9 @@ export default defineConfig({
   access: {},
   model: {},
   initialState: {},
-  jsMinifier: 'terser',
+  jsMinifier: 'esbuild',
+  esbuildMinifyIIFE: true,
+  plugins: ['umi-plugin-circular-check'],
   history: { type: 'hash' },
   request: {},
   layout: {
@@ -52,12 +54,12 @@ export default defineConfig({
       component: './ResetPassword',
       access: 'canSeeHome',
     },
-    {
-      name: '数据分析',
-      path: '/dataAnalysis',
-      component: './DataAnalysis',
-      access: 'canSeeHome',
-    },
+    // {
+    //   name: '数据分析',
+    //   path: '/dataAnalysis',
+    //   component: './DataAnalysis',
+    //   access: 'canSeeHome',
+    // },
     {
       path: '/equipment/detail',
       component: './Equipment/Detail',

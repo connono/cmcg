@@ -23,11 +23,13 @@
     "dom-to-image": "^2.6.0",
     "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
+    "pdfjs-dist": "^3.11.174",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-draggable": "^4.4.6",
     "react-grid-layout": "^1.4.2",
-    "react-pdf": "^7.4.0"
+    "react-pdf": "^7.4.0",
+    "react-resizable": "^3.0.5"
   },
   "devDependencies": {
     "@formily/antd-v5": "^1.1.7",
@@ -38,7 +40,8 @@
     "prettier": "^2.8.7",
     "prettier-plugin-organize-imports": "^3.2.2",
     "prettier-plugin-packagejson": "^2.4.3",
-    "typescript": "^5.0.3"
+    "typescript": "^5.0.3",
+    "umi-plugin-circular-check": "^1.0.0"
   },
   "engines": {
     "node": ">=10.0.0"

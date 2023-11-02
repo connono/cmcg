@@ -240,6 +240,10 @@ const PaymentMonitorPage: React.FC = () => {
       },
     },
     {
+      dataIndex: 'contract_date',
+      title: '合同签订时间',
+    },
+    {
       dataIndex: 'finish_date',
       title: '结束时间',
     },

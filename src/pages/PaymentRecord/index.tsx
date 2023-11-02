@@ -44,16 +44,16 @@ const PaymentRecordPage: React.FC = () => {
   const { run: runGetRecords } = useRequest(getRecords, {
     manual: true,
     onSuccess: (result: any) => {
+      const date_text =
+        history.location.state.is_pay === 'true' ? '付款日期：' : '收款日期：';
+      const cost_text =
+        history.location.state.is_pay === 'true' ? '付款金额：' : '收款金额：';
       const i = _.map(result.data, (value: any, key: any) => {
         const apply_date = new Date(value.created_at);
         const apply_date_string = `${apply_date.getFullYear()}-${apply_date.getMonth()}-${apply_date.getDate()}`;
         return {
           key: key.toString(),
-          label: `申请提交日期：${apply_date_string}    ${
-            value.is_pay ? '付款日期：' : '收款日期：'
-          } ${value.assessment_date}    ${
-            value.is_pay ? '付款金额：' : '收款金额：'
-          } ${value.assessment} `,
+          label: `申请提交日期：${apply_date_string}    ${date_text} ${value.assessment_date}    ${cost_text} ${value.assessment} `,
           children: <PaymentRecordCardChildren record={value} />,
         };
       });
@@ -84,7 +84,8 @@ const PaymentRecordPage: React.FC = () => {
     <PageContainer
       ghost
       header={{
-        title: history.location.state.is_pay ? '付款记录' : '收款记录',
+        title:
+          history.location.state.is_pay === 'true' ? '付款记录' : '收款记录',
       }}
     >
       <Divider orientation="left">

@@ -3,8 +3,8 @@ import { Image } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Draggable from 'react-draggable';
 import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
 import PdfPreviewToolbar from './PdfPreviewToolbar';
 
 interface Props {
