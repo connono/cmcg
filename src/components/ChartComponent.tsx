@@ -1,11 +1,11 @@
-import { chartRender } from '@/utils/chart-render';
+import { PICTURE_LIST } from '@/utils/chart-render';
 import { DeleteOutlined, FormOutlined } from '@ant-design/icons';
 import { FormLayout } from '@formily/antd-v5';
 import { createForm, onFormValuesChange } from '@formily/core';
 import { FormConsumer, FormProvider } from '@formily/react';
 import { Drawer, FloatButton } from 'antd';
+import _ from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
-import { basicLineSchema } from './charts/BasicLine';
 
 interface Props {
   chart: any;
@@ -19,12 +19,15 @@ const ChartComponent: React.FC<Props> = (props) => {
   const [config, setConfig] = useState({});
   const [data, setData] = useState([]);
 
+  const render = _.find(PICTURE_LIST, ['name', props.chart.component])?.render;
+  const schema = _.find(PICTURE_LIST, ['name', props.chart.component])?.schema;
+
   const form = useMemo(
     () =>
       createForm({
         effects() {
           onFormValuesChange((form) => {
-            setConfig(basicLineSchema.formToConfig(form.values));
+            setConfig(schema.formToConfig(form.values));
           });
         },
       }),
@@ -33,7 +36,7 @@ const ChartComponent: React.FC<Props> = (props) => {
 
   useEffect(() => {
     fetch(
-      'https://gw.alipayobjects.com/os/bmw-prod/1d565782-dde4-4bb6-8946-ea6a38ccf184.json',
+      'https://gw.alipayobjects.com/os/bmw-prod/55424a73-7cb8-4f79-b60d-3ab627ac5698.json',
     )
       .then((res) => res.json())
       .then((data) => {
@@ -41,21 +44,16 @@ const ChartComponent: React.FC<Props> = (props) => {
       })
       .then(() => {
         form.setInitialValues({
-          ...basicLineSchema.initialValue,
+          ...schema.initialValue,
         });
-        setConfig(basicLineSchema.formToConfig(form.values));
+        setConfig(schema.formToConfig(form.values));
       });
     console.log('getData && initial');
   }, []);
   useEffect(() => {
     if (_.isEmpty(chart) && !_.isEmpty(data) && !_.isEmpty(config)) {
       console.log('draw plot');
-      chartRender(
-        props.chart.name,
-        props.chart.component,
-        { data, ...config },
-        (c: any) => setChart(c),
-      );
+      render(props.chart.name, { data, ...config }, (c: any) => setChart(c));
     }
   }, [data, config]);
   useEffect(() => {
@@ -138,17 +136,8 @@ const ChartComponent: React.FC<Props> = (props) => {
         </div>
         <Drawer onClose={() => setOpen(false)} mask={false} open={open}>
           <FormLayout layout="vertical">
-            <basicLineSchema.SchemaField
-              schema={basicLineSchema.schema}
-              scope={basicLineSchema.scope}
-            />
+            <schema.SchemaField schema={schema.schema} scope={schema.scope} />
           </FormLayout>
-          <FormConsumer>
-            {() => {
-              // console.log('form', form);
-              return <div>实时响应：{form.values.basic_title}</div>;
-            }}
-          </FormConsumer>
         </Drawer>
       </FormProvider>
     </div>

@@ -1,187 +1,20 @@
-const BasicLineRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Line;
-  await import('@antv/g2plot/lib/plots/line').then((Module) => {
-    Line = Module.Line;
-  });
-
-  await fetch(
-    'https://gw.alipayobjects.com/os/bmw-prod/1d565782-dde4-4bb6-8946-ea6a38ccf184.json',
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      const line = new Line(container, {
-        data,
-        xField: 'Date',
-        yField: 'scales',
-        xAxis: {
-          // type: 'timeCat',
-          tickCount: 5,
-        },
-      });
-
-      line.render();
-      callback(line);
-    });
-};
-
-const BasicCurveRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Line;
-  await import('@antv/g2plot/lib/plots/line').then((Module) => {
-    Line = Module.Line;
-  });
-
-  await fetch(
-    'https://gw.alipayobjects.com/os/bmw-prod/1d565782-dde4-4bb6-8946-ea6a38ccf184.json',
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      const line = new Line(container, {
-        data,
-        xField: 'Date',
-        yField: 'scales',
-        xAxis: {
-          // type: 'timeCat',
-          tickCount: 5,
-        },
-        smooth: true,
-      });
-
-      line.render();
-      callback(line);
-    });
-};
-
-const MultipleLineRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Line;
-  await import('@antv/g2plot/lib/plots/line').then((Module) => {
-    Line = Module.Line;
-  });
-
-  fetch(
-    'https://gw.alipayobjects.com/os/bmw-prod/55424a73-7cb8-4f79-b60d-3ab627ac5698.json',
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      const line = new Line(container, {
-        data,
-        xField: 'year',
-        yField: 'value',
-        seriesField: 'category',
-        xAxis: {
-          type: 'time',
-        },
-        yAxis: {
-          label: {
-            // 数值格式化为千分位
-            formatter: (v) =>
-              `${v}`.replace(/\d{1,3}(?=(\d{3})+$)/g, (s) => `${s},`),
-          },
-        },
-      });
-
-      line.render();
-      callback(line);
-    });
-};
-
-const StepLineRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Line;
-  await import('@antv/g2plot/lib/plots/line').then((Module) => {
-    Line = Module.Line;
-  });
-
-  const data = [
-    { year: '1991', value: 3 },
-    { year: '1992', value: 4 },
-    { year: '1993', value: 3.5 },
-    { year: '1994', value: 5 },
-    { year: '1995', value: 4.9 },
-    { year: '1996', value: 6 },
-    { year: '1997', value: 7 },
-    { year: '1998', value: 9 },
-    { year: '1999', value: 13 },
-    { year: '1999', value: 8 },
-  ];
-  const line = new Line(container, {
-    data,
-    xField: 'year',
-    yField: 'value',
-    stepType: 'vh',
-  });
-
-  line.render();
-  callback(line);
-};
-
-const MultipleStepLineRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Line;
-  await import('@antv/g2plot/lib/plots/line').then((Module) => {
-    Line = Module.Line;
-  });
-
-  const data = [
-    { month: 'Jan', key: 'series1', value: 125 },
-    { month: 'Jan', key: 'series2', value: 51 },
-    { month: 'Feb', key: 'series1', value: 132 },
-    { month: 'Feb', key: 'series2', value: 91 },
-    { month: 'Mar', key: 'series1', value: 141 },
-    { month: 'Mar', key: 'series2', value: 34 },
-    { month: 'Apr', key: 'series1', value: 158 },
-    { month: 'Apr', key: 'series2', value: 47 },
-    { month: 'May', key: 'series1', value: 133 },
-    { month: 'May', key: 'series2', value: 63 },
-    { month: 'June', key: 'series1', value: 143 },
-    { month: 'June', key: 'series2', value: 58 },
-    { month: 'July', key: 'series1', value: 176 },
-    { month: 'July', key: 'series2', value: 56 },
-    { month: 'Aug', key: 'series1', value: 194 },
-    { month: 'Aug', key: 'series2', value: 77 },
-    { month: 'Sep', key: 'series1', value: 115 },
-    { month: 'Sep', key: 'series2', value: 99 },
-    { month: 'Oct', key: 'series1', value: 134 },
-    { month: 'Oct', key: 'series2', value: 106 },
-    { month: 'Nov', key: 'series1', value: 110 },
-    { month: 'Nov', key: 'series2', value: 88 },
-    { month: 'Dec', key: 'series1', value: 91 },
-    { month: 'Dec', key: 'series2', value: 56 },
-  ];
-  const line = new Line(container, {
-    data,
-    xField: 'month',
-    yField: 'value',
-    legend: false,
-    seriesField: 'key',
-    stepType: 'hvh',
-  });
-
-  line.render();
-  callback(line);
-};
+import {
+  BasicCurveRender,
+  basicCurveSchema,
+} from '@/components/charts/BasicCurve';
+import {
+  BasicLineRender,
+  basicLineSchema,
+} from '@/components/charts/BasicLine';
+import {
+  MultipleLineRender,
+  multipleLineSchema,
+} from '@/components/charts/MultipleLine';
+import {
+  MultipleStepLineRender,
+  multipleStepLineSchema,
+} from '@/components/charts/MultipleStepLine';
+import { StepLineRender, stepLineSchema } from '@/components/charts/StepLine';
 
 const BasicAreaRender = async (
   container?: any,
@@ -1870,30 +1703,35 @@ export const PICTURE_LIST = [
     name: 'BasicLine',
     type: 'Line',
     render: BasicLineRender,
+    schema: basicLineSchema,
   },
   {
     label: '基础曲线图',
     name: 'BasicCurve',
     type: 'Line',
     render: BasicCurveRender,
+    schema: basicCurveSchema,
   },
   {
     label: '多折线图',
     name: 'MultipleLine',
     type: 'Line',
     render: MultipleLineRender,
+    schema: multipleLineSchema,
   },
   {
     label: '阶梯折线图',
     name: 'StepLine',
     type: 'Line',
     render: StepLineRender,
+    schema: stepLineSchema,
   },
   {
     label: '多阶梯折线图',
     name: 'MultipleStepLine',
     type: 'Line',
     render: MultipleStepLineRender,
+    schema: multipleStepLineSchema,
   },
   {
     label: '基础面积图',
@@ -2066,6 +1904,6 @@ export const chartRender = (
   callback: any,
 ) => {
   const render = _.find(PICTURE_LIST, ['name', component_name])?.render;
-  if (render) render(container_id, component_name, config, callback);
+  if (render) render(container_id, config, callback);
   return <div id={container_id} style={{ width: '100%', height: '100%' }} />;
 };

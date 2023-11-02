@@ -1,6 +1,7 @@
 import {
   Checkbox,
   FormCollapse,
+  FormGrid,
   FormItem,
   Input,
   NumberPicker,
@@ -16,6 +17,7 @@ const SchemaField = createSchemaField({
     Radio,
     NumberPicker,
     Checkbox,
+    FormGrid,
   },
 });
 
@@ -81,6 +83,20 @@ const schema = {
               required: true,
               'x-component': 'Input',
             },
+            basic_seriesField: {
+              type: 'string',
+              title: '分类',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
+            basic_stepType: {
+              type: 'string',
+              title: '梯高',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
           },
         },
         axis: {
@@ -128,12 +144,14 @@ const schema = {
 };
 
 const initialValue = {
-  basic_title: '未命名图表',
+  basic_title: '多阶梯折线图',
   basic_title_fontSize: '14',
   basic_title_fontWeight: '60',
   basic_title_height: '42',
   basic_xField: '',
   basic_yField: '',
+  basic_seriesField: '',
+  basic_stepType: '',
   axis_isHide: false,
   axis_xAxis_title: '',
   axis_yAxis_title: '',
@@ -154,11 +172,13 @@ const formToConfig = (values: any) => {
         text: values.axis_yAxis_title,
       },
     },
+    seriesField: values.basic_seriesField,
+    stepType: values.basic_stepType,
   };
   return config;
 };
 
-export const basicLineSchema = {
+export const multipleStepLineSchema = {
   schema,
   SchemaField,
   initialValue,
@@ -168,9 +188,8 @@ export const basicLineSchema = {
   },
 };
 
-export const BasicLineRender = async (
+export const MultipleStepLineRender = async (
   container?: any,
-  component_name?: string,
   config?: any,
   callback?: any,
 ) => {
