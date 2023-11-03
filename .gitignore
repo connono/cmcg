@@ -9,6 +9,7 @@
 /.umi-production
 /.umi-test
 /dist
+/dist_bak
 /.mfsu
 .swc
 package-lock.json

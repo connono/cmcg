@@ -36,7 +36,7 @@ const ChartComponent: React.FC<Props> = (props) => {
 
   useEffect(() => {
     fetch(
-      'https://gw.alipayobjects.com/os/bmw-prod/b21e7336-0b3e-486c-9070-612ede49284e.json',
+      'https://gw.alipayobjects.com/os/antfincdn/8elHX%26irfq/stack-column-data.json',
     )
       .then((res) => res.json())
       .then((data) => {

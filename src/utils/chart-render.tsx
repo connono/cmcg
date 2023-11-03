@@ -1,983 +1,83 @@
 import {
   BasicAreaRender,
   basicAreaSchema,
-} from '@/components/charts/BasicArea';
-import {
-  BasicCurveRender,
-  basicCurveSchema,
-} from '@/components/charts/BasicCurve';
-import {
-  BasicLineRender,
-  basicLineSchema,
-} from '@/components/charts/BasicLine';
+} from '@/components/charts/area/BasicArea';
 import {
   DepositAreaRender,
   DepositAreaSchema,
-} from '@/components/charts/DepositArea';
-import {
-  MultipleLineRender,
-  multipleLineSchema,
-} from '@/components/charts/MultipleLine';
-import {
-  MultipleStepLineRender,
-  multipleStepLineSchema,
-} from '@/components/charts/MultipleStepLine';
+} from '@/components/charts/area/DepositArea';
 import {
   PercentDepositAreaRender,
   PercentDepositAreaSchema,
-} from '@/components/charts/PercentDepositArea';
-import { StepLineRender, stepLineSchema } from '@/components/charts/StepLine';
-
-const ColumnRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Column;
-  await import('@antv/g2plot/lib/plots/column').then((Module) => {
-    Column = Module.Column;
-  });
-
-  const data = [
-    {
-      type: '家具家电',
-      sales: 38,
-    },
-    {
-      type: '粮油副食',
-      sales: 52,
-    },
-    {
-      type: '生鲜水果',
-      sales: 61,
-    },
-    {
-      type: '美容洗护',
-      sales: 145,
-    },
-    {
-      type: '母婴用品',
-      sales: 48,
-    },
-    {
-      type: '进口食品',
-      sales: 38,
-    },
-    {
-      type: '食品饮料',
-      sales: 38,
-    },
-    {
-      type: '家庭清洁',
-      sales: 38,
-    },
-  ];
-  const column = new Column(container, {
-    data,
-    xField: 'type',
-    yField: 'sales',
-    label: {
-      // 可手动配置 label 数据标签位置
-      position: 'middle', // 'top', 'bottom', 'middle',
-      // 配置样式
-      style: {
-        fill: '#FFFFFF',
-        opacity: 0.6,
-      },
-    },
-    xAxis: {
-      label: {
-        autoHide: true,
-        autoRotate: false,
-      },
-    },
-    meta: {
-      type: {
-        alias: '类别',
-      },
-      sales: {
-        alias: '销售额',
-      },
-    },
-  });
-
-  column.render();
-  callback(column);
-};
-
-const StackColumnRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Column;
-  await import('@antv/g2plot/lib/plots/column').then((Module) => {
-    Column = Module.Column;
-  });
-
-  fetch(
-    'https://gw.alipayobjects.com/os/antfincdn/8elHX%26irfq/stack-column-data.json',
-  )
-    .then((data) => data.json())
-    .then((data) => {
-      const column = new Column(container, {
-        data,
-        isStack: true,
-        xField: 'year',
-        yField: 'value',
-        seriesField: 'type',
-        label: {
-          // 可手动配置 label 数据标签位置
-          position: 'middle', // 'top', 'bottom', 'middle'
-          // 可配置附加的布局方法
-          layout: [
-            // 柱形图数据标签位置自动调整
-            { type: 'interval-adjust-position' },
-            // 数据标签防遮挡
-            { type: 'interval-hide-overlap' },
-            // 数据标签文颜色自动调整
-            { type: 'adjust-color' },
-          ],
-        },
-      });
-      column.render();
-      callback(column);
-    });
-};
-
-const GroupColumnRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Column;
-  await import('@antv/g2plot/lib/plots/column').then((Module) => {
-    Column = Module.Column;
-  });
-
-  const data = [
-    {
-      name: 'London',
-      月份: 'Jan.',
-      月均降雨量: 18.9,
-    },
-    {
-      name: 'London',
-      月份: 'Feb.',
-      月均降雨量: 28.8,
-    },
-    {
-      name: 'London',
-      月份: 'Mar.',
-      月均降雨量: 39.3,
-    },
-    {
-      name: 'London',
-      月份: 'Apr.',
-      月均降雨量: 81.4,
-    },
-    {
-      name: 'London',
-      月份: 'May',
-      月均降雨量: 47,
-    },
-    {
-      name: 'London',
-      月份: 'Jun.',
-      月均降雨量: 20.3,
-    },
-    {
-      name: 'London',
-      月份: 'Jul.',
-      月均降雨量: 24,
-    },
-    {
-      name: 'London',
-      月份: 'Aug.',
-      月均降雨量: 35.6,
-    },
-    {
-      name: 'Berlin',
-      月份: 'Jan.',
-      月均降雨量: 12.4,
-    },
-    {
-      name: 'Berlin',
-      月份: 'Feb.',
-      月均降雨量: 23.2,
-    },
-    {
-      name: 'Berlin',
-      月份: 'Mar.',
-      月均降雨量: 34.5,
-    },
-    {
-      name: 'Berlin',
-      月份: 'Apr.',
-      月均降雨量: 99.7,
-    },
-    {
-      name: 'Berlin',
-      月份: 'May',
-      月均降雨量: 52.6,
-    },
-    {
-      name: 'Berlin',
-      月份: 'Jun.',
-      月均降雨量: 35.5,
-    },
-    {
-      name: 'Berlin',
-      月份: 'Jul.',
-      月均降雨量: 37.4,
-    },
-    {
-      name: 'Berlin',
-      月份: 'Aug.',
-      月均降雨量: 42.4,
-    },
-  ];
-
-  const column = new Column(container, {
-    data,
-    isGroup: true,
-    xField: '月份',
-    yField: '月均降雨量',
-    seriesField: 'name',
-    /** 设置颜色 */
-    //color: ['#1ca9e6', '#f88c24'],
-    /** 设置间距 */
-    // marginRatio: 0.1,
-    label: {
-      // 可手动配置 label 数据标签位置
-      position: 'middle', // 'top', 'middle', 'bottom'
-      // 可配置附加的布局方法
-      layout: [
-        // 柱形图数据标签位置自动调整
-        { type: 'interval-adjust-position' },
-        // 数据标签防遮挡
-        { type: 'interval-hide-overlap' },
-        // 数据标签文颜色自动调整
-        { type: 'adjust-color' },
-      ],
-    },
-  });
-
-  column.render();
-  callback(column);
-};
-
-const PercentColumnRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Column;
-  await import('@antv/g2plot/lib/plots/column').then((Module) => {
-    Column = Module.Column;
-  });
-
-  const data = [
-    {
-      country: 'Asia',
-      year: '1750',
-      value: 502,
-    },
-    {
-      country: 'Asia',
-      year: '1800',
-      value: 635,
-    },
-    {
-      country: 'Asia',
-      year: '1850',
-      value: 809,
-    },
-    {
-      country: 'Asia',
-      year: '1900',
-      value: 947,
-    },
-    {
-      country: 'Asia',
-      year: '1950',
-      value: 1402,
-    },
-    {
-      country: 'Asia',
-      year: '1999',
-      value: 3634,
-    },
-    {
-      country: 'Asia',
-      year: '2050',
-      value: 5268,
-    },
-    {
-      country: 'Africa',
-      year: '1750',
-      value: 106,
-    },
-    {
-      country: 'Africa',
-      year: '1800',
-      value: 107,
-    },
-    {
-      country: 'Africa',
-      year: '1850',
-      value: 111,
-    },
-    {
-      country: 'Africa',
-      year: '1900',
-      value: 133,
-    },
-    {
-      country: 'Africa',
-      year: '1950',
-      value: 221,
-    },
-    {
-      country: 'Africa',
-      year: '1999',
-      value: 767,
-    },
-    {
-      country: 'Africa',
-      year: '2050',
-      value: 1766,
-    },
-    {
-      country: 'Europe',
-      year: '1750',
-      value: 163,
-    },
-    {
-      country: 'Europe',
-      year: '1800',
-      value: 203,
-    },
-    {
-      country: 'Europe',
-      year: '1850',
-      value: 276,
-    },
-    {
-      country: 'Europe',
-      year: '1900',
-      value: 408,
-    },
-    {
-      country: 'Europe',
-      year: '1950',
-      value: 547,
-    },
-    {
-      country: 'Europe',
-      year: '1999',
-      value: 729,
-    },
-    {
-      country: 'Europe',
-      year: '2050',
-      value: 628,
-    },
-  ];
-
-  const column = new Column(container, {
-    data,
-    xField: 'year',
-    yField: 'value',
-    seriesField: 'country',
-    isPercent: true,
-    isStack: true,
-    label: {
-      position: 'middle',
-      content: (item) => {
-        return item.value.toFixed(2);
-      },
-      style: {
-        fill: '#fff',
-      },
-    },
-  });
-
-  column.render();
-  callback(column);
-};
-
-const RangeColumnRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Column;
-  await import('@antv/g2plot/lib/plots/column').then((Module) => {
-    Column = Module.Column;
-  });
-
-  const data = [
-    { type: '分类一', values: [76, 100] },
-    { type: '分类二', values: [56, 108] },
-    { type: '分类三', values: [38, 129] },
-    { type: '分类四', values: [58, 155] },
-    { type: '分类五', values: [45, 120] },
-    { type: '分类六', values: [23, 99] },
-    { type: '分类七', values: [18, 56] },
-    { type: '分类八', values: [18, 34] },
-  ];
-
-  const column = new Column(container, {
-    data,
-    xField: 'type',
-    yField: 'values',
-    isRange: true,
-    label: {
-      position: 'middle',
-      layout: [{ type: 'adjust-color' }],
-    },
-  });
-
-  column.render();
-  callback(column);
-};
-
-const BasicBarRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Bar;
-  await import('@antv/g2plot/lib/plots/bar').then((Module) => {
-    Bar = Module.Bar;
-  });
-
-  const data = [
-    { year: '1951 年', value: 38 },
-    { year: '1952 年', value: 52 },
-    { year: '1956 年', value: 61 },
-    { year: '1957 年', value: 145 },
-    { year: '1958 年', value: 48 },
-  ];
-
-  const bar = new Bar(container, {
-    data,
-    xField: 'value',
-    yField: 'year',
-    seriesField: 'year',
-    legend: {
-      position: 'top-left',
-    },
-  });
-
-  bar.render();
-  callback(bar);
-};
-
-const StackBarRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Bar;
-  await import('@antv/g2plot/lib/plots/bar').then((Module) => {
-    Bar = Module.Bar;
-  });
-
-  const data = [
-    {
-      year: '1991',
-      value: 3,
-      type: 'Lon',
-    },
-    {
-      year: '1992',
-      value: 4,
-      type: 'Lon',
-    },
-    {
-      year: '1993',
-      value: 3.5,
-      type: 'Lon',
-    },
-    {
-      year: '1994',
-      value: 5,
-      type: 'Lon',
-    },
-    {
-      year: '1995',
-      value: 4.9,
-      type: 'Lon',
-    },
-    {
-      year: '1996',
-      value: 6,
-      type: 'Lon',
-    },
-    {
-      year: '1997',
-      value: 7,
-      type: 'Lon',
-    },
-    {
-      year: '1998',
-      value: 9,
-      type: 'Lon',
-    },
-    {
-      year: '1999',
-      value: 13,
-      type: 'Lon',
-    },
-    {
-      year: '1991',
-      value: 3,
-      type: 'Bor',
-    },
-    {
-      year: '1992',
-      value: 4,
-      type: 'Bor',
-    },
-    {
-      year: '1993',
-      value: 3.5,
-      type: 'Bor',
-    },
-    {
-      year: '1994',
-      value: 5,
-      type: 'Bor',
-    },
-    {
-      year: '1995',
-      value: 4.9,
-      type: 'Bor',
-    },
-    {
-      year: '1996',
-      value: 6,
-      type: 'Bor',
-    },
-    {
-      year: '1997',
-      value: 7,
-      type: 'Bor',
-    },
-    {
-      year: '1998',
-      value: 9,
-      type: 'Bor',
-    },
-    {
-      year: '1999',
-      value: 13,
-      type: 'Bor',
-    },
-  ];
-
-  const bar = new Bar(container, {
-    data: data.reverse(),
-    isStack: true,
-    xField: 'value',
-    yField: 'year',
-    seriesField: 'type',
-    label: {
-      // 可手动配置 label 数据标签位置
-      position: 'middle', // 'left', 'middle', 'right'
-      // 可配置附加的布局方法
-      layout: [
-        // 柱形图数据标签位置自动调整
-        { type: 'interval-adjust-position' },
-        // 数据标签防遮挡
-        { type: 'interval-hide-overlap' },
-        // 数据标签文颜色自动调整
-        { type: 'adjust-color' },
-      ],
-    },
-  });
-
-  bar.render();
-  callback(bar);
-};
-
-const GroupBarRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Bar;
-  await import('@antv/g2plot/lib/plots/bar').then((Module) => {
-    Bar = Module.Bar;
-  });
-
-  const data = [
-    {
-      label: 'Mon.',
-      type: 'series1',
-      value: 2800,
-    },
-    {
-      label: 'Mon.',
-      type: 'series2',
-      value: 2260,
-    },
-    {
-      label: 'Tues.',
-      type: 'series1',
-      value: 1800,
-    },
-    {
-      label: 'Tues.',
-      type: 'series2',
-      value: 1300,
-    },
-    {
-      label: 'Wed.',
-      type: 'series1',
-      value: 950,
-    },
-    {
-      label: 'Wed.',
-      type: 'series2',
-      value: 900,
-    },
-    {
-      label: 'Thur.',
-      type: 'series1',
-      value: 500,
-    },
-    {
-      label: 'Thur.',
-      type: 'series2',
-      value: 390,
-    },
-    {
-      label: 'Fri.',
-      type: 'series1',
-      value: 170,
-    },
-    {
-      label: 'Fri.',
-      type: 'series2',
-      value: 100,
-    },
-  ];
-
-  const bar = new Bar(container, {
-    data,
-    isGroup: true,
-    xField: 'value',
-    yField: 'label',
-    /** 自定义颜色 */
-    // color: ['#1383ab', '#c52125'],
-    seriesField: 'type',
-    marginRatio: 0,
-    label: {
-      // 可手动配置 label 数据标签位置
-      position: 'middle', // 'left', 'middle', 'right'
-      // 可配置附加的布局方法
-      layout: [
-        // 柱形图数据标签位置自动调整
-        { type: 'interval-adjust-position' },
-        // 数据标签防遮挡
-        { type: 'interval-hide-overlap' },
-        // 数据标签文颜色自动调整
-        { type: 'adjust-color' },
-      ],
-    },
-  });
-
-  bar.render();
-  callback(bar);
-};
-
-const PercentBarRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Bar;
-  await import('@antv/g2plot/lib/plots/bar').then((Module) => {
-    Bar = Module.Bar;
-  });
-
-  const data = [
-    {
-      country: 'Asia',
-      year: '1750',
-      value: 502,
-    },
-    {
-      country: 'Asia',
-      year: '1800',
-      value: 635,
-    },
-    {
-      country: 'Asia',
-      year: '1850',
-      value: 809,
-    },
-    {
-      country: 'Asia',
-      year: '1900',
-      value: 947,
-    },
-    {
-      country: 'Asia',
-      year: '1950',
-      value: 1402,
-    },
-    {
-      country: 'Asia',
-      year: '1999',
-      value: 3634,
-    },
-    {
-      country: 'Asia',
-      year: '2050',
-      value: 5268,
-    },
-    {
-      country: 'Africa',
-      year: '1750',
-      value: 106,
-    },
-    {
-      country: 'Africa',
-      year: '1800',
-      value: 107,
-    },
-    {
-      country: 'Africa',
-      year: '1850',
-      value: 111,
-    },
-    {
-      country: 'Africa',
-      year: '1900',
-      value: 133,
-    },
-    {
-      country: 'Africa',
-      year: '1950',
-      value: 221,
-    },
-    {
-      country: 'Africa',
-      year: '1999',
-      value: 767,
-    },
-    {
-      country: 'Africa',
-      year: '2050',
-      value: 1766,
-    },
-    {
-      country: 'Europe',
-      year: '1750',
-      value: 163,
-    },
-    {
-      country: 'Europe',
-      year: '1800',
-      value: 203,
-    },
-    {
-      country: 'Europe',
-      year: '1850',
-      value: 276,
-    },
-    {
-      country: 'Europe',
-      year: '1900',
-      value: 408,
-    },
-    {
-      country: 'Europe',
-      year: '1950',
-      value: 547,
-    },
-    {
-      country: 'Europe',
-      year: '1999',
-      value: 729,
-    },
-    {
-      country: 'Europe',
-      year: '2050',
-      value: 628,
-    },
-  ];
-
-  const bar = new Bar(container, {
-    data,
-    xField: 'value',
-    yField: 'year',
-    seriesField: 'country',
-    isPercent: true,
-    isStack: true,
-    /** 自定义颜色 */
-    // color: ['#2582a1', '#f88c24', '#c52125', '#87f4d0'],
-    label: {
-      position: 'middle',
-      content: (item) => {
-        return item.value.toFixed(2);
-      },
-      style: {
-        fill: '#fff',
-      },
-    },
-  });
-
-  bar.render();
-  callback(bar);
-};
-
-const RangeBarRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Bar;
-  await import('@antv/g2plot/lib/plots/bar').then((Module) => {
-    Bar = Module.Bar;
-  });
-
-  const data = [
-    { type: '分类一', values: [76, 100] },
-    { type: '分类二', values: [56, 108] },
-    { type: '分类三', values: [38, 129] },
-    { type: '分类四', values: [58, 155] },
-    { type: '分类五', values: [45, 120] },
-    { type: '分类六', values: [23, 99] },
-    { type: '分类七', values: [18, 56] },
-    { type: '分类八', values: [18, 34] },
-  ];
-
-  const bar = new Bar(container, {
-    data: data.reverse(),
-    xField: 'values',
-    yField: 'type',
-    isRange: true,
-    label: {
-      position: 'middle',
-      layout: [{ type: 'adjust-color' }],
-    },
-  });
-
-  bar.render();
-  callback(bar);
-};
-
-const BasicPieRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Pie;
-  await import('@antv/g2plot/lib/plots/pie').then((Module) => {
-    Pie = Module.Pie;
-  });
-
-  const data = [
-    { type: '分类一', value: 27 },
-    { type: '分类二', value: 25 },
-    { type: '分类三', value: 18 },
-    { type: '分类四', value: 15 },
-    { type: '分类五', value: 10 },
-    { type: '其他', value: 5 },
-  ];
-
-  const pie = new Pie(container, {
-    appendPadding: 10,
-    data,
-    angleField: 'value',
-    colorField: 'type',
-    radius: 0.9,
-    label: {
-      type: 'inner',
-      offset: '-30%',
-      //@ts-ignore
-      content: ({ percent }) => `${(percent * 100).toFixed(0)}%`,
-      style: {
-        fontSize: 14,
-        textAlign: 'center',
-      },
-    },
-    interactions: [{ type: 'element-active' }],
-  });
-
-  pie.render();
-  callback(pie);
-};
-
-const BasicRingRender = async (
-  container?: any,
-  component_name?: string,
-  config?: any,
-  callback?: any,
-) => {
-  let Pie;
-  await import('@antv/g2plot/lib/plots/pie').then((Module) => {
-    Pie = Module.Pie;
-  });
-
-  const data = [
-    { type: '分类一', value: 27 },
-    { type: '分类二', value: 25 },
-    { type: '分类三', value: 18 },
-    { type: '分类四', value: 15 },
-    { type: '分类五', value: 10 },
-    { type: '其他', value: 5 },
-  ];
-
-  const pie = new Pie(container, {
-    appendPadding: 10,
-    data,
-    angleField: 'value',
-    colorField: 'type',
-    radius: 1,
-    innerRadius: 0.6,
-    label: {
-      type: 'inner',
-      offset: '-50%',
-      content: '{value}',
-      style: {
-        textAlign: 'center',
-        fontSize: 14,
-      },
-    },
-    interactions: [{ type: 'element-selected' }, { type: 'element-active' }],
-    statistic: {
-      title: false,
-      content: {
-        style: {
-          whiteSpace: 'pre-wrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        },
-        content: 'AntV\nG2Plot',
-      },
-    },
-  });
-
-  pie.render();
-  callback(pie);
-};
+} from '@/components/charts/area/PercentDepositArea';
+import {
+  BasicBarRender,
+  basicBarSchema,
+} from '@/components/charts/bar/BasicBar';
+import {
+  GroupBarRender,
+  groupBarSchema,
+} from '@/components/charts/bar/GroupBar';
+import {
+  PercentBarRender,
+  percentBarSchema,
+} from '@/components/charts/bar/PercentBar';
+import {
+  RangeBarRender,
+  rangeBarSchema,
+} from '@/components/charts/bar/RangeBar';
+import {
+  StackBarRender,
+  stackBarSchema,
+} from '@/components/charts/bar/StackBar';
+import {
+  BasicColumnRender,
+  basicColumnSchema,
+} from '@/components/charts/column/BasicColumn';
+import {
+  GroupColumnRender,
+  groupColumnSchema,
+} from '@/components/charts/column/GroupColumn';
+import {
+  PercentColumnRender,
+  percentColumnSchema,
+} from '@/components/charts/column/PercentColumn';
+import {
+  RangeColumnRender,
+  rangeColumnSchema,
+} from '@/components/charts/column/RangeColumn';
+import {
+  StackColumnRender,
+  stackColumnSchema,
+} from '@/components/charts/column/StackColumn';
+import {
+  BasicCurveRender,
+  basicCurveSchema,
+} from '@/components/charts/line/BasicCurve';
+import {
+  BasicLineRender,
+  basicLineSchema,
+} from '@/components/charts/line/BasicLine';
+import {
+  MultipleLineRender,
+  multipleLineSchema,
+} from '@/components/charts/line/MultipleLine';
+import {
+  MultipleStepLineRender,
+  multipleStepLineSchema,
+} from '@/components/charts/line/MultipleStepLine';
+import {
+  StepLineRender,
+  stepLineSchema,
+} from '@/components/charts/line/StepLine';
+import {
+  BasicPieRender,
+  basicPieSchema,
+} from '@/components/charts/pie/BasicPie';
+import {
+  BasicRingRender,
+  basicRingSchema,
+} from '@/components/charts/pie/BasicRing';
 
 const BasicGaugeRender = async (
   container?: any,
@@ -1674,73 +774,85 @@ export const PICTURE_LIST = [
     label: '基础柱状图',
     name: 'BasicColumn',
     type: 'Column',
-    render: ColumnRender,
+    render: BasicColumnRender,
+    schema: basicColumnSchema,
   },
   {
     label: '堆叠柱状图',
     name: 'StackColumn',
     type: 'Column',
     render: StackColumnRender,
+    schema: stackColumnSchema,
   },
   {
     label: '分组柱状图',
     name: 'GroupColumn',
     type: 'Column',
     render: GroupColumnRender,
+    schema: groupColumnSchema,
   },
   {
     label: '百分比柱状图',
     name: 'PercentColumn',
     type: 'Column',
     render: PercentColumnRender,
+    schema: percentColumnSchema,
   },
   {
     label: '区间柱状图',
     name: 'RangeColumn',
     type: 'Column',
     render: RangeColumnRender,
+    schema: rangeColumnSchema,
   },
   {
     label: '基础条形图',
     name: 'BasicBar',
     type: 'Bar',
     render: BasicBarRender,
+    schema: basicBarSchema,
   },
   {
     label: '堆叠条形图',
     name: 'StackBar',
     type: 'Bar',
     render: StackBarRender,
+    schema: stackBarSchema,
   },
   {
     label: '分组条形图',
     name: 'GroupBar',
     type: 'Bar',
     render: GroupBarRender,
+    schema: groupBarSchema,
   },
   {
     label: '百分比条形图',
     name: 'PercentBar',
     type: 'Bar',
     render: PercentBarRender,
+    schema: percentBarSchema,
   },
   {
     label: '区间条形图',
     name: 'RangeBar',
     type: 'Bar',
     render: RangeBarRender,
+    schema: rangeBarSchema,
   },
   {
     label: '基础饼图',
     name: 'BasicPie',
     type: 'Pie',
     render: BasicPieRender,
+    schema: basicPieSchema,
   },
   {
     label: '基础环图',
     name: 'BasicRing',
     type: 'Pie',
     render: BasicRingRender,
+    schema: basicRingSchema,
   },
   {
     label: '基础仪表盘',
