@@ -69,30 +69,37 @@ const schema = {
               required: true,
               'x-component': 'NumberPicker',
             },
-            basic_angleField: {
+            basic_sourceField: {
               type: 'string',
-              title: '角度映射',
+              title: '来源节点数据字段',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
             },
-            basic_colorField: {
+            basic_targetField: {
               type: 'string',
-              title: '颜色映射',
+              title: '目标节点数据字段',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
             },
-            basic_radius: {
+            basic_weightField: {
               type: 'string',
-              title: '外径比例（0-1）',
+              title: '权重字段信息',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
+            basic_nodeWidthRatio: {
+              type: 'string',
+              title: '节点的宽度配置(0 ~ 1）',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'NumberPicker',
             },
-            basic_innerRadius: {
+            basic_nodePaddingRatio: {
               type: 'string',
-              title: '内径比例（0-1）',
+              title: '节点的之间垂直方向的间距（0 ~ 1）',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'NumberPicker',
@@ -105,27 +112,29 @@ const schema = {
 };
 
 const initialValue = {
-  basic_title: '基本环图',
+  basic_title: '基本桑基图',
   basic_title_fontSize: '14',
   basic_title_fontWeight: '60',
   basic_title_height: '42',
-  basic_angleField: '',
-  basic_colorField: '',
-  basic_radius: '0.8',
-  basic_innerRadius: '0.6',
+  basic_sourceField: '',
+  basic_targetField: '',
+  basic_weightField: '',
+  basic_nodeWidthRatio: '0.008',
+  basic_nodePaddingRatio: '0.01',
 };
 
 const formToConfig = (values: any) => {
   const config = {
-    angleField: values.basic_angleField,
-    colorField: values.basic_colorField,
-    radius: values.basic_radius,
-    innerRadius: values.basic_innerRadius,
+    sourceField: values.basic_sourceField,
+    targetField: values.basic_targetField,
+    weightField: values.basic_weightField,
+    nodeWidthRatio: values.basic_nodeWidthRatio,
+    nodePaddingRatio: values.basic_nodePaddingRatio,
   };
   return config;
 };
 
-export const basicRingSchema = {
+export const basicSankeySchema = {
   schema,
   SchemaField,
   initialValue,
@@ -135,17 +144,17 @@ export const basicRingSchema = {
   },
 };
 
-export const BasicRingRender = async (
+export const BasicSankeyRender = async (
   container?: any,
   config?: any,
   callback?: any,
 ) => {
-  let Pie;
-  await import('@antv/g2plot/lib/plots/pie').then((Module) => {
-    Pie = Module.Pie;
+  let Sankey;
+  await import('@antv/g2plot/lib/plots/sankey').then((Module) => {
+    Sankey = Module.Sankey;
   });
 
-  const pie = new Pie(container, config);
-  pie.render();
-  callback(pie);
+  const sankey = new Sankey(container, config);
+  sankey.render();
+  callback(sankey);
 };

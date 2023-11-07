@@ -69,9 +69,16 @@ const schema = {
               required: true,
               'x-component': 'NumberPicker',
             },
-            basic_angleField: {
+            basic_xField: {
               type: 'string',
-              title: '角度映射',
+              title: 'x轴映射',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
+            basic_yField: {
+              type: 'string',
+              title: 'y轴映射',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
@@ -83,20 +90,6 @@ const schema = {
               required: true,
               'x-component': 'Input',
             },
-            basic_radius: {
-              type: 'string',
-              title: '外径比例（0-1）',
-              'x-decorator': 'FormItem',
-              required: true,
-              'x-component': 'NumberPicker',
-            },
-            basic_innerRadius: {
-              type: 'string',
-              title: '内径比例（0-1）',
-              'x-decorator': 'FormItem',
-              required: true,
-              'x-component': 'NumberPicker',
-            },
           },
         },
       },
@@ -105,27 +98,26 @@ const schema = {
 };
 
 const initialValue = {
-  basic_title: '基本环图',
+  basic_title: '密度热力图',
   basic_title_fontSize: '14',
   basic_title_fontWeight: '60',
   basic_title_height: '42',
-  basic_angleField: '',
-  basic_colorField: '',
-  basic_radius: '0.8',
-  basic_innerRadius: '0.6',
+  basic_xField: 'g',
+  basic_yField: 'l',
+  basic_colorField: 'tmp',
 };
 
 const formToConfig = (values: any) => {
   const config = {
-    angleField: values.basic_angleField,
+    xField: values.basic_xField,
+    yField: values.basic_yField,
     colorField: values.basic_colorField,
-    radius: values.basic_radius,
-    innerRadius: values.basic_innerRadius,
+    type: 'density',
   };
   return config;
 };
 
-export const basicRingSchema = {
+export const densityHeatmapSchema = {
   schema,
   SchemaField,
   initialValue,
@@ -135,17 +127,17 @@ export const basicRingSchema = {
   },
 };
 
-export const BasicRingRender = async (
+export const DensityHeatmapRender = async (
   container?: any,
   config?: any,
   callback?: any,
 ) => {
-  let Pie;
-  await import('@antv/g2plot/lib/plots/pie').then((Module) => {
-    Pie = Module.Pie;
+  let Heatmap;
+  await import('@antv/g2plot/lib/plots/heatmap').then((Module) => {
+    Heatmap = Module.Heatmap;
   });
 
-  const pie = new Pie(container, config);
-  pie.render();
-  callback(pie);
+  const heatmap = new Heatmap(container, config);
+  heatmap.render();
+  callback(heatmap);
 };

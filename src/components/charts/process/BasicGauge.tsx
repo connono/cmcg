@@ -69,33 +69,12 @@ const schema = {
               required: true,
               'x-component': 'NumberPicker',
             },
-            basic_angleField: {
+            basic_percent: {
               type: 'string',
-              title: '角度映射',
+              title: '数值',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
-            },
-            basic_colorField: {
-              type: 'string',
-              title: '颜色映射',
-              'x-decorator': 'FormItem',
-              required: true,
-              'x-component': 'Input',
-            },
-            basic_radius: {
-              type: 'string',
-              title: '外径比例（0-1）',
-              'x-decorator': 'FormItem',
-              required: true,
-              'x-component': 'NumberPicker',
-            },
-            basic_innerRadius: {
-              type: 'string',
-              title: '内径比例（0-1）',
-              'x-decorator': 'FormItem',
-              required: true,
-              'x-component': 'NumberPicker',
             },
           },
         },
@@ -105,27 +84,21 @@ const schema = {
 };
 
 const initialValue = {
-  basic_title: '基本环图',
+  basic_title: '基本仪表盘',
   basic_title_fontSize: '14',
   basic_title_fontWeight: '60',
   basic_title_height: '42',
-  basic_angleField: '',
-  basic_colorField: '',
-  basic_radius: '0.8',
-  basic_innerRadius: '0.6',
+  basic_percent: '0',
 };
 
 const formToConfig = (values: any) => {
   const config = {
-    angleField: values.basic_angleField,
-    colorField: values.basic_colorField,
-    radius: values.basic_radius,
-    innerRadius: values.basic_innerRadius,
+    percent: values.basic_percent,
   };
   return config;
 };
 
-export const basicRingSchema = {
+export const basicGaugeSchema = {
   schema,
   SchemaField,
   initialValue,
@@ -135,17 +108,17 @@ export const basicRingSchema = {
   },
 };
 
-export const BasicRingRender = async (
+export const BasicGaugeRender = async (
   container?: any,
   config?: any,
   callback?: any,
 ) => {
-  let Pie;
-  await import('@antv/g2plot/lib/plots/pie').then((Module) => {
-    Pie = Module.Pie;
+  let Gauge;
+  await import('@antv/g2plot/lib/plots/gauge').then((Module) => {
+    Gauge = Module.Gauge;
   });
 
-  const pie = new Pie(container, config);
-  pie.render();
-  callback(pie);
+  const gauge = new Gauge(container, config);
+  gauge.render();
+  callback(gauge);
 };

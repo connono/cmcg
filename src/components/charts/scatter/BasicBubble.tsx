@@ -69,30 +69,51 @@ const schema = {
               required: true,
               'x-component': 'NumberPicker',
             },
-            basic_angleField: {
+            basic_xField: {
               type: 'string',
-              title: '角度映射',
+              title: 'x轴',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
+            basic_yField: {
+              type: 'string',
+              title: 'y轴',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
             },
             basic_colorField: {
               type: 'string',
-              title: '颜色映射',
+              title: '分类值',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
             },
-            basic_radius: {
+            basic_sizeField: {
               type: 'string',
-              title: '外径比例（0-1）',
+              title: '分类值',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
+            basic_shape: {
+              type: 'string',
+              title: '散点形状',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
+            basic_min_size: {
+              type: 'string',
+              title: '点最小半径',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'NumberPicker',
             },
-            basic_innerRadius: {
+            basic_max_size: {
               type: 'string',
-              title: '内径比例（0-1）',
+              title: '点最大半径',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'NumberPicker',
@@ -105,27 +126,36 @@ const schema = {
 };
 
 const initialValue = {
-  basic_title: '基本环图',
+  basic_title: '基本气泡图',
   basic_title_fontSize: '14',
   basic_title_fontWeight: '60',
   basic_title_height: '42',
-  basic_angleField: '',
+  basic_xField: '',
+  basic_yField: '',
   basic_colorField: '',
-  basic_radius: '0.8',
-  basic_innerRadius: '0.6',
+  basic_sizeField: '',
+  basic_shape: 'circle',
+  basic_min_size: 4,
+  basic_max_size: 4,
 };
 
 const formToConfig = (values: any) => {
+  const size =
+    values.basic_min_size === values.basic_max_size
+      ? values.basic_min_size
+      : [values.basic_min_size, values.basic_max_size];
   const config = {
-    angleField: values.basic_angleField,
+    xField: values.basic_xField,
+    yField: values.basic_yField,
     colorField: values.basic_colorField,
-    radius: values.basic_radius,
-    innerRadius: values.basic_innerRadius,
+    sizeField: values.basic_sizeField,
+    shape: values.basic_shape,
+    size,
   };
   return config;
 };
 
-export const basicRingSchema = {
+export const basicBubbleSchema = {
   schema,
   SchemaField,
   initialValue,
@@ -135,17 +165,17 @@ export const basicRingSchema = {
   },
 };
 
-export const BasicRingRender = async (
+export const BasicBubbleRender = async (
   container?: any,
   config?: any,
   callback?: any,
 ) => {
-  let Pie;
-  await import('@antv/g2plot/lib/plots/pie').then((Module) => {
-    Pie = Module.Pie;
+  let Scatter;
+  await import('@antv/g2plot/lib/plots/scatter').then((Module) => {
+    Scatter = Module.Scatter;
   });
 
-  const pie = new Pie(container, config);
-  pie.render();
-  callback(pie);
+  const scatter = new Scatter(container, config);
+  scatter.render();
+  callback(scatter);
 };

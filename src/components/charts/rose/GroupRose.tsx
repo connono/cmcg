@@ -69,16 +69,23 @@ const schema = {
               required: true,
               'x-component': 'NumberPicker',
             },
-            basic_angleField: {
+            basic_xField: {
               type: 'string',
-              title: '角度映射',
+              title: 'x轴',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
             },
-            basic_colorField: {
+            basic_yField: {
               type: 'string',
-              title: '颜色映射',
+              title: 'y轴',
+              'x-decorator': 'FormItem',
+              required: true,
+              'x-component': 'Input',
+            },
+            basic_seriesField: {
+              type: 'string',
+              title: '分类值',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'Input',
@@ -86,13 +93,6 @@ const schema = {
             basic_radius: {
               type: 'string',
               title: '外径比例（0-1）',
-              'x-decorator': 'FormItem',
-              required: true,
-              'x-component': 'NumberPicker',
-            },
-            basic_innerRadius: {
-              type: 'string',
-              title: '内径比例（0-1）',
               'x-decorator': 'FormItem',
               required: true,
               'x-component': 'NumberPicker',
@@ -105,27 +105,28 @@ const schema = {
 };
 
 const initialValue = {
-  basic_title: '基本环图',
+  basic_title: '分组玫瑰图',
   basic_title_fontSize: '14',
   basic_title_fontWeight: '60',
   basic_title_height: '42',
-  basic_angleField: '',
-  basic_colorField: '',
+  basic_xField: '',
+  basic_yField: '',
+  basic_seriesField: '',
   basic_radius: '0.8',
-  basic_innerRadius: '0.6',
 };
 
 const formToConfig = (values: any) => {
   const config = {
-    angleField: values.basic_angleField,
-    colorField: values.basic_colorField,
+    xField: values.basic_xField,
+    yField: values.basic_yField,
+    seriesField: values.basic_seriesField,
     radius: values.basic_radius,
-    innerRadius: values.basic_innerRadius,
+    isGroup: true,
   };
   return config;
 };
 
-export const basicRingSchema = {
+export const groupRoseSchema = {
   schema,
   SchemaField,
   initialValue,
@@ -135,17 +136,17 @@ export const basicRingSchema = {
   },
 };
 
-export const BasicRingRender = async (
+export const GroupRoseRender = async (
   container?: any,
   config?: any,
   callback?: any,
 ) => {
-  let Pie;
-  await import('@antv/g2plot/lib/plots/pie').then((Module) => {
-    Pie = Module.Pie;
+  let Rose;
+  await import('@antv/g2plot/lib/plots/rose').then((Module) => {
+    Rose = Module.Rose;
   });
 
-  const pie = new Pie(container, config);
-  pie.render();
-  callback(pie);
+  const rose = new Rose(container, config);
+  rose.render();
+  callback(rose);
 };

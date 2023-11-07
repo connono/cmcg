@@ -35,9 +35,7 @@ const ChartComponent: React.FC<Props> = (props) => {
   );
 
   useEffect(() => {
-    fetch(
-      'https://gw.alipayobjects.com/os/antfincdn/8elHX%26irfq/stack-column-data.json',
-    )
+    fetch('https://gw.alipayobjects.com/os/antvdemo/assets/data/heatmap.json')
       .then((res) => res.json())
       .then((data) => {
         setData(data);
