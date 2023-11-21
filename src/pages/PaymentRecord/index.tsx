@@ -10,12 +10,12 @@ import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 
-const getRecords = async (id: number) => {
-  return await axios.get(`${SERVER_HOST}/payment/records/index/${id}`);
+const getPlanRecords = async (id: number) => {
+  return await axios.get(`${SERVER_HOST}/payment/records/planIndex/${id}`);
 };
 
-const getPlan = async (id: number) => {
-  return await axios.get(`${SERVER_HOST}/payment/plans/getItem?id=${id}`);
+const getProcessRecords = async (id: number) => {
+  return await axios.get(`${SERVER_HOST}/payment/records/processIndex/${id}`);
 };
 
 const PaymentRecordCardChildren: React.FC = (props: any) => {
@@ -38,10 +38,11 @@ const PaymentRecordCardChildren: React.FC = (props: any) => {
 };
 
 const PaymentRecordPage: React.FC = () => {
-  const hashArray = history.location.hash.split('#')[1];
-  const id = parseInt(hashArray[0]);
+  const hashArray = history.location.hash.split('#')[1].split('&');
+  const type = hashArray[0];
+  const id = parseInt(hashArray[1]);
   const [items, setItems] = useState<CollapseProps['items']>([]);
-  const { run: runGetRecords } = useRequest(getRecords, {
+  const { run: runGetPlanRecords } = useRequest(getPlanRecords, {
     manual: true,
     onSuccess: (result: any) => {
       const date_text =
@@ -64,20 +65,32 @@ const PaymentRecordPage: React.FC = () => {
     },
   });
 
-  const { run: runGetPlan } = useRequest(getPlan, {
+  const { run: runGetProcessRecords } = useRequest(getProcessRecords, {
     manual: true,
     onSuccess: (result: any) => {
-      console.log('result:', result);
+      const date_text =
+        history.location.state.is_pay === 'true' ? '付款日期：' : '收款日期：';
+      const cost_text =
+        history.location.state.is_pay === 'true' ? '付款金额：' : '收款金额：';
+      const i = _.map(result.data, (value: any, key: any) => {
+        const apply_date = new Date(value.created_at);
+        const apply_date_string = `${apply_date.getFullYear()}-${apply_date.getMonth()}-${apply_date.getDate()}`;
+        return {
+          key: key.toString(),
+          label: `申请提交日期：${apply_date_string}    ${date_text} ${value.assessment_date}    ${cost_text} ${value.assessment} `,
+          children: <PaymentRecordCardChildren record={value} />,
+        };
+      });
+      setItems(i);
     },
-    onError: () => {
-      message.error('未找到该条计划，返回监控页面...');
-      history.push('/paymentMonitor');
+    onError: (error: any) => {
+      message.error(error.message);
     },
   });
 
   useEffect(() => {
-    runGetPlan(id);
-    runGetRecords(id);
+    if (type === 'plan') runGetPlanRecords(id);
+    else if (type === 'process') runGetProcessRecords(id);
   }, []);
 
   return (
@@ -91,11 +104,24 @@ const PaymentRecordPage: React.FC = () => {
       <Divider orientation="left">
         {history.location.state.contract_name}
       </Divider>
-      <Row style={{ marginBottom: '40px' }} gutter={16}>
+      <Row style={{ marginBottom: '10px' }} gutter={16}>
         <Col span={6}>职能科室：{history.location.state.department}</Col>
         <Col span={6}>合作商户：{history.location.state.company}</Col>
         <Col span={4}>类型：{history.location.state.category}</Col>
         <Col span={8}>合同签订日期：{history.location.state.contract_date}</Col>
+      </Row>
+      <Row style={{ marginBottom: '40px' }} gutter={16}>
+        <Col span={6}>{`${
+          history.location.state.is_pay === 'true'
+            ? '累计缴费金额:'
+            : '累计收费金额：'
+        }${history.location.state.assessments_count}元`}</Col>
+        <Col span={6}>
+          目标金额：
+          {history.location.state.target_amount
+            ? history.location.state.target_amount + '元'
+            : '暂无'}
+        </Col>
       </Row>
       <Collapse accordion items={items} />
     </PageContainer>

@@ -1,5 +1,20 @@
 import { message } from 'antd';
 import * as binconv from 'binconv';
+import _ from 'lodash';
+
+export function fileListToString(fileList) {
+  const fileListString = _.chain(fileList)
+    .map(function (file) {
+      return file.filename;
+    })
+    .join('&')
+    .value();
+  return fileListString;
+}
+
+export function fileStringToList(fileString) {
+  return _.split(fileString, '&');
+}
 
 export function getsuffix(filename) {
   const filenameArray = filename.split('.');
@@ -27,7 +42,7 @@ export function upload(file, handleUpload) {
   const suffix = getsuffix(file.name);
   const filename = suffix + '/' + Date.now() + file.name;
   retrievePutNewURL(file, filename, (file, url) => {
-    uploadFile(file, url, handleUpload, filename);
+    uploadFile(file, url, handleUpload, filename, file.uid);
   });
 }
 
@@ -47,20 +62,20 @@ export function retrievePutNewURL(file, filename, cb) {
 
 // ``uploadFile` accepts the current filename and the pre-signed URL. It then uses `Fetch API`
 // to upload this file to S3 at `play.min.io:9000` using the URL:
-export function uploadFile(file, url, handleUpload, filename) {
+export function uploadFile(file, url, handleUpload, filename, uid) {
   fetch(url, {
     method: 'PUT',
     body: file,
   })
     .then((res) => {
       message.success('上传成功');
-      handleUpload(true, filename);
+      handleUpload(true, filename, uid);
       // If multiple files are uploaded, append upload status on the next line.
       // document.querySelector('#status').innerHTML += `<br>Uploaded ${file.name}.`;
     })
     .catch((e) => {
       message.error('上传失败');
-      handleUpload(false, filename);
+      handleUpload(false, filename, uid);
       console.error(e);
     });
 }

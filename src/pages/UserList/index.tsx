@@ -118,9 +118,7 @@ const UserListPage: React.FC = () => {
 
   const { run: runGetUserList } = useRequest(getUserList, {
     manual: true,
-    onSuccess: (result: any) => {
-      console.log('result:', result);
-    },
+    onSuccess: () => {},
     onError: (error: any) => {
       message.error(error.message);
     },

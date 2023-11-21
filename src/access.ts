@@ -27,6 +27,12 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_process_payment_record');
   const canStopPaymentRecord =
     permissions && permissions.has('can_stop_payment_record');
+  const canSeePaymentProcess =
+    permissions && permissions.has('can_see_payment_process');
+  const canCreatePaymentProcess =
+    permissions && permissions.has('can_create_payment_process');
+  const canStopPaymentProcess =
+    permissions && permissions.has('can_update_payment_process');
 
   return {
     canSeeHome,
@@ -43,5 +49,8 @@ export default (initialState: API.UserToken) => {
     canAuditPaymentRecord,
     canProcessPaymentRecord,
     canStopPaymentRecord,
+    canSeePaymentProcess,
+    canCreatePaymentProcess,
+    canStopPaymentProcess,
   };
 };

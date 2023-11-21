@@ -1,4 +1,6 @@
+import AmountProgress from '@/components/AmountProgress';
 import PreviewListModal from '@/components/PreviewListModal';
+import PreviewListVisible from '@/components/PreviewListVisible';
 import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
@@ -8,8 +10,7 @@ import {
   PageContainer,
   ProColumns,
   ProFormDatePicker,
-  ProFormGroup,
-  ProFormRadio,
+  ProFormDigit,
   ProFormSelect,
   ProFormText,
   ProFormUploadButton,
@@ -19,7 +20,7 @@ import { Access, history, useAccess, useModel, useRequest } from '@umijs/max';
 import { Button, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
-import { upload } from '../../utils/file-uploader';
+import { fileListToString, upload } from '../../utils/file-uploader';
 import styles from './index.less';
 
 enum MODE {
@@ -27,17 +28,11 @@ enum MODE {
   UPDATE,
 }
 
-const formatBoolean = (bool: boolean) => {
-  return bool ? 'true' : 'false';
-};
-
-const createPlan = async (
+const createProcess = async (
   contract_name: string,
-  department?: string,
+  department: string,
   company: string,
-  category: string,
-  is_pay: boolean,
-  finish_date: string,
+  target_amount: number,
   payment_file: string,
   contract_date: string,
 ) => {
@@ -45,25 +40,25 @@ const createPlan = async (
   form.append('contract_name', contract_name);
   form.append('department', department);
   form.append('company', company);
-  form.append('category', category);
-  form.append('is_pay', formatBoolean(is_pay));
-  form.append('finish_date', finish_date);
-  form.append('payment_file', payment_file);
+  form.append('category', '采购费用');
+  form.append('is_pay', 'true');
+  form.append('target_amount', target_amount.toString());
+  form.append('payment_file', fileListToString(payment_file));
   form.append('contract_date', contract_date);
 
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/payment/plans/store`,
+    url: `${SERVER_HOST}/payment/processes/store`,
   });
 };
 
-const stopPlan = async (id: number) => {
-  return await axios.get(`${SERVER_HOST}/payment/plans/stop/${id}`);
+const stopProcess = async (id: number) => {
+  return await axios.get(`${SERVER_HOST}/payment/processes/stop/${id}`);
 };
 
-const deletePlan = async (id: number) => {
-  return await axios.delete(`${SERVER_HOST}/payment/plans/delete/${id}`);
+const deleteProcess = async (id: number) => {
+  return await axios.delete(`${SERVER_HOST}/payment/processes/delete/${id}`);
 };
 
 const createRecord = async (
@@ -79,7 +74,7 @@ const createRecord = async (
   form.append('company', company);
   form.append('next_date', next_date);
   form.append('plan_id', plan_id.toString());
-  form.append('type', 'plan');
+  form.append('type', 'process');
 
   return await axios({
     method: 'POST',
@@ -88,29 +83,30 @@ const createRecord = async (
   });
 };
 
-const PaymentMonitorPage: React.FC = () => {
+const PaymentProcessPage: React.FC = () => {
   const access = useAccess();
   const formRef = useRef<ProFormInstance>();
   const actionRef = useRef<ActionType>();
+  const [data, setData] = useState<any>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [mode, setMode] = useState<MODE>(MODE.CREATE);
   const [selectedRecord, setSelectedRecord] = useState<any>({});
   const { initialState } = useModel('@@initialState');
-  const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
 
-  const getPlansList = async () => {
+  const getProcessesList = async (params) => {
+    console.log('params:', params);
     return await axios({
       method: 'GET',
       params: {
         ...filter,
         department: initialState?.department,
       },
-      url: `${SERVER_HOST}/payment/plans/index`,
+      url: `${SERVER_HOST}/payment/processes/index`,
     });
   };
 
-  const { run: runGetPlansList } = useRequest(getPlansList, {
+  const { run: runGetProcessesList } = useRequest(getProcessesList, {
     manual: true,
     onSuccess: (result) => {
       setData(result.data);
@@ -120,7 +116,7 @@ const PaymentMonitorPage: React.FC = () => {
     },
   });
 
-  const { run: runCreatePlan } = useRequest(createPlan, {
+  const { run: runCreateProcess } = useRequest(createProcess, {
     manual: true,
     onSuccess: () => {
       message.success('提交计划成功');
@@ -131,7 +127,7 @@ const PaymentMonitorPage: React.FC = () => {
     },
   });
 
-  const { run: runStopPlan } = useRequest(stopPlan, {
+  const { run: runStopProcess } = useRequest(stopProcess, {
     manual: true,
     onSuccess: () => {
       message.success('中止计划成功');
@@ -141,7 +137,7 @@ const PaymentMonitorPage: React.FC = () => {
     },
   });
 
-  const { run: runDeletePlan } = useRequest(deletePlan, {
+  const { run: runDeleteProcess } = useRequest(deleteProcess, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -166,10 +162,18 @@ const PaymentMonitorPage: React.FC = () => {
     isSuccess: boolean,
     filename: string,
     field: string,
+    uid: string,
   ) => {
-    const current_payment_file = formRef.current?.getFieldValue(field)[0];
+    const payment_file = formRef.current?.getFieldValue(field);
+    const current_payment_file = _.find(payment_file, (file) => {
+      return file.uid === uid;
+    });
+    const other_payment_files = _.filter(payment_file, (file) => {
+      return file.uid !== uid;
+    });
     if (isSuccess) {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'done',
@@ -179,6 +183,7 @@ const PaymentMonitorPage: React.FC = () => {
       ]);
     } else {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'error',
@@ -231,12 +236,29 @@ const PaymentMonitorPage: React.FC = () => {
         <a
           key="history"
           onClick={() => {
-            history.push(`/paymentRecord#plan&${record.id}`, record);
+            history.push(`/paymentRecord#process&${record.id}`, record);
           }}
         >
           {_}
         </a>
       ),
+    },
+    {
+      dataIndex: 'target_amount',
+      title: '目标金额',
+    },
+    {
+      dataIndex: 'percent',
+      title: '进度百分比',
+      render: (_, record) => {
+        return (
+          <AmountProgress
+            id={record.id}
+            moment={record.assessments_count}
+            target={record.target_amount}
+          />
+        );
+      },
     },
     {
       dataIndex: 'payment_file',
@@ -248,10 +270,6 @@ const PaymentMonitorPage: React.FC = () => {
     {
       dataIndex: 'contract_date',
       title: '合同签订时间',
-    },
-    {
-      dataIndex: 'finish_date',
-      title: '结束时间',
     },
     {
       title: '状态',
@@ -300,7 +318,7 @@ const PaymentMonitorPage: React.FC = () => {
                   message.error('你无权进行此操作');
                 } else {
                   history.push(
-                    `/paymentMonitor/detail#apply&${record.id}&${record.current_payment_record_id}`,
+                    `/paymentProcess/detail#apply&${record.id}&${record.current_payment_record_id}`,
                     record,
                   );
                 }
@@ -318,7 +336,7 @@ const PaymentMonitorPage: React.FC = () => {
                   message.error('你无权进行此操作');
                 } else {
                   history.push(
-                    `/paymentMonitor/detail#audit&${record.id}&${record.current_payment_record_id}`,
+                    `/paymentProcess/detail#audit&${record.id}&${record.current_payment_record_id}`,
                     record,
                   );
                 }
@@ -336,7 +354,7 @@ const PaymentMonitorPage: React.FC = () => {
                   message.error('你无权进行此操作');
                 } else {
                   history.push(
-                    `/paymentMonitor/detail#process&${record.id}&${record.current_payment_record_id}`,
+                    `/paymentProcess/detail#process&${record.id}&${record.current_payment_record_id}`,
                     record,
                   );
                 }
@@ -356,7 +374,7 @@ const PaymentMonitorPage: React.FC = () => {
               if (!access.canStopPaymentRecord) {
                 message.error('你无权进行此操作');
               } else {
-                await runStopPlan(record.id);
+                await runStopProcess(record.id);
                 action?.reload();
               }
             }}
@@ -371,7 +389,7 @@ const PaymentMonitorPage: React.FC = () => {
               if (!access.canDeletePaymentPlan) {
                 message.error('你无权进行此操作');
               } else {
-                await runDeletePlan(record.id);
+                await runDeleteProcess(record.id);
                 action?.reload();
               }
             }}
@@ -391,21 +409,21 @@ const PaymentMonitorPage: React.FC = () => {
     <PageContainer
       ghost
       header={{
-        title: '服务型付款流程监控',
+        title: '物资型付款流程监控',
       }}
     >
       <ProTable<any>
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetPlansList}
+        request={runGetProcessesList}
         rowKey="id"
-        search={false}
         options={{
           setting: {
             listsHeight: 400,
           },
         }}
+        search={false}
         rowClassName={(record) => {
           return record.is_pay === 'true' ? styles.payrow : styles.chargerow;
         }}
@@ -417,6 +435,7 @@ const PaymentMonitorPage: React.FC = () => {
           filter: (
             <LightFilter
               onValuesChange={(value) => {
+                console.log('value', value);
                 setFilter({
                   contract_name: _.isUndefined(value.name)
                     ? filter.contract_name
@@ -477,7 +496,7 @@ const PaymentMonitorPage: React.FC = () => {
           name: string;
           company: string;
         }>
-          title="新建计划"
+          title="新建流程"
           formRef={formRef}
           modalProps={{
             destroyOnClose: true,
@@ -490,14 +509,12 @@ const PaymentMonitorPage: React.FC = () => {
               formRef.current?.getFieldValue('payment_file')[0].status ===
               'done'
             ) {
-              await runCreatePlan(
+              await runCreateProcess(
                 values.contract_name,
-                initialState?.department,
+                initialState.department,
                 values.company,
-                values.category,
-                values.is_pay,
-                values.finish_date,
-                values.payment_file[0].filename,
+                values.target_amount,
+                values.payment_file,
                 values.contract_date,
               );
               actionRef.current?.reload();
@@ -524,53 +541,30 @@ const PaymentMonitorPage: React.FC = () => {
             label="合作商户"
             rules={[{ required: true }]}
           />
-          <ProFormGroup>
-            <ProFormText
-              width="md"
-              name="category"
-              label="收款/付款种类"
-              rules={[{ required: true }]}
-            />
-            <ProFormRadio.Group
-              width="md"
-              name="is_pay"
-              label="收款/付款"
-              options={[
-                {
-                  label: '收款',
-                  value: false,
-                },
-                {
-                  label: '付款',
-                  value: true,
-                },
-              ]}
-              rules={[{ required: true }]}
-            />
-          </ProFormGroup>
-
-          <ProFormGroup>
-            <ProFormDatePicker
-              name="contract_date"
-              label="合同签订日期"
-              width="sm"
-              rules={[{ required: true }]}
-            />
-            <ProFormDatePicker
-              name="finish_date"
-              label="结束日期"
-              width="sm"
-              rules={[{ required: true }]}
-            />
-          </ProFormGroup>
+          <ProFormDigit
+            width="md"
+            name="target_amount"
+            label="目标金额"
+            rules={[{ required: true }]}
+          />
+          <ProFormDatePicker
+            name="contract_date"
+            label="合同签订日期"
+            width="sm"
+            rules={[{ required: true }]}
+          />
           <ProFormUploadButton
             label="合同附件："
             name="payment_file"
-            max={1}
             fieldProps={{
               customRequest: (options) => {
                 upload(options.file, (isSuccess: boolean, filename: string) =>
-                  handleUpload(isSuccess, filename, 'payment_file'),
+                  handleUpload(
+                    isSuccess,
+                    filename,
+                    'payment_file',
+                    options.file.uid,
+                  ),
                 );
               },
             }}
@@ -605,10 +599,11 @@ const PaymentMonitorPage: React.FC = () => {
             width="sm"
             rules={[{ required: true }]}
           />
+          <PreviewListVisible fileListString={selectedRecord.payment_file} />
         </ModalForm>
       )}
     </PageContainer>
   );
 };
 
-export default PaymentMonitorPage;
+export default PaymentProcessPage;

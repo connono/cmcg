@@ -43,10 +43,16 @@ export default defineConfig({
       access: 'canSeeEquipment',
     },
     {
-      name: '付款流程监控',
+      name: '服务型付款流程监控',
       path: '/paymentMonitor',
       component: './PaymentMonitor',
       access: 'canSeePaymentMonitor',
+    },
+    {
+      name: '物资型付款流程监控',
+      path: '/paymentProcess',
+      component: './PaymentProcess',
+      access: 'canSeePaymentProcess',
     },
     {
       name: '修改账号密码',
@@ -74,6 +80,11 @@ export default defineConfig({
       path: '/paymentMonitor/detail',
       component: './PaymentMonitor/Detail',
       access: 'canSeePaymentMonitor',
+    },
+    {
+      path: '/paymentProcess/detail',
+      component: './PaymentProcess/Detail',
+      access: 'canSeePaymentProcess',
     },
   ],
   npmClient: 'npm',

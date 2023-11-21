@@ -4,6 +4,8 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   PageContainer,
   ProCard,
+  ProForm,
+  ProFormCheckbox,
   ProFormDatePicker,
   ProFormDigit,
   ProFormItem,
@@ -37,16 +39,17 @@ const getItem = async (id: string) => {
 };
 
 const apply = async (
-  plan_id: string,
+  process_id: string,
   record_id: string,
   assessment: string,
   payment_voucher_file: string,
 ) => {
   const form = new FormData();
   form.append('method', 'apply');
-  form.append('plan_id', plan_id);
+  form.append('process_id', process_id);
   form.append('assessment', assessment);
   form.append('payment_voucher_file', payment_voucher_file);
+  form.append('type', 'process');
 
   return await axios({
     method: 'POST',
@@ -55,10 +58,11 @@ const apply = async (
   });
 };
 
-const audit = async (plan_id: string, record_id: string) => {
+const audit = async (process_id: string, record_id: string) => {
   const form = new FormData();
   form.append('method', 'audit');
-  form.append('plan_id', plan_id);
+  form.append('process_id', process_id);
+  form.append('type', 'process');
   return await axios({
     method: 'POST',
     data: form,
@@ -67,16 +71,17 @@ const audit = async (plan_id: string, record_id: string) => {
 };
 
 const process = async (
-  plan_id: string,
+  process_id: string,
   record_id: string,
   assessment_date: string,
   payment_file: string,
 ) => {
   const form = new FormData();
   form.append('method', 'process');
-  form.append('plan_id', plan_id);
+  form.append('process_id', process_id);
   form.append('assessment_date', assessment_date);
   form.append('payment_file', payment_file);
+  form.append('type', 'process');
 
   return await axios({
     method: 'POST',
@@ -85,10 +90,10 @@ const process = async (
   });
 };
 
-const back = async (plan_id: string, record_id: string) => {
+const back = async (process_id: string, record_id: string) => {
   return await axios({
     method: 'PATCH',
-    data: { plan_id, type: 'plan' },
+    data: { process_id, type: 'process' },
     url: `${SERVER_HOST}/payment/records/back/${record_id}`,
   });
 };
@@ -97,7 +102,7 @@ const PaymentRecordDetailPage: React.FC = () => {
   const [paymentRecord, setPaymentRecord] = useState({});
   const hashArray = history.location.hash.split('#')[1].split('&');
   const method = history.location.state.status;
-  const plan_id = hashArray[1];
+  const process_id = hashArray[1];
   const id = hashArray[2];
   const [modal, contextHolder] = Modal.useModal(); // eslint-disable-line
   const formRef = useRef<ProFormInstance>();
@@ -110,7 +115,7 @@ const PaymentRecordDetailPage: React.FC = () => {
       if (int_status(method) !== -1) {
         setCurrent(int_status(method));
       } else {
-        history.push('/paymentMonitor');
+        history.push('/paymentProcess');
         message.info('该计划正处于等待或关闭阶段，无法编辑，跳转到计划界面');
       }
       setPaymentRecord(result.data);
@@ -145,7 +150,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('申请付款成功，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/paymentProcess');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -155,7 +160,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('审核成功，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/paymentProcess');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -165,7 +170,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('已驳回，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/paymentProcess');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -175,7 +180,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加记录成功，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/paymentProcess');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -203,6 +208,15 @@ const PaymentRecordDetailPage: React.FC = () => {
         }
       } else if (extension === 'date') {
         formRef.current?.setFieldValue(value, key);
+      } else if (value === 'assessment') {
+        const percent = _.floor(
+          _.divide(key, history.location.state.target_amount) * 100,
+          2,
+        );
+        formRef.current?.setFieldsValue({
+          assessment: key,
+          assessment_percent: percent,
+        });
       } else {
         formRef.current?.setFieldValue(value, key);
       }
@@ -241,14 +255,14 @@ const PaymentRecordDetailPage: React.FC = () => {
     if (id) {
       runGetItem(id);
     } else {
-      history.push('/paymentMonitor');
+      history.push('/paymentProcess');
     }
   }, []);
   return (
     <PageContainer
       ghost
       header={{
-        title: '服务型收付款流程记录',
+        title: '物资型付款流程监控',
       }}
     >
       <ProCard>
@@ -305,6 +319,77 @@ const PaymentRecordDetailPage: React.FC = () => {
           }>
             name="apply"
             title="申请"
+            onValuesChange={(value) => {
+              const global_assessment =
+                history.location.state.target_amount -
+                history.location.state.assessments_count;
+              const global_percent = _.floor(
+                _.divide(
+                  global_assessment,
+                  history.location.state.target_amount,
+                ) * 100,
+                2,
+              );
+              if (value.assessment) {
+                const percent = _.floor(
+                  _.divide(
+                    value.assessment,
+                    history.location.state.target_amount,
+                  ) * 100,
+                  2,
+                );
+                if (
+                  percent !==
+                  formRef.current?.getFieldValue('assessment_percent')
+                ) {
+                  formRef.current?.setFieldValue('assessment_percent', percent);
+                }
+                if (value.assessment === global_assessment) {
+                  formRef.current?.setFieldValue('is_all_assessment', true);
+                } else {
+                  formRef.current?.setFieldValue('is_all_assessment', false);
+                }
+              }
+              if (value.assessment_percent) {
+                const assessment = _.divide(
+                  _.multiply(
+                    value.assessment_percent,
+                    history.location.state.target_amount,
+                  ),
+                  100,
+                );
+                if (
+                  assessment !== formRef.current?.getFieldValue('assessment')
+                ) {
+                  formRef.current?.setFieldValue('assessment', assessment);
+                }
+                if (value.assessment_percent === global_percent) {
+                  formRef.current?.setFieldValue('is_all_assessment', true);
+                } else {
+                  formRef.current?.setFieldValue('is_all_assessment', false);
+                }
+              }
+              if (value.is_all_assessment) {
+                if (
+                  global_assessment !==
+                  formRef.current?.getFieldValue('assessment')
+                ) {
+                  formRef.current?.setFieldValue(
+                    'assessment',
+                    global_assessment,
+                  );
+                }
+                if (
+                  global_percent !==
+                  formRef.current?.getFieldValue('assessment_percent')
+                ) {
+                  formRef.current?.setFieldValue(
+                    'assessment_percent',
+                    global_percent,
+                  );
+                }
+              }
+            }}
             onFinish={async () => {
               if (!access.canApplyPaymentRecord) {
                 message.error('你无权进行此操作');
@@ -315,7 +400,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                     .status === 'done'
                 ) {
                   await runApply(
-                    plan_id,
+                    process_id,
                     id,
                     values.assessment,
                     values.payment_voucher_file[0].filename,
@@ -344,16 +429,52 @@ const PaymentRecordDetailPage: React.FC = () => {
               disabled
             />
             <ProFormText name="company" label="合作商" width="md" disabled />
-            <ProFormDigit
-              name="assessment"
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '应付款金额'
-                  : '应收款金额'
-              }
-              width="md"
-              rules={[{ required: true }]}
-            />
+            <ProForm.Group>
+              <ProFormDigit
+                name="assessment"
+                label={`${
+                  history.location.state.is_pay === 'true'
+                    ? '应付款金额'
+                    : '应收款金额'
+                }(项目余款${
+                  history.location.state.target_amount -
+                  history.location.state.assessments_count
+                }元)`}
+                min={1}
+                max={
+                  history.location.state.target_amount -
+                  history.location.state.assessments_count
+                }
+                rules={[{ required: true }]}
+              />
+              <ProFormDigit
+                name="assessment_percent"
+                label={`${
+                  history.location.state.is_pay === 'true'
+                    ? '应付款金额百分比'
+                    : '应收款金额百分比'
+                }(项目余款百分比${_.floor(
+                  _.divide(
+                    history.location.state.target_amount -
+                      history.location.state.assessments_count,
+                    history.location.state.target_amount,
+                  ) * 100,
+                  2,
+                )}%)`}
+                min={0}
+                max={_.floor(
+                  _.divide(
+                    history.location.state.target_amount -
+                      history.location.state.assessments_count,
+                    history.location.state.target_amount,
+                  ) * 100,
+                  2,
+                )}
+                rules={[{ required: true }]}
+              />
+              <ProFormCheckbox name="is_all_assessment" label="是否全额付款" />
+            </ProForm.Group>
+
             <ProFormUploadDragger
               name="payment_voucher_file"
               label={
@@ -380,8 +501,8 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                if (values.audit) await runAudit(plan_id, id);
-                else await runBack(plan_id, id);
+                if (values.audit) await runAudit(process_id, id);
+                else await runBack(process_id, id);
                 return true;
               }
             }}
@@ -401,7 +522,9 @@ const PaymentRecordDetailPage: React.FC = () => {
               {
                 // @ts-ignore
                 paymentRecord?.payment_voucher_file ? (
-                  preview(paymentRecord.payment_voucher_file)
+                  <PreviewListModal
+                    fileListString={paymentRecord.payment_voucher_file}
+                  />
                 ) : (
                   <span>找不到该文件</span>
                 )
@@ -436,7 +559,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                   'done'
                 ) {
                   await runProcess(
-                    plan_id,
+                    process_id,
                     id,
                     values.assessment_date.format('YYYY-MM-DD'),
                     values.payment_file[0].filename,

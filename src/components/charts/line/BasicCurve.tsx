@@ -158,7 +158,6 @@ const formToConfig = (values: any) => {
     },
     smooth: true,
   };
-  console.log('config123', config);
   return config;
 };
 
