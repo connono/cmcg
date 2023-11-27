@@ -166,10 +166,18 @@ const PaymentMonitorPage: React.FC = () => {
     isSuccess: boolean,
     filename: string,
     field: string,
+    uid: string,
   ) => {
-    const current_payment_file = formRef.current?.getFieldValue(field)[0];
+    const payment_file = formRef.current?.getFieldValue(field);
+    const current_payment_file = _.find(payment_file, (file) => {
+      return file.uid === uid;
+    });
+    const other_payment_files = _.filter(payment_file, (file) => {
+      return file.uid !== uid;
+    });
     if (isSuccess) {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'done',
@@ -179,6 +187,7 @@ const PaymentMonitorPage: React.FC = () => {
       ]);
     } else {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'error',
@@ -566,11 +575,15 @@ const PaymentMonitorPage: React.FC = () => {
           <ProFormUploadButton
             label="合同附件："
             name="payment_file"
-            max={1}
             fieldProps={{
               customRequest: (options) => {
                 upload(options.file, (isSuccess: boolean, filename: string) =>
-                  handleUpload(isSuccess, filename, 'payment_file'),
+                  handleUpload(
+                    isSuccess,
+                    filename,
+                    'payment_file',
+                    options.file.uid,
+                  ),
                 );
               },
             }}

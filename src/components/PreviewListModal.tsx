@@ -15,7 +15,7 @@ const PreviewListModal: React.FC<Props> = (props) => {
         点此查看
       </Button>
       <Modal
-        width={700}
+        width={1100}
         title="文件查看"
         maskClosable={true}
         open={isModalOpen}

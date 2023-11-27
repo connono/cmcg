@@ -28,25 +28,6 @@ type UserInfo = {
   department: string;
 };
 
-export const departmentData = [
-  {
-    value: 'bf013',
-    label: '外一科',
-  },
-  {
-    value: 'bf012',
-    label: '外二科',
-  },
-  {
-    value: 'bf010',
-    label: '骨二科',
-  },
-  {
-    value: 'bf006',
-    label: 'ICU病区',
-  },
-];
-
 const getUserList = async () => {
   return await axios.get(`${SERVER_HOST}/users/index`);
 };

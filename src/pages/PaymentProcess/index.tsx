@@ -94,8 +94,7 @@ const PaymentProcessPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const [filter, setFilter] = useState<any>({});
 
-  const getProcessesList = async (params) => {
-    console.log('params:', params);
+  const getProcessesList = async () => {
     return await axios({
       method: 'GET',
       params: {
@@ -108,10 +107,10 @@ const PaymentProcessPage: React.FC = () => {
 
   const { run: runGetProcessesList } = useRequest(getProcessesList, {
     manual: true,
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       setData(result.data);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       message.error(error.message);
     },
   });
@@ -435,7 +434,6 @@ const PaymentProcessPage: React.FC = () => {
           filter: (
             <LightFilter
               onValuesChange={(value) => {
-                console.log('value', value);
                 setFilter({
                   contract_name: _.isUndefined(value.name)
                     ? filter.contract_name

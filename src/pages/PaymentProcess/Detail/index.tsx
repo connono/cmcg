@@ -11,7 +11,7 @@ import {
   ProFormItem,
   ProFormRadio,
   ProFormText,
-  ProFormUploadDragger,
+  ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
 import { history, useAccess, useRequest } from '@umijs/max';
@@ -19,7 +19,11 @@ import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
-import { upload } from '../../../utils/file-uploader';
+import {
+  fileListToString,
+  fileStringToAntdFileList,
+  upload,
+} from '../../../utils/file-uploader';
 
 const int_status = (status: string) => {
   switch (status) {
@@ -48,7 +52,7 @@ const apply = async (
   form.append('method', 'apply');
   form.append('process_id', process_id);
   form.append('assessment', assessment);
-  form.append('payment_voucher_file', payment_voucher_file);
+  form.append('payment_voucher_file', fileListToString(payment_voucher_file));
   form.append('type', 'process');
 
   return await axios({
@@ -80,7 +84,7 @@ const process = async (
   form.append('method', 'process');
   form.append('process_id', process_id);
   form.append('assessment_date', assessment_date);
-  form.append('payment_file', payment_file);
+  form.append('payment_file', fileListToString(payment_file));
   form.append('type', 'process');
 
   return await axios({
@@ -194,18 +198,7 @@ const PaymentRecordDetailPage: React.FC = () => {
       const length = value.split('_').length;
       const extension = value.split('_')[length - 1];
       if (extension === 'picture' || extension === 'file') {
-        const length = key ? key.split('/').length : 0;
-        const name = key ? key.split('/')[length - 1] : '';
-        if (name) {
-          formRef.current?.setFieldValue(value, [
-            {
-              uid: '0',
-              name,
-              status: 'done',
-              url: key,
-            },
-          ]);
-        }
+        formRef.current?.setFieldValue(value, fileStringToAntdFileList(key));
       } else if (extension === 'date') {
         formRef.current?.setFieldValue(value, key);
       } else if (value === 'assessment') {
@@ -228,10 +221,18 @@ const PaymentRecordDetailPage: React.FC = () => {
     isSuccess: boolean,
     filename: string,
     field: string,
+    uid: string,
   ) => {
-    const current_payment_file = formRef.current?.getFieldValue(field)[0];
+    const payment_file = formRef.current?.getFieldValue(field);
+    const current_payment_file = _.find(payment_file, (file) => {
+      return file.uid === uid;
+    });
+    const other_payment_files = _.filter(payment_file, (file) => {
+      return file.uid !== uid;
+    });
     if (isSuccess) {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'done',
@@ -241,6 +242,7 @@ const PaymentRecordDetailPage: React.FC = () => {
       ]);
     } else {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'error',
@@ -403,7 +405,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                     process_id,
                     id,
                     values.assessment,
-                    values.payment_voucher_file[0].filename,
+                    values.payment_voucher_file,
                   );
                 } else if (
                   formRef.current?.getFieldValue('payment_voucher_file')[0]
@@ -475,7 +477,7 @@ const PaymentRecordDetailPage: React.FC = () => {
               <ProFormCheckbox name="is_all_assessment" label="是否全额付款" />
             </ProForm.Group>
 
-            <ProFormUploadDragger
+            <ProFormUploadButton
               name="payment_voucher_file"
               label={
                 history.location.state.is_pay === 'true'
@@ -585,7 +587,7 @@ const PaymentRecordDetailPage: React.FC = () => {
               width="sm"
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label={
                 history.location.state.is_pay === 'true'
                   ? '付款收据：'
@@ -596,7 +598,12 @@ const PaymentRecordDetailPage: React.FC = () => {
               fieldProps={{
                 customRequest: (options) => {
                   upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(isSuccess, filename, 'payment_file'),
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'payment_file',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}

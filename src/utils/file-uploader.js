@@ -16,6 +16,25 @@ export function fileStringToList(fileString) {
   return _.split(fileString, '&');
 }
 
+export function fileStringToAntdFileList(fileString) {
+  if (!fileString) return [];
+  if (_.split(fileString, '&').length === 0) return [];
+  const fileList = _.chain(fileString)
+    .split('&')
+    .map((value, index) => {
+      const length = value ? _.split(value, '/').length : 0;
+      const name = value ? _.split(value, '/')[length - 1] : '';
+      return {
+        uid: index.toString(),
+        name,
+        status: 'done',
+        url: value,
+      };
+    })
+    .value();
+  return fileList;
+}
+
 export function getsuffix(filename) {
   const filenameArray = filename.split('.');
   const suffix = filenameArray[filenameArray.length - 1];

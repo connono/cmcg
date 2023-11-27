@@ -1,5 +1,6 @@
 import { PageContainer } from '@ant-design/pro-components';
 //@ts-ignore
+import PreviewListModal from '@/components/PreviewListModal';
 import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
@@ -9,34 +10,19 @@ import {
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProFormUploadDragger,
+  ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useModel, useRequest } from '@umijs/max';
+import { history, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
-import { upload } from '../../../utils/file-uploader';
-
-export const departmentData = [
-  {
-    value: 'bf013',
-    label: '外一科',
-  },
-  {
-    value: 'bf012',
-    label: '外二科',
-  },
-  {
-    value: 'bf010',
-    label: '骨二科',
-  },
-  {
-    value: 'bf006',
-    label: 'ICU病区',
-  },
-];
+import {
+  fileListToString,
+  fileStringToAntdFileList,
+  upload,
+} from '../../../utils/file-uploader';
 
 const applyOptions = [
   {
@@ -80,6 +66,10 @@ const getSerialNumber = async () => {
   return await axios.get(`${SERVER_HOST}/equipment/serialNumber`);
 };
 
+const getAllDepartments = async () => {
+  return await axios.get(`${SERVER_HOST}/department/index`);
+};
+
 const apply = async (
   serial_number: number,
   equipment: string,
@@ -96,7 +86,7 @@ const apply = async (
   form.append('count', count.toString());
   form.append('budget', budget.toString());
   form.append('apply_type', apply_type.toString());
-  form.append('apply_picture', apply_picture);
+  form.append('apply_picture', fileListToString(apply_picture));
 
   return await axios({
     method: 'POST',
@@ -118,7 +108,7 @@ const survey = async (
   form.append('purchase_type', purchase_type.toString());
   form.append('survey_record', survey_record);
   form.append('meeting_record', meeting_record);
-  form.append('survey_picture', survey_picture);
+  form.append('survey_picture', fileListToString(survey_picture));
 
   return await axios({
     method: 'POST',
@@ -136,7 +126,7 @@ const approve = async (
   const form = new FormData();
   form.append('approve_date', formatDate(approve_date));
   form.append('execute_date', formatDate(execute_date));
-  form.append('approve_picture', approve_picture);
+  form.append('approve_picture', fileListToString(approve_picture));
 
   return await axios({
     method: 'POST',
@@ -156,11 +146,11 @@ const tender = async (
 ) => {
   const form = new FormData();
   form.append('tender_date', formatDate(tender_date));
-  form.append('tender_file', tender_file);
-  form.append('tender_boardcast_file', tender_boardcast_file);
+  form.append('tender_file', fileListToString(tender_file));
+  form.append('tender_boardcast_file', fileListToString(tender_boardcast_file));
   form.append('tender_out_date', formatDate(tender_out_date));
-  form.append('bid_winning_file', bid_winning_file);
-  form.append('send_tender_file', send_tender_file);
+  form.append('bid_winning_file', fileListToString(bid_winning_file));
+  form.append('send_tender_file', fileListToString(send_tender_file));
 
   return await axios({
     method: 'POST',
@@ -180,7 +170,7 @@ const purchase = async (
   form.append('purchase_date', formatDate(purchase_date));
   form.append('arrive_date', formatDate(arrive_date));
   form.append('price', price.toString());
-  form.append('purchase_picture', purchase_picture);
+  form.append('purchase_picture', fileListToString(purchase_picture));
 
   return await axios({
     method: 'POST',
@@ -196,7 +186,7 @@ const install = async (
 ) => {
   const form = new FormData();
   form.append('install_date', formatDate(install_date));
-  form.append('install_picture', install_picture);
+  form.append('install_picture', fileListToString(install_picture));
 
   return await axios({
     method: 'POST',
@@ -206,7 +196,7 @@ const install = async (
 };
 
 const EquipmentDetailPage: React.FC = () => {
-  const { equipmentItem, setEquipmentItem } = useModel('equipmentRecordItem');
+  const [equipmentItem, setEquipmentItem] = useState<any>({});
   const hashArray = history.location.hash.split('#')[1].split('&');
   const method = hashArray[0];
   const id = hashArray[1];
@@ -225,18 +215,7 @@ const EquipmentDetailPage: React.FC = () => {
         const length = value.split('_').length;
         const extension = value.split('_')[length - 1];
         if (extension === 'picture' || extension === 'file') {
-          const length = key ? key.split('/').length : 0;
-          const name = key ? key.split('/')[length - 1] : '';
-          if (name) {
-            formRef.current?.setFieldValue(value, [
-              {
-                uid: '0',
-                name,
-                status: 'done',
-                url: key,
-              },
-            ]);
-          }
+          formRef.current?.setFieldValue(value, fileStringToAntdFileList(key));
         } else if (extension === 'date') {
           formRef.current?.setFieldValue(value, key);
         } else {
@@ -258,6 +237,13 @@ const EquipmentDetailPage: React.FC = () => {
       });
       formRef.current?.setFieldValue('serial_number', result.serial_number);
     },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
+    manual: true,
+    onSuccess: () => {},
     onError: (error: any) => {
       message.error(error.message);
     },
@@ -342,25 +328,14 @@ const EquipmentDetailPage: React.FC = () => {
     if (
       current === 3 &&
       equipmentItem.purchase_type &&
-      equipmentItem.purchase_type !== 1
+      parseInt(equipmentItem.purchase_type) !== 1
     )
       return;
     _.forEach(equipmentItem, (key: any, value: any) => {
       const length = value.split('_').length;
       const extension = value.split('_')[length - 1];
       if (extension === 'picture' || extension === 'file') {
-        const length = key ? key.split('/').length : 0;
-        const name = key ? key.split('/')[length - 1] : '';
-        if (name) {
-          formRef.current?.setFieldValue(value, [
-            {
-              uid: '0',
-              name,
-              status: 'done',
-              url: key,
-            },
-          ]);
-        }
+        formRef.current?.setFieldValue(value, fileStringToAntdFileList(key));
       } else if (extension === 'date') {
         formRef.current?.setFieldValue(value, key);
       } else {
@@ -370,25 +345,51 @@ const EquipmentDetailPage: React.FC = () => {
     setCurrent(current);
   };
 
-  const handleUpload = (isSuccess: boolean, field: string) => {
-    const current_payment_file = formRef.current?.getFieldValue(field)[0];
+  const handleUpload = (
+    isSuccess: boolean,
+    filename: string,
+    field: string,
+    uid: string,
+  ) => {
+    const payment_file = formRef.current?.getFieldValue(field);
+    const current_payment_file = _.find(payment_file, (file: any) => {
+      return file.uid === uid;
+    });
+    const other_payment_files = _.filter(payment_file, (file: any) => {
+      return file.uid !== uid;
+    });
     if (isSuccess) {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'done',
           percent: 100,
+          filename,
         },
       ]);
     } else {
       formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
         {
           ...current_payment_file,
           status: 'error',
           percent: 100,
+          filename,
         },
       ]);
     }
+  };
+
+  const departments = async () => {
+    const { data: departmentsData } = await runGetAllDepartments();
+    const data = _.map(departmentsData, (value: any) => {
+      return {
+        value: value.name,
+        label: value.label,
+      };
+    });
+    return data;
   };
 
   useEffect(() => {
@@ -415,11 +416,7 @@ const EquipmentDetailPage: React.FC = () => {
           current={current}
           stepsRender={(steps) => {
             const items = _.map(steps, (value: any, key: any) => {
-              if (
-                key === 3 &&
-                equipmentItem.purchase_type &&
-                equipmentItem.purchase_type !== '1'
-              ) {
+              if (key === 3 && equipmentItem.purchase_type !== '1') {
                 return {
                   ...value,
                   status: 'error',
@@ -446,7 +443,6 @@ const EquipmentDetailPage: React.FC = () => {
               />
             );
           }}
-          // @ts-ignore
           submitter={{
             render: (props: any) => {
               return [
@@ -468,11 +464,9 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="base"
             title="申请"
-            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               confirm();
-              //@ts-ignore
               await runApply(
                 equipmentItem.serial_number,
                 values.equipment,
@@ -480,7 +474,7 @@ const EquipmentDetailPage: React.FC = () => {
                 values.count,
                 values.budget,
                 values.apply_type,
-                values.apply_picture[0].filename,
+                values.apply_picture,
               );
               return true;
             }}
@@ -496,50 +490,65 @@ const EquipmentDetailPage: React.FC = () => {
               name="equipment"
               label="设备名称"
               width="md"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormSelect
               label="申请科室"
+              request={departments}
               name="department"
-              options={departmentData}
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="count"
               label="数量"
               width="md"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormMoney
               name="budget"
               label="总预算"
               width="md"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormSelect
               label="申请方式："
               name="apply_type"
+              disabled={current < equipmentItem.status}
               options={applyOptions}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
-              label="上传图片："
+            <ProFormUploadButton
+              label="申请文件："
               name="apply_picture"
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.apply_picture}
+                  />
+                ) : null
+              }
               rules={[{ required: true }]}
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'apply_picture'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'apply_picture',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
-              max={1}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="time"
             title="调研"
-            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               await runSurvey(
@@ -548,7 +557,7 @@ const EquipmentDetailPage: React.FC = () => {
                 values.purchase_type,
                 values.survey_record,
                 values.meeting_record,
-                values.survey_picture[0].filename,
+                values.survey_picture,
               );
               return true;
             }}
@@ -557,34 +566,49 @@ const EquipmentDetailPage: React.FC = () => {
               name="survey_date"
               label="调研日期："
               width="sm"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormSelect
               label="采购方式："
               name="purchase_type"
               options={purchaseOptions}
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormTextArea
               name="survey_record"
               label="调研记录："
+              disabled={current < equipmentItem.status}
               width="md"
               rules={[{ required: true }]}
             />
             <ProFormTextArea
               name="meeting_record"
               label="上会记录："
+              disabled={current < equipmentItem.status}
               width="md"
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="执行单附件："
               name="survey_picture"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.survey_picture}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'survey_picture'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'survey_picture',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
@@ -596,14 +620,13 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="tender"
             title="政府审批"
-            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               await runApprove(
                 id,
                 values.approve_date,
                 values.execute_date,
-                values.approve_picture[0].filename,
+                values.approve_picture,
               );
               return true;
             }}
@@ -611,6 +634,7 @@ const EquipmentDetailPage: React.FC = () => {
             <ProFormDatePicker
               name="approve_date"
               label="政府审批日期："
+              disabled={current < equipmentItem.status}
               width="sm"
               rules={[{ required: true }]}
             />
@@ -618,16 +642,28 @@ const EquipmentDetailPage: React.FC = () => {
               name="execute_date"
               label="预算执行单日期："
               width="sm"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="执行单附件："
               name="approve_picture"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.approve_picture}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'approve_picture'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'approve_picture',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
@@ -639,17 +675,16 @@ const EquipmentDetailPage: React.FC = () => {
           }>
             name="checkbox"
             title="招标"
-            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               await runTender(
                 id,
                 values.tender_date,
-                values.tender_file[0].filename,
-                values.tender_boardcast_file[0].filename,
+                values.tender_file,
+                values.tender_boardcast_file,
                 values.tender_out_date,
-                values.bid_winning_file[0].filename,
-                values.send_tender_file[0].filename,
+                values.bid_winning_file,
+                values.send_tender_file,
               );
               return true;
             }}
@@ -658,61 +693,107 @@ const EquipmentDetailPage: React.FC = () => {
               name="tender_date"
               label="招标书日期："
               width="sm"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormDatePicker
               name="tender_out_date"
               label="招标日期："
               width="sm"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="招标书附件："
               name="tender_file"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.tender_file}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'tender_file'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'tender_file',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="招标公告附件："
               name="tender_boardcast_file"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.tender_boardcast_file}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'tender_boardcast_file'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'tender_boardcast_file',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="中标通知书："
               name="bid_winning_file"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.bid_winning_file}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'bid_winning_file'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'bid_winning_file',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="投标文件："
               name="send_tender_file"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.send_tender_file}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'send_tender_file'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'send_tender_file',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
@@ -722,7 +803,6 @@ const EquipmentDetailPage: React.FC = () => {
           <StepsForm.StepForm
             name="ad"
             title="合同"
-            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               await runPurchase(
@@ -730,7 +810,7 @@ const EquipmentDetailPage: React.FC = () => {
                 values.purchase_date,
                 values.arrive_date,
                 values.price,
-                values.purchase_picture[0].filename,
+                values.purchase_picture,
               );
               return true;
             }}
@@ -739,11 +819,13 @@ const EquipmentDetailPage: React.FC = () => {
               name="purchase_date"
               label="合同日期："
               width="sm"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormDatePicker
               name="arrive_date"
               label="合同到货日期："
+              disabled={current < equipmentItem.status}
               width="sm"
               rules={[{ required: true }]}
             />
@@ -751,16 +833,28 @@ const EquipmentDetailPage: React.FC = () => {
               name="price"
               label="合同价格"
               width="md"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="合同附件："
               name="purchase_picture"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.purchase_picture}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'purchase_picture'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'purchase_picture',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}
@@ -770,14 +864,9 @@ const EquipmentDetailPage: React.FC = () => {
           <StepsForm.StepForm
             name="ys"
             title="安装验收"
-            disabled={current < equipmentItem.status}
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(
-                id,
-                values.install_date,
-                values.install_picture[0].filename,
-              );
+              await runInstall(id, values.install_date, values.install_picture);
               return true;
             }}
           >
@@ -785,16 +874,28 @@ const EquipmentDetailPage: React.FC = () => {
               name="install_date"
               label="安装日期："
               width="sm"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
-            <ProFormUploadDragger
+            <ProFormUploadButton
               label="验收资料："
               name="install_picture"
-              max={1}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.install_picture}
+                  />
+                ) : null
+              }
               fieldProps={{
                 customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean) =>
-                    handleUpload(isSuccess, 'install_picture'),
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'install_picture',
+                      options.file.uid,
+                    ),
                   );
                 },
               }}

@@ -16,7 +16,7 @@ const PdfPreview: React.FC<Props> = (props) => {
   if (!props.url) return <div>url无效</div>;
 
   return (
-    <iframe src={newURL} width="600" height="800" style={{ border: 'none' }} />
+    <iframe src={newURL} width="1000" height="800" style={{ border: 'none' }} />
   );
 };
 

@@ -17,7 +17,7 @@
     "@formily/core": "^2.2.0",
     "@formily/react": "^2.2.0",
     "@umijs/max": "^4.0.75",
-    "antd": "^5.5.0",
+    "antd": "^5.6.0",
     "axios": "^1.4.0",
     "binconv": "^0.2.0",
     "dom-to-image": "^2.6.0",

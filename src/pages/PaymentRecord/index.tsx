@@ -49,6 +49,7 @@ const PaymentRecordPage: React.FC = () => {
         history.location.state.is_pay === 'true' ? '付款日期：' : '收款日期：';
       const cost_text =
         history.location.state.is_pay === 'true' ? '付款金额：' : '收款金额：';
+      console.log('data:', result.data);
       const i = _.map(result.data, (value: any, key: any) => {
         const apply_date = new Date(value.created_at);
         const apply_date_string = `${apply_date.getFullYear()}-${apply_date.getMonth()}-${apply_date.getDate()}`;
@@ -58,6 +59,7 @@ const PaymentRecordPage: React.FC = () => {
           children: <PaymentRecordCardChildren record={value} />,
         };
       });
+      console.log('i:', i);
       setItems(i);
     },
     onError: (error: any) => {
