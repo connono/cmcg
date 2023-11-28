@@ -43,6 +43,18 @@ export default defineConfig({
       access: 'canSeeEquipment',
     },
     {
+      name: '器械耗材采购管理',
+      path: '/instrument',
+      component: './Instrument',
+      access: 'canSeeEquipment',
+    },
+    {
+      name: '设备维修保养管理',
+      path: '/maintain',
+      component: './Maintain',
+      access: 'canSeeEquipment',
+    },
+    {
       name: '服务型付款流程监控',
       path: '/paymentMonitor',
       component: './PaymentMonitor',
