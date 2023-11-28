@@ -331,18 +331,25 @@ const EquipmentDetailPage: React.FC = () => {
       parseInt(equipmentItem.purchase_type) !== 1
     )
       return;
+    setCurrent(current);
     _.forEach(equipmentItem, (key: any, value: any) => {
       const length = value.split('_').length;
       const extension = value.split('_')[length - 1];
       if (extension === 'picture' || extension === 'file') {
-        formRef.current?.setFieldValue(value, fileStringToAntdFileList(key));
+        setTimeout(
+          () =>
+            formRef.current?.setFieldValue(
+              value,
+              fileStringToAntdFileList(key),
+            ),
+          0,
+        );
       } else if (extension === 'date') {
-        formRef.current?.setFieldValue(value, key);
+        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
       } else {
-        formRef.current?.setFieldValue(value, key);
+        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
       }
     });
-    setCurrent(current);
   };
 
   const handleUpload = (

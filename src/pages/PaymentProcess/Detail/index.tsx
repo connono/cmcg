@@ -127,18 +127,7 @@ const PaymentRecordDetailPage: React.FC = () => {
         const length = value.split('_').length;
         const extension = value.split('_')[length - 1];
         if (extension === 'picture' || extension === 'file') {
-          const length = key ? key.split('/').length : 0;
-          const name = key ? key.split('/')[length - 1] : '';
-          if (name) {
-            formRef.current?.setFieldValue(value, [
-              {
-                uid: '0',
-                name,
-                status: 'done',
-                url: key,
-              },
-            ]);
-          }
+          formRef.current?.setFieldValue(value, fileStringToAntdFileList(key));
         } else if (extension === 'date') {
           formRef.current?.setFieldValue(value, key);
         } else {
@@ -492,7 +481,6 @@ const PaymentRecordDetailPage: React.FC = () => {
                   );
                 },
               }}
-              max={1}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
@@ -594,7 +582,6 @@ const PaymentRecordDetailPage: React.FC = () => {
                   : '收款收据：'
               }
               name="payment_file"
-              max={1}
               fieldProps={{
                 customRequest: (options) => {
                   upload(options.file, (isSuccess: boolean, filename: string) =>
