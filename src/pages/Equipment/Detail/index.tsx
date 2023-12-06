@@ -40,6 +40,8 @@ const applyOptions = [
 ];
 
 const formatDate = (date: any) => {
+  if (_.isString(date)) return date;
+  if (!date.$isDayjsObject) return null;
   return date.format('YYYY-MM-DD');
 };
 

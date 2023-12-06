@@ -13,30 +13,30 @@ import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 
-const deleteEquipmentItem = async (id?: number) => {
-  return await axios.delete(`${SERVER_HOST}/equipment/delete/${id}`);
+const deleteInstrumentItem = async (id?: number) => {
+  return await axios.delete(`${SERVER_HOST}/instrument/delete/${id}`);
 };
 
-const backEquipmentItem = async (id?: number) => {
-  return await axios.patch(`${SERVER_HOST}/equipment/back/${id}`);
+const backInstrumentItem = async (id?: number) => {
+  return await axios.patch(`${SERVER_HOST}/instrument/back/${id}`);
 };
 
 const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
 };
 
-const EquipmentPage: React.FC<unknown> = () => {
+const InstrumentPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
 
-  const getEquipmentList = async () => {
+  const getInstrumentList = async () => {
     return await axios({
       method: 'GET',
       params: {
         ...filter,
       },
-      url: `${SERVER_HOST}/equipment/index`,
+      url: `${SERVER_HOST}/instrument/index`,
     });
   };
 
@@ -48,7 +48,7 @@ const EquipmentPage: React.FC<unknown> = () => {
     },
   });
 
-  const { run: runGetEquipmentList } = useRequest(getEquipmentList, {
+  const { run: runGetInstrumentList } = useRequest(getInstrumentList, {
     manual: true,
     onSuccess: (result: any) => {
       setData(result.data);
@@ -57,7 +57,7 @@ const EquipmentPage: React.FC<unknown> = () => {
       message.error(error.message);
     },
   });
-  const { run: runDeleteEquipmentItem } = useRequest(deleteEquipmentItem, {
+  const { run: runDeleteInstrumentItem } = useRequest(deleteInstrumentItem, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -66,7 +66,7 @@ const EquipmentPage: React.FC<unknown> = () => {
       message.error(error.message);
     },
   });
-  const { run: runBackEquipmentItem } = useRequest(backEquipmentItem, {
+  const { run: runBackInstrumentItem } = useRequest(backInstrumentItem, {
     manual: true,
     onSuccess: () => {
       message.success('回退成功');
@@ -87,14 +87,14 @@ const EquipmentPage: React.FC<unknown> = () => {
     return data;
   };
 
-  const columns: ProDescriptionsItemProps<API.EquipmentRecordInfo>[] = [
+  const columns: ProDescriptionsItemProps<API.InstrumentRecordInfo>[] = [
     {
       title: '申请编号',
       dataIndex: 'serial_number',
     },
     {
       title: '申请设备名称',
-      dataIndex: 'equipment',
+      dataIndex: 'instrument',
       formItemProps: {
         rules: [
           {
@@ -110,11 +110,9 @@ const EquipmentPage: React.FC<unknown> = () => {
       valueEnum: {
         0: { text: '申请', status: '0' },
         1: { text: '调研', status: '1' },
-        2: { text: '政府审批', status: '2' },
-        3: { text: '投标', status: '3' },
-        4: { text: '合同', status: '4' },
-        5: { text: '安装验收', status: '5' },
-        6: { text: '完成', status: '6' },
+        2: { text: '合同', status: '2' },
+        3: { text: '安装验收', status: '3' },
+        4: { text: '完成', status: '4' },
       },
     },
     {
@@ -130,24 +128,6 @@ const EquipmentPage: React.FC<unknown> = () => {
       dataIndex: 'budget',
     },
     {
-      title: '申请方式',
-      dataIndex: 'apply_type',
-      valueEnum: {
-        0: { text: '年度采购', status: '0' },
-        1: { text: '经费采购', status: '1' },
-        2: { text: '临时采购', status: '2' },
-      },
-    },
-    {
-      title: '采购方式',
-      dataIndex: 'purchase_type',
-      valueEnum: {
-        0: { text: '展会采购', status: '0' },
-        1: { text: '招标', status: '1' },
-        2: { text: '自行采购', status: '2' },
-      },
-    },
-    {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
@@ -156,7 +136,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/equipment/detail#update&${id}`);
+              history.push(`/instrument/detail#update&${id}`);
             }}
           >
             录入
@@ -165,7 +145,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={async () => {
               const id = record.id;
-              await runBackEquipmentItem(id);
+              await runBackInstrumentItem(id);
               action?.reload();
             }}
           >
@@ -175,7 +155,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={async () => {
               const id = record.id;
-              await runDeleteEquipmentItem(id);
+              await runDeleteInstrumentItem(id);
               action?.reload();
             }}
           >
@@ -193,14 +173,14 @@ const EquipmentPage: React.FC<unknown> = () => {
   return (
     <PageContainer
       header={{
-        title: '设备管理',
+        title: '器械医疗用品采购管理',
       }}
     >
-      <ProTable<API.EquipmentRecordInfo>
+      <ProTable<API.InstrumentRecordInfo>
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetEquipmentList}
+        request={runGetInstrumentList}
         rowKey="serial_number"
         search={false}
         options={{
@@ -219,9 +199,9 @@ const EquipmentPage: React.FC<unknown> = () => {
               collapse={true}
               onValuesChange={(value) => {
                 setFilter({
-                  equipment: _.isUndefined(value.equipment)
-                    ? filter.equipment
-                    : value.equipment,
+                  instrument: _.isUndefined(value.instrument)
+                    ? filter.instrument
+                    : value.instrument,
                   status: value.status
                     ? value.status === 'all'
                       ? null
@@ -245,7 +225,7 @@ const EquipmentPage: React.FC<unknown> = () => {
                 });
               }}
             >
-              <ProFormText name="equipment" label="申请设备名称" />
+              <ProFormText name="instrument" label="申请设备名称" />
               <ProFormSelect
                 name="department"
                 label="申请科室"
@@ -257,31 +237,9 @@ const EquipmentPage: React.FC<unknown> = () => {
                 valueEnum={{
                   0: { text: '申请', status: '0' },
                   1: { text: '调研', status: '1' },
-                  2: { text: '政府审批', status: '2' },
-                  3: { text: '投标', status: '3' },
-                  4: { text: '合同', status: '4' },
-                  5: { text: '安装验收', status: '5' },
-                  6: { text: '完成', status: '6' },
-                  all: { text: '全部', status: 'all' },
-                }}
-              />
-              <ProFormSelect
-                name="apply_type"
-                label="申请方式"
-                valueEnum={{
-                  0: { text: '年度采购', status: '0' },
-                  1: { text: '经费采购', status: '1' },
-                  2: { text: '临时采购', status: '2' },
-                  all: { text: '全部', status: 'all' },
-                }}
-              />
-              <ProFormSelect
-                name="purchase_type"
-                label="采购方式"
-                valueEnum={{
-                  0: { text: '展会采购', status: '0' },
-                  1: { text: '招标', status: '1' },
-                  2: { text: '自行采购', status: '2' },
+                  2: { text: '合同', status: '2' },
+                  3: { text: '安装验收', status: '3' },
+                  4: { text: '完成', status: '4' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
@@ -300,7 +258,7 @@ const EquipmentPage: React.FC<unknown> = () => {
             <Button
               key="button"
               onClick={async () => {
-                history.push('/equipment/detail#create');
+                history.push('/instrument/detail#create');
               }}
               type="primary"
             >
@@ -313,4 +271,4 @@ const EquipmentPage: React.FC<unknown> = () => {
   );
 };
 
-export default EquipmentPage;
+export default InstrumentPage;

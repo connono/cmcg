@@ -4,6 +4,7 @@ import {
   LightFilter,
   PageContainer,
   ProDescriptionsItemProps,
+  ProFormCheckbox,
   ProFormSelect,
   ProFormText,
   ProTable,
@@ -13,30 +14,30 @@ import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 
-const deleteEquipmentItem = async (id?: number) => {
-  return await axios.delete(`${SERVER_HOST}/equipment/delete/${id}`);
+const deleteMaintainItem = async (id?: number) => {
+  return await axios.delete(`${SERVER_HOST}/maintain/delete/${id}`);
 };
 
-const backEquipmentItem = async (id?: number) => {
-  return await axios.patch(`${SERVER_HOST}/equipment/back/${id}`);
+const backMaintainItem = async (id?: number) => {
+  return await axios.patch(`${SERVER_HOST}/maintain/back/${id}`);
 };
 
 const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
 };
 
-const EquipmentPage: React.FC<unknown> = () => {
+const MaintainPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
 
-  const getEquipmentList = async () => {
+  const getMaintainList = async () => {
     return await axios({
       method: 'GET',
       params: {
         ...filter,
       },
-      url: `${SERVER_HOST}/equipment/index`,
+      url: `${SERVER_HOST}/maintain/index`,
     });
   };
 
@@ -48,7 +49,7 @@ const EquipmentPage: React.FC<unknown> = () => {
     },
   });
 
-  const { run: runGetEquipmentList } = useRequest(getEquipmentList, {
+  const { run: runGetMaintainList } = useRequest(getMaintainList, {
     manual: true,
     onSuccess: (result: any) => {
       setData(result.data);
@@ -57,7 +58,7 @@ const EquipmentPage: React.FC<unknown> = () => {
       message.error(error.message);
     },
   });
-  const { run: runDeleteEquipmentItem } = useRequest(deleteEquipmentItem, {
+  const { run: runDeleteMaintainItem } = useRequest(deleteMaintainItem, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -66,7 +67,7 @@ const EquipmentPage: React.FC<unknown> = () => {
       message.error(error.message);
     },
   });
-  const { run: runBackEquipmentItem } = useRequest(backEquipmentItem, {
+  const { run: runBackMaintainItem } = useRequest(backMaintainItem, {
     manual: true,
     onSuccess: () => {
       message.success('回退成功');
@@ -87,34 +88,26 @@ const EquipmentPage: React.FC<unknown> = () => {
     return data;
   };
 
-  const columns: ProDescriptionsItemProps<API.EquipmentRecordInfo>[] = [
+  const columns: ProDescriptionsItemProps<API.RepairApplyRecordInfo>[] = [
     {
       title: '申请编号',
       dataIndex: 'serial_number',
     },
     {
-      title: '申请设备名称',
+      title: '维修项目',
+      dataIndex: 'name',
+    },
+    {
+      title: '设备名称',
       dataIndex: 'equipment',
-      formItemProps: {
-        rules: [
-          {
-            required: true,
-            message: '名称为必填项',
-          },
-        ],
-      },
     },
     {
       title: '状态',
       dataIndex: 'status',
       valueEnum: {
         0: { text: '申请', status: '0' },
-        1: { text: '调研', status: '1' },
-        2: { text: '政府审批', status: '2' },
-        3: { text: '投标', status: '3' },
-        4: { text: '合同', status: '4' },
-        5: { text: '安装验收', status: '5' },
-        6: { text: '完成', status: '6' },
+        1: { text: '安装验收', status: '1' },
+        2: { text: '完成', status: '2' },
       },
     },
     {
@@ -122,29 +115,19 @@ const EquipmentPage: React.FC<unknown> = () => {
       dataIndex: 'department',
     },
     {
-      title: '数量',
-      dataIndex: 'count',
-    },
-    {
-      title: '预算',
+      title: '最高报价',
       dataIndex: 'budget',
     },
     {
-      title: '申请方式',
-      dataIndex: 'apply_type',
-      valueEnum: {
-        0: { text: '年度采购', status: '0' },
-        1: { text: '经费采购', status: '1' },
-        2: { text: '临时采购', status: '2' },
-      },
+      title: '发票金额',
+      dataIndex: 'price',
     },
     {
-      title: '采购方式',
-      dataIndex: 'purchase_type',
+      title: '是否垫付',
+      dataIndex: 'isAdvance',
       valueEnum: {
-        0: { text: '展会采购', status: '0' },
-        1: { text: '招标', status: '1' },
-        2: { text: '自行采购', status: '2' },
+        true: { text: '是' },
+        false: { text: '否' },
       },
     },
     {
@@ -156,7 +139,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/equipment/detail#update&${id}`);
+              history.push(`/maintain/detail#update&${id}`);
             }}
           >
             录入
@@ -165,7 +148,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={async () => {
               const id = record.id;
-              await runBackEquipmentItem(id);
+              await runBackMaintainItem(id);
               action?.reload();
             }}
           >
@@ -175,7 +158,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={async () => {
               const id = record.id;
-              await runDeleteEquipmentItem(id);
+              await runDeleteMaintainItem(id);
               action?.reload();
             }}
           >
@@ -196,11 +179,11 @@ const EquipmentPage: React.FC<unknown> = () => {
         title: '设备维修保养管理',
       }}
     >
-      <ProTable<API.EquipmentRecordInfo>
+      <ProTable<API.RepairApplyRecordInfo>
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetEquipmentList}
+        request={runGetMaintainList}
         rowKey="serial_number"
         search={false}
         options={{
@@ -212,13 +195,26 @@ const EquipmentPage: React.FC<unknown> = () => {
           pageSize: 5,
         }}
         dateFormatter="string"
-        headerTitle="设备申请记录列表"
+        headerTitle="设备维修保养管理"
         toolbar={{
           filter: (
             <LightFilter
               collapse={true}
+              footerRender={() => {
+                return (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setFilter({});
+                    }}
+                  >
+                    重置
+                  </Button>
+                );
+              }}
               onValuesChange={(value) => {
                 setFilter({
+                  name: _.isUndefined(value.name) ? filter.name : value.name,
                   equipment: _.isUndefined(value.equipment)
                     ? filter.equipment
                     : value.equipment,
@@ -232,20 +228,16 @@ const EquipmentPage: React.FC<unknown> = () => {
                       ? null
                       : value.department
                     : filter.department,
-                  apply_type: value.apply_type
-                    ? value.apply_type === 'all'
-                      ? null
-                      : value.apply_type
-                    : filter.apply_type,
-                  purchase_type: value.purchase_type
-                    ? value.purchase_type === 'all'
-                      ? null
-                      : value.purchase_type
-                    : filter.purchase_type,
+                  isAdvance: !_.isUndefined(value.isAdvance)
+                    ? value.isAdvance
+                      ? 'true'
+                      : 'false'
+                    : filter.isAdvance,
                 });
               }}
             >
-              <ProFormText name="equipment" label="申请设备名称" />
+              <ProFormText name="name" label="维修项目" />
+              <ProFormText name="equipment" label="设备名称" />
               <ProFormSelect
                 name="department"
                 label="申请科室"
@@ -256,35 +248,12 @@ const EquipmentPage: React.FC<unknown> = () => {
                 label="状态"
                 valueEnum={{
                   0: { text: '申请', status: '0' },
-                  1: { text: '调研', status: '1' },
-                  2: { text: '政府审批', status: '2' },
-                  3: { text: '投标', status: '3' },
-                  4: { text: '合同', status: '4' },
-                  5: { text: '安装验收', status: '5' },
-                  6: { text: '完成', status: '6' },
+                  1: { text: '安装验收', status: '1' },
+                  2: { text: '完成', status: '2' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
-              <ProFormSelect
-                name="apply_type"
-                label="申请方式"
-                valueEnum={{
-                  0: { text: '年度采购', status: '0' },
-                  1: { text: '经费采购', status: '1' },
-                  2: { text: '临时采购', status: '2' },
-                  all: { text: '全部', status: 'all' },
-                }}
-              />
-              <ProFormSelect
-                name="purchase_type"
-                label="采购方式"
-                valueEnum={{
-                  0: { text: '展会采购', status: '0' },
-                  1: { text: '招标', status: '1' },
-                  2: { text: '自行采购', status: '2' },
-                  all: { text: '全部', status: 'all' },
-                }}
-              />
+              <ProFormCheckbox label="是否垫付：" name="isAdvance" />
             </LightFilter>
           ),
           menu: {
@@ -300,7 +269,7 @@ const EquipmentPage: React.FC<unknown> = () => {
             <Button
               key="button"
               onClick={async () => {
-                history.push('/equipment/detail#create');
+                history.push('/maintain/detail#create');
               }}
               type="primary"
             >
@@ -313,4 +282,4 @@ const EquipmentPage: React.FC<unknown> = () => {
   );
 };
 
-export default EquipmentPage;
+export default MaintainPage;

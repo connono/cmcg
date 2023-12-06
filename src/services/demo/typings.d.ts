@@ -112,23 +112,69 @@ declare namespace API {
     count?: number; // 数量
     budget?: number; // 预算
     apply_type?: EquipmentApplyType; // 申请方式
-    survey_date?: Date; // 调研日期
+    survey_date?: string; // 调研日期
     purchase_type?: EquipmentPurchaseType; //采购方式
     survey_record?: string; // 调研记录
     meeting_record?: string; // 会议记录
-    approve_date?: Date; // 审批日期
-    execute_date?: Date; // 预算执行单日期
-    tender_date?: Date; // 招标书日期
+    approve_date?: string; // 审批日期
+    execute_date?: string; // 预算执行单日期
+    tender_date?: string; // 招标书日期
     tender_file?: string; // 招标书附件
     tender_boardcast_file?: string; // 招标公告附件
-    tender_out_date: Date; // 招标日期
+    tender_out_date: string; // 招标日期
     bid_winning_file: string; // 中标通知书
     send_tender_file: string; // 投标文件
-    purchase_date?: Date; // 合同日期
-    arrive_date?: Date; // 到货日期
+    purchase_date?: string; // 合同日期
+    arrive_date?: string; // 到货日期
     price?: number; // 合同价格
-    install_date?: Date; // 安装日期
-    create_at?: Date; // 记录创建时间
-    update_at?: Date; // 记录更新时间
+    install_date?: string; // 安装日期
+    create_at?: string; // 记录创建时间
+    update_at?: string; // 记录更新时间
+  }
+
+  enum InstrumentApplyStep {
+    APPLY, // 申请
+    SURVEY, // 调研
+    CHECK, // 合同
+    PURCHASE, // 安装验收
+  }
+
+  interface InstrumentRecordInfo {
+    id?: number; // 主键
+    serial_number?: string; // 设备申请记录序列号
+    status?: InstrumentApplyStep; // 状态
+    instrument?: string; // 申请设备名称
+    department?: string; // 申请科室名称
+    count?: number; // 数量
+    budget?: number; // 预算
+    survey_date?: string; // 调研日期
+    survey_picture: string; //调研图片
+    purchase_date?: string; // 合同日期
+    price?: number; // 合同价格
+    install_date?: string; // 安装日期
+    create_at?: string; // 记录创建时间
+    update_at?: string; // 记录更新时间
+  }
+
+  enum RepairApplyStep {
+    APPLY, // 申请
+    PURCHASE, // 验收
+  }
+
+  interface RepairApplyRecordInfo {
+    id?: number; // 主键
+    serial_number?: string; // 设备申请记录序列号
+    status?: RepairApplyStep; // 状态
+    equipment?: string; // 申请设备名称
+    department?: string; // 申请科室名称
+    name?: string; // 维修项目名称
+    budget?: number; // 最高报价
+    apply_date?: string; // 申请日期
+    apply_file?: string; // 报价单
+    price?: number; // 发票金额
+    install_file?: string; // 验收入库资料
+    isAdvance?: string; // 是否垫付
+    create_at?: string; // 记录创建时间
+    update_at?: string; // 记录更新时间
   }
 }

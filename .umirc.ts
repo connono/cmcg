@@ -43,7 +43,7 @@ export default defineConfig({
       access: 'canSeeEquipment',
     },
     {
-      name: '器械耗材采购管理',
+      name: '器械医疗用品采购管理',
       path: '/instrument',
       component: './Instrument',
       access: 'canSeeEquipment',
@@ -81,6 +81,16 @@ export default defineConfig({
     {
       path: '/equipment/detail',
       component: './Equipment/Detail',
+      access: 'canSeeEquipment',
+    },
+    {
+      path: '/instrument/detail',
+      component: './Instrument/Detail',
+      access: 'canSeeEquipment',
+    },
+    {
+      path: '/maintain/detail',
+      component: './Maintain/Detail',
       access: 'canSeeEquipment',
     },
     {
