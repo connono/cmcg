@@ -4,6 +4,7 @@ import {
   LightFilter,
   PageContainer,
   ProDescriptionsItemProps,
+  ProFormCheckbox,
   ProFormSelect,
   ProFormText,
   ProTable,
@@ -148,6 +149,14 @@ const EquipmentPage: React.FC<unknown> = () => {
       },
     },
     {
+      title: '是否垫付',
+      dataIndex: 'isAdvance',
+      valueEnum: {
+        true: { text: '是' },
+        false: { text: '否' },
+      },
+    },
+    {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
@@ -217,6 +226,18 @@ const EquipmentPage: React.FC<unknown> = () => {
           filter: (
             <LightFilter
               collapse={true}
+              footerRender={() => {
+                return (
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setFilter({});
+                    }}
+                  >
+                    重置
+                  </Button>
+                );
+              }}
               onValuesChange={(value) => {
                 setFilter({
                   equipment: _.isUndefined(value.equipment)
@@ -242,6 +263,11 @@ const EquipmentPage: React.FC<unknown> = () => {
                       ? null
                       : value.purchase_type
                     : filter.purchase_type,
+                  isAdvance: !_.isUndefined(value.isAdvance)
+                    ? value.isAdvance
+                      ? 'true'
+                      : 'false'
+                    : filter.isAdvance,
                 });
               }}
             >
@@ -285,6 +311,7 @@ const EquipmentPage: React.FC<unknown> = () => {
                   all: { text: '全部', status: 'all' },
                 }}
               />
+              <ProFormCheckbox label="是否垫付" name="isAdvance" />
             </LightFilter>
           ),
           menu: {

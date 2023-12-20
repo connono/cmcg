@@ -253,7 +253,7 @@ const MaintainPage: React.FC<unknown> = () => {
                   all: { text: '全部', status: 'all' },
                 }}
               />
-              <ProFormCheckbox label="是否垫付：" name="isAdvance" />
+              <ProFormCheckbox label="是否垫付" name="isAdvance" />
             </LightFilter>
           ),
           menu: {

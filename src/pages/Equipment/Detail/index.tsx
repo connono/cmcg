@@ -5,6 +5,7 @@ import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
+  ProFormCheckbox,
   ProFormDatePicker,
   ProFormMoney,
   ProFormSelect,
@@ -184,10 +185,12 @@ const purchase = async (
 const install = async (
   id: string,
   install_date: Date,
+  isAdvance: boolean,
   install_picture: string,
 ) => {
   const form = new FormData();
   form.append('install_date', formatDate(install_date));
+  form.append('isAdvance', isAdvance.toString());
   form.append('install_picture', fileListToString(install_picture));
 
   return await axios({
@@ -875,7 +878,12 @@ const EquipmentDetailPage: React.FC = () => {
             title="安装验收"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(id, values.install_date, values.install_picture);
+              await runInstall(
+                id,
+                values.install_date,
+                values.isAdvance,
+                values.install_picture,
+              );
               return true;
             }}
           >
@@ -883,6 +891,13 @@ const EquipmentDetailPage: React.FC = () => {
               name="install_date"
               label="安装日期："
               width="sm"
+              disabled={current < equipmentItem.status}
+              rules={[{ required: true }]}
+            />
+            <ProFormCheckbox
+              label="是否垫付："
+              name="isAdvance"
+              width="md"
               disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />

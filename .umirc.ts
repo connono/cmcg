@@ -67,6 +67,12 @@ export default defineConfig({
       access: 'canSeePaymentProcess',
     },
     {
+      name: '垫付款管理',
+      path: '/advance',
+      component: './Advance',
+      access: 'canSeeEquipment',
+    },
+    {
       name: '修改账号密码',
       path: '/resetPassword',
       component: './ResetPassword',

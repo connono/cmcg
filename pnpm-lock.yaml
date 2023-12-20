@@ -25,7 +25,7 @@ dependencies:
     version: 4.0.75(@babel/core@7.23.3)(@types/react-dom@18.0.11)(@types/react@18.0.33)(dva@2.5.0-beta.2)(postcss@8.4.31)(prettier@2.8.7)(rc-field-form@1.40.0)(react-dom@18.2.0)(react@18.1.0)(styled-components@6.1.1)(typescript@5.0.3)(webpack@5.89.0)
   antd:
     specifier: ^5.6.0
-    version: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+    version: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
   axios:
     specifier: ^1.4.0
     version: 1.4.0
@@ -41,6 +41,9 @@ dependencies:
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
+  moment:
+    specifier: ^2.29.4
+    version: 2.29.4
   react-dnd:
     specifier: ^16.0.1
     version: 16.0.1(@types/react@18.0.33)(react@18.1.0)
@@ -215,7 +218,7 @@ packages:
       '@ant-design/pro-provider': 2.13.5(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@ant-design/pro-utils': 2.15.2(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@babel/runtime': 7.23.4
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       omit.js: 2.0.2
       rc-resize-observer: 1.4.0(react-dom@18.2.0)(react@18.1.0)
@@ -269,7 +272,7 @@ packages:
       '@ant-design/pro-table': 3.13.11(antd@5.6.0)(rc-field-form@1.40.0)(react-dom@18.2.0)(react@18.1.0)
       '@ant-design/pro-utils': 2.15.2(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@babel/runtime': 7.23.4
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       react: 18.1.0
       react-dom: 18.2.0(react@18.1.0)
     transitivePeerDependencies:
@@ -309,7 +312,7 @@ packages:
       '@ant-design/pro-skeleton': 2.1.10(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@ant-design/pro-utils': 2.15.2(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@babel/runtime': 7.23.4
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       rc-resize-observer: 0.2.6(react-dom@18.2.0)(react@18.1.0)
       rc-util: 5.38.1(react-dom@18.2.0)(react@18.1.0)
       react: 18.1.0
@@ -353,7 +356,7 @@ packages:
       '@ant-design/pro-utils': 2.15.2(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@babel/runtime': 7.23.4
       '@chenshuai2144/sketch-color': 1.0.9(react@18.1.0)
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       dayjs: 1.11.10
       lodash.tonumber: 4.0.3
@@ -415,7 +418,7 @@ packages:
       '@babel/runtime': 7.23.4
       '@chenshuai2144/sketch-color': 1.0.9(react@18.1.0)
       '@umijs/use-params': 1.0.9(react@18.1.0)
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       dayjs: 1.11.10
       lodash.merge: 4.6.2
@@ -466,7 +469,7 @@ packages:
       '@babel/runtime': 7.23.4
       '@umijs/route-utils': 4.0.1
       '@umijs/use-params': 1.0.9(react@18.1.0)
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       lodash.merge: 4.6.2
       omit.js: 2.0.2
@@ -517,7 +520,7 @@ packages:
       '@ant-design/pro-table': 3.13.11(antd@5.6.0)(rc-field-form@1.40.0)(react-dom@18.2.0)(react@18.1.0)
       '@ant-design/pro-utils': 2.15.2(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@babel/runtime': 7.23.4
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       dayjs: 1.11.10
       rc-resize-observer: 1.4.0(react-dom@18.2.0)(react@18.1.0)
@@ -556,7 +559,7 @@ packages:
       '@ant-design/cssinjs': 1.17.5(react-dom@18.2.0)(react@18.1.0)
       '@babel/runtime': 7.23.4
       '@ctrl/tinycolor': 3.6.1
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       rc-util: 5.38.1(react-dom@18.2.0)(react@18.1.0)
       react: 18.1.0
       react-dom: 18.2.0(react@18.1.0)
@@ -584,7 +587,7 @@ packages:
       react-dom: '>=17.0.0'
     dependencies:
       '@babel/runtime': 7.23.4
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       react: 18.1.0
       react-dom: 18.2.0(react@18.1.0)
     dev: false
@@ -640,7 +643,7 @@ packages:
       '@dnd-kit/modifiers': 6.0.1(@dnd-kit/core@6.1.0)(react@18.1.0)
       '@dnd-kit/sortable': 7.0.2(@dnd-kit/core@6.1.0)(react@18.1.0)
       '@dnd-kit/utilities': 3.2.2(react@18.1.0)
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       dayjs: 1.11.10
       omit.js: 2.0.2
@@ -684,7 +687,7 @@ packages:
       '@ant-design/icons': 5.2.5(react-dom@18.2.0)(react@18.1.0)
       '@ant-design/pro-provider': 2.13.5(antd@5.6.0)(react-dom@18.2.0)(react@18.1.0)
       '@babel/runtime': 7.23.4
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       dayjs: 1.11.10
       lodash.merge: 4.6.2
@@ -3056,7 +3059,7 @@ packages:
       '@formily/shared': 2.3.0
       '@types/react': 18.0.33
       '@types/react-dom': 18.0.11
-      antd: 5.6.0(react-dom@18.2.0)(react@18.1.0)
+      antd: 5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       react: 18.1.0
       react-dom: 18.2.0(react@18.1.0)
@@ -3875,7 +3878,7 @@ packages:
     resolution: {integrity: sha512-hy8b7Y1J8OGe6LbAjj3xniQrj3v6lsivCcrmf4TzSgPzLkhIeKgc5IZnT7ReIqmEuodjfO8EYAuoFvIrHi/+jQ==}
     deprecated: This is a stub types definition. history provides its own type definitions, so you do not need this installed.
     dependencies:
-      history: 4.10.1
+      history: 5.3.0
     dev: false
 
   /@types/hoist-non-react-statics@3.3.5:
@@ -3961,7 +3964,7 @@ packages:
       '@types/history': 4.7.11
       '@types/react': 18.0.33
       '@types/react-router': 5.1.20
-      redux: 3.7.2
+      redux: 4.2.1
     dev: false
 
   /@types/react-router@5.1.20:
@@ -5096,7 +5099,7 @@ packages:
       scroll-into-view-if-needed: 2.2.31
     dev: false
 
-  /antd@5.6.0(react-dom@18.2.0)(react@18.1.0):
+  /antd@5.6.0(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0):
     resolution: {integrity: sha512-VW8c3pOsSxjIdpn/fyicaXHNjG0lYKb2xzi4pLwmYuChUl6P92S5MfrhB00XQY4TWgsfBucdgX8XSoiLCTRTCg==}
     peerDependencies:
       react: '>=16.9.0'
@@ -5131,7 +5134,7 @@ packages:
       rc-motion: 2.9.0(react-dom@18.2.0)(react@18.1.0)
       rc-notification: 5.0.5(react-dom@18.2.0)(react@18.1.0)
       rc-pagination: 3.5.0(react-dom@18.2.0)(react@18.1.0)
-      rc-picker: 3.8.2(dayjs@1.11.10)(react-dom@18.2.0)(react@18.1.0)
+      rc-picker: 3.8.2(dayjs@1.11.10)(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0)
       rc-progress: 3.4.2(react-dom@18.2.0)(react@18.1.0)
       rc-rate: 2.12.0(react-dom@18.2.0)(react@18.1.0)
       rc-resize-observer: 1.4.0(react-dom@18.2.0)(react@18.1.0)
@@ -9158,7 +9161,6 @@ packages:
 
   /moment@2.29.4:
     resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
-    dev: false
 
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
@@ -10836,7 +10838,7 @@ packages:
       shallowequal: 1.1.0
     dev: false
 
-  /rc-picker@3.8.2(dayjs@1.11.10)(react-dom@18.2.0)(react@18.1.0):
+  /rc-picker@3.8.2(dayjs@1.11.10)(moment@2.29.4)(react-dom@18.2.0)(react@18.1.0):
     resolution: {integrity: sha512-q6jnMwBoOi6tFA4xohrKIhzq80Fc3dH0Kiw5VRx6Tf1db7y27PBFCLwu6f66niXidZKD8F4R0M9VIui/jkL4cg==}
     engines: {node: '>=8.x'}
     peerDependencies:
@@ -10860,6 +10862,7 @@ packages:
       '@rc-component/trigger': 1.18.2(react-dom@18.2.0)(react@18.1.0)
       classnames: 2.3.2
       dayjs: 1.11.10
+      moment: 2.29.4
       rc-util: 5.38.1(react-dom@18.2.0)(react@18.1.0)
       react: 18.1.0
       react-dom: 18.2.0(react@18.1.0)

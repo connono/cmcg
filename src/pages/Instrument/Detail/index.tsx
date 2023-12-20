@@ -5,6 +5,7 @@ import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
+  ProFormCheckbox,
   ProFormDatePicker,
   ProFormMoney,
   ProFormSelect,
@@ -97,9 +98,14 @@ const purchase = async (
   });
 };
 
-const install = async (id: string, install_picture: string) => {
+const install = async (
+  id: string,
+  isAdvance: boolean,
+  install_picture: string,
+) => {
   const form = new FormData();
   form.append('install_picture', fileListToString(install_picture));
+  form.append('isAdvance', isAdvance.toString());
 
   return await axios({
     method: 'POST',
@@ -512,10 +518,17 @@ const InstrumentDetailPage: React.FC = () => {
             title="安装验收"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(id, values.install_picture);
+              await runInstall(id, values.isAdvance, values.install_picture);
               return true;
             }}
           >
+            <ProFormCheckbox
+              label="是否垫付："
+              name="isAdvance"
+              width="md"
+              disabled={current < instrumentItem.status}
+              rules={[{ required: true }]}
+            />
             <ProFormUploadButton
               label="验收资料："
               name="install_picture"
