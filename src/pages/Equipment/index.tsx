@@ -165,7 +165,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/equipment/detail#update&${id}`);
+              history.push(`/apply/equipment/detail#update&${id}`);
             }}
           >
             录入
@@ -327,7 +327,7 @@ const EquipmentPage: React.FC<unknown> = () => {
             <Button
               key="button"
               onClick={async () => {
-                history.push('/equipment/detail#create');
+                history.push('/apply/equipment/detail#create');
               }}
               type="primary"
             >

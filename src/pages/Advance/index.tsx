@@ -14,6 +14,7 @@ import { useRequest } from '@umijs/max';
 import { Button, Divider, InputNumber, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
+import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 
 const getAdvanceBudget = async () => {
@@ -23,10 +24,6 @@ const getAdvanceBudget = async () => {
 const deleteAdvanceItem = async (id?: number) => {
   return await axios.delete(`${SERVER_HOST}/advance/records/delete/${id}`);
 };
-
-// const backInstrumentItem = async (id?: number) => {
-//   return await axios.patch(`${SERVER_HOST}/instrument/back/${id}`);
-// };
 
 const getAdvanceEquipmentList = async () => {
   return await axios({
@@ -68,6 +65,29 @@ const storeAdvanceBudget = async (advance_budget: number) => {
   });
 };
 
+const approveAdvanceRecord = async (id?: number) => {
+  if (!id) return [];
+  const form = new FormData();
+  form.append('method', 'approve');
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/advance/records/update/${id}`,
+  });
+};
+
+const paybackAdvanceRecord = async (id?: number) => {
+  if (!id) return [];
+  const form = new FormData();
+  form.append('method', 'purchase');
+  form.append('payback_date', moment().format('YYYY-MM-DD'));
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/advance/records/update/${id}`,
+  });
+};
+
 const initialTreeData = [
   { key: 'equipment', title: '设备', disableCheckbox: true },
   { key: 'instrument', title: '医疗用品', disableCheckbox: true },
@@ -79,7 +99,7 @@ const AdvancePage: React.FC<unknown> = () => {
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
   const [paybackOpen, setPaybackOpen] = useState<boolean>(false);
-  const [selectedId, setSelectedId] = useState<number>();
+  const [selectedRecord, setSelectedRecord] = useState<any>();
   const [transferOpen, setTransferOpen] = useState<boolean>(false);
   const [budget, setBudget] = useState<number>(0);
   const [serverBudget, setServerBudget] = useState<any>({});
@@ -247,6 +267,87 @@ const AdvancePage: React.FC<unknown> = () => {
     },
   );
 
+  const { run: runApproveAdvanceRecord } = useRequest(approveAdvanceRecord, {
+    manual: true,
+    onSuccess: (result: any) => {
+      console.log(result);
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runPaybackAdvanceRecord } = useRequest(paybackAdvanceRecord, {
+    manual: true,
+    onSuccess: (result: any) => {
+      console.log(result);
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const approveOk = async (id: number) => {
+    await runApproveAdvanceRecord(id);
+    message.success('已通过审核');
+    setPaybackOpen(false);
+    actionRef.current?.reload();
+  };
+
+  const approveCancel = async (id: number) => {
+    await runDeleteAdvanceItem(id);
+    await runGetAdvanceBudget();
+    await runGetAdvanceEquipmentList();
+    await runGetAdvanceInstrumentList();
+    await runGetAdvanceMaintainList();
+    message.success('已驳回');
+    setPaybackOpen(false);
+    actionRef.current?.reload();
+  };
+
+  const payBackOk = async (id: number) => {
+    await runPaybackAdvanceRecord(id);
+    await runGetAdvanceBudget();
+    message.success('已确认回款');
+    setPaybackOpen(false);
+    actionRef.current?.reload();
+  };
+
+  const closeModal = () => {
+    setPaybackOpen(false);
+  };
+
+  const STATUS = [
+    {
+      optionText: '制单',
+      onOk: closeModal,
+      okText: '确认',
+      onCancel: closeModal,
+      cancelText: '取消',
+    },
+    {
+      optionText: '审核通过',
+      onOk: approveOk,
+      okText: '审核通过',
+      onCancel: approveCancel,
+      cancelText: '审核不通过',
+    },
+    {
+      optionText: '确认回款',
+      onOk: payBackOk,
+      okText: '确认回款',
+      onCancel: closeModal,
+      cancelText: '取消',
+    },
+    {
+      optionText: '查看记录',
+      onOk: closeModal,
+      okText: '确认',
+      onCancel: closeModal,
+      cancelText: '取消',
+    },
+  ];
+
   const columns: ProDescriptionsItemProps[] = [
     {
       title: '制单编号',
@@ -265,8 +366,9 @@ const AdvancePage: React.FC<unknown> = () => {
       dataIndex: 'status',
       valueEnum: {
         0: { text: '待制单', status: '0' },
-        1: { text: '待回款', status: '1' },
-        2: { text: '已回款', status: '2' },
+        1: { text: '待审核', status: '1' },
+        2: { text: '待回款', status: '2' },
+        3: { text: '已回款', status: '3' },
       },
     },
     {
@@ -281,17 +383,21 @@ const AdvancePage: React.FC<unknown> = () => {
         <>
           <a
             onClick={() => {
-              setSelectedId(record.id);
+              setSelectedRecord(record);
               setPaybackOpen(true);
             }}
           >
-            {record.status === '1' ? '确认回款' : '查看记录'}
+            {STATUS[parseInt(record.status)].optionText}
           </a>
           <Divider type="vertical" />
           <a
             onClick={async () => {
               const id = record.id;
               await runDeleteAdvanceItem(id);
+              await runGetAdvanceBudget();
+              await runGetAdvanceEquipmentList();
+              await runGetAdvanceInstrumentList();
+              await runGetAdvanceMaintainList();
               action?.reload();
             }}
           >
@@ -368,8 +474,9 @@ const AdvancePage: React.FC<unknown> = () => {
                 name="status"
                 label="状态"
                 valueEnum={{
-                  1: { text: '待回款', status: '1' },
-                  2: { text: '已回款', status: '2' },
+                  1: { text: '待审核', status: '1' },
+                  2: { text: '待回款', status: '2' },
+                  3: { text: '已回款', status: '3' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
@@ -429,15 +536,18 @@ const AdvancePage: React.FC<unknown> = () => {
         }}
         cancel={() => setTransferOpen(false)}
       />
-      <AdvancePaybackModal
-        selectedId={selectedId}
-        open={paybackOpen}
-        finish={() => {
-          setPaybackOpen(false);
-          actionRef.current?.reload();
-        }}
-        cancel={() => setPaybackOpen(false)}
-      />
+      {selectedRecord && selectedRecord.id ? (
+        <AdvancePaybackModal
+          selectedId={selectedRecord.id}
+          open={paybackOpen}
+          // @ts-ignore
+          onOk={STATUS[parseInt(selectedRecord.status)].onOk}
+          okText={STATUS[parseInt(selectedRecord.status)].okText}
+          // @ts-ignore
+          onCancel={STATUS[parseInt(selectedRecord.status)].onCancel}
+          cancelText={STATUS[parseInt(selectedRecord.status)].cancelText}
+        />
+      ) : null}
     </PageContainer>
   );
 };

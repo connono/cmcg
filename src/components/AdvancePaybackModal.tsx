@@ -3,15 +3,17 @@ import { useRequest } from '@umijs/max';
 import type { CollapseProps } from 'antd';
 import { Collapse, List, Modal, message } from 'antd';
 import axios from 'axios';
-import moment from 'moment';
+import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import PreviewListVisible from './PreviewListVisible';
 
 interface Props {
   open: boolean;
-  selectedId?: number;
-  finish: () => void;
-  cancel: () => void;
+  selectedId: number;
+  onOk: (id?: number) => void;
+  okText: string;
+  onCancel: (id?: number) => void;
+  cancelText: string;
 }
 
 interface AdvancePaybackCollapseProps {
@@ -25,17 +27,6 @@ const getAdvanceRecord = async (id?: number) => {
   return await axios({
     method: 'GET',
     url: `${SERVER_HOST}/advance/records/getItem?id=${id}`,
-  });
-};
-
-const paybackAdvanceRecord = async (id?: number) => {
-  if (!id) return [];
-  const form = new FormData();
-  form.append('payback_date', moment().format('YYYY-MM-DD'));
-  return await axios({
-    method: 'POST',
-    data: form,
-    url: `${SERVER_HOST}/advance/records/update/${id}`,
   });
 };
 
@@ -135,18 +126,12 @@ const AdvancePaybackModal: React.FC<Props> = (props) => {
   const { run: runGetAdvanceRecord } = useRequest(getAdvanceRecord, {
     manual: true,
     onSuccess: (result: any) => {
-      console.log(result);
-      setAdvanceRecord(result.data[0]);
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-
-  const { run: runPaybackAdvanceRecord } = useRequest(paybackAdvanceRecord, {
-    manual: true,
-    onSuccess: (result: any) => {
-      console.log(result);
+      if (result.data) {
+        const data = _.find(result.data, ['id', props.selectedId]);
+        setAdvanceRecord(data);
+      } else {
+        setAdvanceRecord([]);
+      }
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -161,16 +146,10 @@ const AdvancePaybackModal: React.FC<Props> = (props) => {
     <Modal
       title="回款"
       open={props.open}
-      onOk={() => {
-        runPaybackAdvanceRecord(props.selectedId);
-        message.success('已确认回款');
-        props.finish();
-      }}
-      okButtonProps={{
-        disabled: !(advanceRecord && advanceRecord === '1'),
-      }}
-      okText="确认回款"
-      onCancel={props.cancel}
+      onOk={() => props.onOk(props.selectedId)}
+      okText={props.okText}
+      onCancel={() => props.onCancel(props.selectedId)}
+      cancelText={props.cancelText}
       width={1000}
     >
       <AdvancePaybackCollapse

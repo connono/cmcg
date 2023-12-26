@@ -180,22 +180,24 @@ const AdvanceTransferModal: React.FC<Props> = (props) => {
       .sumBy('price')
       .value();
     const remainBudget =
-      !_.isUndefined(serverBudget.advance_budget) &&
-      !_.isUndefined(serverBudget.all_prices)
-        ? parseFloat(serverBudget.advance_budget) -
-          parseFloat(serverBudget.all_prices)
+      !_.isUndefined(props.serverBudget.advance_budget) &&
+      !_.isUndefined(props.serverBudget.all_prices)
+        ? parseFloat(props.serverBudget.advance_budget) -
+          parseFloat(props.serverBudget.all_prices)
         : 0;
     if (_.gte(remainBudget, allPrice)) {
       setTargetKeys(keys);
       message.success('添加成功!');
     } else {
-      message.error('超过预算，无法添加!');
+      setTargetKeys(keys);
+      message.warning('已超过预算!');
     }
   };
 
   const { run: runCreateAdvanceRecord } = useRequest(createAdvanceRecord, {
     manual: true,
     onSuccess: (result: any) => {
+      setTargetKeys([]);
       console.log(result);
     },
     onError: (error: any) => {

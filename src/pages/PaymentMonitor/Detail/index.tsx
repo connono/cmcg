@@ -117,7 +117,7 @@ const PaymentRecordDetailPage: React.FC = () => {
       if (int_status(method) !== -1) {
         setCurrent(int_status(method));
       } else {
-        history.push('/paymentMonitor');
+        history.push('/purchase/paymentMonitor');
         message.info('该计划正处于等待或关闭阶段，无法编辑，跳转到计划界面');
       }
       setPaymentRecord(result.data);
@@ -141,7 +141,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('申请付款成功，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/purchase/paymentMonitor');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -151,7 +151,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('审核成功，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/purchase/paymentMonitor');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -161,7 +161,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('已驳回，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/purchase/paymentMonitor');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -171,7 +171,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加记录成功，正在返回计划列表...');
-      history.push('/paymentMonitor');
+      history.push('/purchase/paymentMonitor');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -235,7 +235,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     if (id) {
       runGetItem(id);
     } else {
-      history.push('/paymentMonitor');
+      history.push('/purchase/paymentMonitor');
     }
   }, []);
   return (

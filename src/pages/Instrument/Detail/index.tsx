@@ -180,7 +180,7 @@ const InstrumentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加调研记录成功，正在返回设备列表...');
-      history.push('/instrument');
+      history.push('/apply/instrument');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -190,7 +190,7 @@ const InstrumentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加合同记录成功，正在返回设备列表...');
-      history.push('/instrument');
+      history.push('/apply/instrument');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -200,7 +200,7 @@ const InstrumentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加安装验收记录成功，正在返回设备列表...');
-      history.push('/instrument');
+      history.push('/apply/instrument');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -216,7 +216,7 @@ const InstrumentDetailPage: React.FC = () => {
         runGetSerialNumber();
       },
       onCancel: () => {
-        history.push('/instrument');
+        history.push('/apply/instrument');
       },
     });
   };
@@ -298,7 +298,7 @@ const InstrumentDetailPage: React.FC = () => {
     } else if (method === 'update' && id) {
       runGetItem(id);
     } else {
-      history.push('/instrument');
+      history.push('/apply/instrument');
     }
   }, []);
   return (

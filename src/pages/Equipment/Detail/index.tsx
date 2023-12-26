@@ -266,7 +266,7 @@ const EquipmentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加调研记录成功，正在返回设备列表...');
-      history.push('/equipment');
+      history.push('/apply/equipment');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -276,7 +276,7 @@ const EquipmentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加政府审批记录成功，正在返回设备列表...');
-      history.push('/equipment');
+      history.push('/apply/equipment');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -286,7 +286,7 @@ const EquipmentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加投标记录成功，正在返回设备列表...');
-      history.push('/equipment');
+      history.push('/apply/equipment');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -296,7 +296,7 @@ const EquipmentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加合同记录成功，正在返回设备列表...');
-      history.push('/equipment');
+      history.push('/apply/equipment');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -306,7 +306,7 @@ const EquipmentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加安装验收记录成功，正在返回设备列表...');
-      history.push('/equipment');
+      history.push('/apply/equipment');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -322,7 +322,7 @@ const EquipmentDetailPage: React.FC = () => {
         runGetSerialNumber();
       },
       onCancel: () => {
-        history.push('/equipment');
+        history.push('/apply/equipment');
       },
     });
   };
@@ -410,7 +410,7 @@ const EquipmentDetailPage: React.FC = () => {
     } else if (method === 'update' && id) {
       runGetItem(id);
     } else {
-      history.push('/equipment');
+      history.push('/apply/equipment');
     }
   }, []);
   return (

@@ -235,7 +235,10 @@ const PaymentProcessPage: React.FC = () => {
         <a
           key="history"
           onClick={() => {
-            history.push(`/paymentRecord#process&${record.id}`, record);
+            history.push(
+              `/purchase/paymentRecord#process&${record.id}`,
+              record,
+            );
           }}
         >
           {_}
@@ -317,7 +320,7 @@ const PaymentProcessPage: React.FC = () => {
                   message.error('你无权进行此操作');
                 } else {
                   history.push(
-                    `/paymentProcess/detail#apply&${record.id}&${record.current_payment_record_id}`,
+                    `/purchase/paymentProcess/detail#apply&${record.id}&${record.current_payment_record_id}`,
                     record,
                   );
                 }
@@ -335,7 +338,7 @@ const PaymentProcessPage: React.FC = () => {
                   message.error('你无权进行此操作');
                 } else {
                   history.push(
-                    `/paymentProcess/detail#audit&${record.id}&${record.current_payment_record_id}`,
+                    `/purchase/paymentProcess/detail#audit&${record.id}&${record.current_payment_record_id}`,
                     record,
                   );
                 }
@@ -353,7 +356,7 @@ const PaymentProcessPage: React.FC = () => {
                   message.error('你无权进行此操作');
                 } else {
                   history.push(
-                    `/paymentProcess/detail#process&${record.id}&${record.current_payment_record_id}`,
+                    `/purchase/paymentProcess/detail#process&${record.id}&${record.current_payment_record_id}`,
                     record,
                   );
                 }

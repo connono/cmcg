@@ -139,7 +139,7 @@ const MaintainPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/maintain/detail#update&${id}`);
+              history.push(`/apply/maintain/detail#update&${id}`);
             }}
           >
             录入
@@ -269,7 +269,7 @@ const MaintainPage: React.FC<unknown> = () => {
             <Button
               key="button"
               onClick={async () => {
-                history.push('/maintain/detail#create');
+                history.push('/apply/maintain/detail#create');
               }}
               type="primary"
             >

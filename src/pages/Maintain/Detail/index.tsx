@@ -151,7 +151,7 @@ const MaintainDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加安装验收记录成功，正在返回设备列表...');
-      history.push('/maintain');
+      history.push('/apply/maintain');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -167,7 +167,7 @@ const MaintainDetailPage: React.FC = () => {
         runGetSerialNumber();
       },
       onCancel: () => {
-        history.push('/maintain');
+        history.push('/apply/maintain');
       },
     });
   };
@@ -249,7 +249,7 @@ const MaintainDetailPage: React.FC = () => {
     } else if (method === 'update' && id) {
       runGetItem(id);
     } else {
-      history.push('/maintain');
+      history.push('/apply/maintain');
     }
   }, []);
   return (

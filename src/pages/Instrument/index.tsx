@@ -145,7 +145,7 @@ const InstrumentPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/instrument/detail#update&${id}`);
+              history.push(`/apply/instrument/detail#update&${id}`);
             }}
           >
             录入
@@ -285,7 +285,7 @@ const InstrumentPage: React.FC<unknown> = () => {
             <Button
               key="button"
               onClick={async () => {
-                history.push('/instrument/detail#create');
+                history.push('/apply/instrument/detail#create');
               }}
               type="primary"
             >
