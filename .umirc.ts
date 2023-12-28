@@ -37,23 +37,23 @@ export default defineConfig({
       access: 'canSeeUserList',
     },
     {
-      name: '维修采购申请管理',
+      name: '采购申请管理',
       path: '/apply',
       routes: [
         {
-          name: '设备采购管理',
+          name: '设备采购',
           path: '/apply/equipment',
           component: './Equipment',
           access: 'canSeeEquipment',
         },
         {
-          name: '器械医疗用品采购管理',
+          name: '器械医疗用品采购',
           path: '/apply/instrument',
           component: './Instrument',
           access: 'canSeeEquipment',
         },
         {
-          name: '设备维修保养管理',
+          name: '设备维修',
           path: '/apply/maintain',
           component: './Maintain',
           access: 'canSeeEquipment',
@@ -82,17 +82,17 @@ export default defineConfig({
       ],
     },
     {
-      name: '付款流程监控',
+      name: '合同管理',
       path: '/purchase',
       routes: [
         {
-          name: '服务型付款流程监控',
+          name: '服务型合同',
           path: '/purchase/paymentMonitor',
           component: './PaymentMonitor',
           access: 'canSeePaymentMonitor',
         },
         {
-          name: '物资型付款流程监控',
+          name: '物资型合同',
           path: '/purchase/paymentProcess',
           component: './PaymentProcess',
           access: 'canSeePaymentProcess',
