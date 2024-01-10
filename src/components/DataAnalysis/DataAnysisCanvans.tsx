@@ -65,7 +65,6 @@ const DataAnalysisCanvas: React.FC = () => {
     }),
   );
   const handleDrop = (item: any) => {
-    console.log('item:', item);
     addChart(item.name, item.label);
   };
   const [, drop] = useDrop(

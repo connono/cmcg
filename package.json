@@ -23,9 +23,11 @@
     "dom-to-image": "^2.6.0",
     "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
+    "mockjs": "^1.1.0",
     "moment": "^2.29.4",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
     "react-grid-layout": "^1.4.2",
     "react-resizable": "^3.0.5"

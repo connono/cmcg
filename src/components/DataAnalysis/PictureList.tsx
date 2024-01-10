@@ -15,7 +15,15 @@ const PictureList: React.FC = () => {
         //@ts-ignore
         return <PictureCard key={v.name} label={v.label} name={v.name} />;
       });
-      if (key === 'Line') {
+      if (key === 'Card') {
+        return {
+          key,
+          label: '指标卡',
+          children: (
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>{pictures}</div>
+          ),
+        };
+      } else if (key === 'Line') {
         return {
           key,
           label: '折线图/曲线图',

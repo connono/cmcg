@@ -31,6 +31,10 @@ import {
   stackBarSchema,
 } from '@/components/charts/bar/StackBar';
 import {
+  BasicIndicatorCardRender,
+  basicIndicatorCardSchema,
+} from '@/components/charts/card/BasicIndicatorCard';
+import {
   BasicColumnRender,
   basicColumnSchema,
 } from '@/components/charts/column/BasicColumn';
@@ -118,7 +122,6 @@ import {
   BasicScatterRender,
   basicScatterSchema,
 } from '@/components/charts/scatter/BasicScatter';
-
 // const BasicGaugeRender = async (
 //   container?: any,
 //   component_name?: string,
@@ -262,6 +265,13 @@ import {
 // };
 
 export const PICTURE_LIST = [
+  {
+    label: '基本指标卡',
+    name: 'BasicIndicatorCard',
+    type: 'Card',
+    render: BasicIndicatorCardRender,
+    schema: basicIndicatorCardSchema,
+  },
   {
     label: '基础折线图',
     name: 'BasicLine',

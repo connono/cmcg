@@ -1,5 +1,6 @@
 import DataAnalysisCanvas from '@/components/DataAnalysis/DataAnysisCanvans';
 import PictureList from '@/components/DataAnalysis/PictureList';
+import { mockData } from '@/constants/mockData';
 import { DomToPng } from '@/utils/file-saver';
 import { PageContainer } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
@@ -12,11 +13,9 @@ import {
   InputNumber,
   Modal,
 } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import '../../../node_modules/react-grid-layout/css/styles.css';
-import '../../../node_modules/react-resizable/css/styles.css';
 import './index.less';
 
 const DataAnalysisPage: React.FC = () => {
@@ -26,6 +25,11 @@ const DataAnalysisPage: React.FC = () => {
   const { resetCanvas } = useModel('canvasData', (model) => ({
     resetCanvas: model.resetCanvas,
   }));
+
+  useEffect(() => {
+    //@ts-ignore
+    window.__chartsData = mockData;
+  });
 
   return (
     <PageContainer ghost>

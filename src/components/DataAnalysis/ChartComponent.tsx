@@ -1,3 +1,4 @@
+import { mockData } from '@/constants/mockData';
 import { PICTURE_LIST } from '@/utils/chart-render';
 import { DeleteOutlined, FormOutlined } from '@ant-design/icons';
 import { FormLayout } from '@formily/antd-v5';
@@ -37,8 +38,8 @@ const ChartComponent: React.FC<Props> = (props) => {
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/antvdemo/assets/data/heatmap.json')
       .then((res) => res.json())
-      .then((data) => {
-        setData(data);
+      .then(() => {
+        setData(mockData);
       })
       .then(() => {
         form.setInitialValues({
