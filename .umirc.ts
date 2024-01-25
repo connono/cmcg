@@ -86,6 +86,12 @@ export default defineConfig({
       path: '/purchase',
       routes: [
         {
+          name: '合同管理',
+          path: '/purchase/contract',
+          component: './Contract',
+          access: 'canSeePaymentMonitor',
+        },
+        {
           name: '服务型合同',
           path: '/purchase/paymentMonitor',
           component: './PaymentMonitor',
