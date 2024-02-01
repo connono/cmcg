@@ -24,7 +24,7 @@ const CapitalSourceInput: React.FC<CapitalSourceInputProps> = ({
   value = {},
   onChange,
 }) => {
-  const [type, setType] = useState<CapitalSourceType>('自筹资金');
+  const [type, setType] = useState<CapitalSourceType>('');
   const [more, setMore] = useState<string>('');
 
   const triggerChange = (changedValue: {

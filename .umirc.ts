@@ -117,6 +117,13 @@ export default defineConfig({
           access: 'canSeePaymentMonitor',
         },
         {
+          path: '/purchase/contract/detail',
+          component: './Contract/Detail',
+          name: '合同管理-详情',
+          hideInMenu: true,
+          access: 'canSeePaymentMonitor',
+        },
+        {
           path: '/purchase/paymentMonitor/detail',
           component: './PaymentMonitor/Detail',
           name: '服务型付款流程监控-详情',

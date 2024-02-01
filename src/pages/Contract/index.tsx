@@ -1,6 +1,5 @@
 import ContractModal from '@/components/ContractModal';
 import { SERVER_HOST } from '@/constants';
-import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ActionType,
   LightFilter,
@@ -16,8 +15,8 @@ import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 
-const deleteEquipmentItem = async (id?: number) => {
-  return await axios.delete(`${SERVER_HOST}/equipment/delete/${id}`);
+const deleteContract = async (id?: number) => {
+  return await axios.delete(`${SERVER_HOST}/payment/contracts/delete/${id}`);
 };
 
 const backEquipmentItem = async (id?: number) => {
@@ -28,8 +27,6 @@ const ContractPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
-  const formRef = useRef<ProFormInstance>();
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const getContractList = async () => {
     return await axios({
@@ -50,7 +47,7 @@ const ContractPage: React.FC = () => {
       message.error(error.message);
     },
   });
-  const { run: runDeleteEquipmentItem } = useRequest(deleteEquipmentItem, {
+  const { run: runDeleteContract } = useRequest(deleteContract, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -121,10 +118,10 @@ const ContractPage: React.FC = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/apply/equipment/detail#update&${id}`);
+              history.push(`/purchase/contract/detail#${id}`);
             }}
           >
-            录入
+            详情
           </a>
           <Divider type="vertical" />
           <a
@@ -140,7 +137,7 @@ const ContractPage: React.FC = () => {
           <a
             onClick={async () => {
               const id = record.id;
-              await runDeleteEquipmentItem(id);
+              await runDeleteContract(id);
               action?.reload();
             }}
           >
@@ -265,23 +262,14 @@ const ContractPage: React.FC = () => {
             ],
           },
           actions: [
-            <Button
-              key="button"
-              onClick={async () => {
-                setModalVisible(true);
+            <ContractModal
+              key="contract"
+              callback={() => {
+                actionRef.current?.reload();
               }}
-              type="primary"
-            >
-              新建
-            </Button>,
+            />,
           ],
         }}
-      />
-      <ContractModal
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        formRef={formRef}
-        actionRef={actionRef}
       />
     </PageContainer>
   );
