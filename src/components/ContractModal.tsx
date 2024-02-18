@@ -86,7 +86,6 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
     onSuccess: (res: any) => {
       message.success('创建成功');
       generateWord(res.data).then((response) => {
-        console.log(response);
         runStoreDocx(res.data.id, response.data);
       });
     },

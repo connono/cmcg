@@ -118,7 +118,7 @@ const ContractPage: React.FC = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/purchase/contract/detail#${id}`);
+              history.push(`/purchase/contract/detail#${id}`, record);
             }}
           >
             详情

@@ -12,6 +12,10 @@ import {
   ProFormText,
   ProFormUploadButton,
   StepsForm,
+  ProForm,
+  ProFormDigit,
+  ProFormRadio,
+  ProFormTextArea,
 } from '@ant-design/pro-components';
 import { history, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
@@ -23,6 +27,8 @@ import {
   fileStringToAntdFileList,
   upload,
 } from '../../../utils/file-uploader';
+import { generateWord } from '@/utils/contract-word';
+import CapitalSourceInput from '@/components/CapitalSourceInput';
 
 const formatDate = (date: any) => {
   console.log('date:', date);
@@ -82,19 +88,38 @@ const survey = async (
   });
 };
 
-const purchase = async (
-  id: string,
+const createContract = async (
+  instrument_apply_record_id: string,
+  contract_name: string,
+  category: string,
+  contractor: string,
+  source: any,
   price: number,
-  purchase_picture: string,
+  isImportant: string,
+  contract_file: any,
+  comment: string,
+  isComplement: string,
 ) => {
   const form = new FormData();
+  if (source.type === '更多') {
+    form.append('source', source.more);
+  } else {
+    form.append('source', source.type);
+  }
+  form.append('instrument_apply_record_id', instrument_apply_record_id);
+  form.append('contract_name', contract_name);
+  form.append('category', category);
+  form.append('contractor', contractor);
   form.append('price', price.toString());
-  form.append('purchase_picture', fileListToString(purchase_picture));
+  form.append('isImportant', isImportant);
+  form.append('contract_file', fileListToString(contract_file));
+  form.append('comment', comment);
+  form.append('isComplement', isComplement);
 
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/instrument/update/purchase/${id}`,
+    url: `${SERVER_HOST}/payment/contracts/store`,
   });
 };
 
@@ -111,6 +136,17 @@ const install = async (
     method: 'POST',
     data: form,
     url: `${SERVER_HOST}/instrument/update/install/${id}`,
+  });
+};
+
+const storeDocx = async (id: number, contract_docx: string) => {
+  const form = new FormData();
+  form.append('contract_docx', contract_docx);
+
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/payment/contracts/storeDocx/${id}`,
   });
 };
 
@@ -186,10 +222,22 @@ const InstrumentDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
-  const { run: runPurchase } = useRequest(purchase, {
+  const { run: runStoreDocx } = useRequest(storeDocx, {
     manual: true,
     onSuccess: () => {
-      message.success('增加合同记录成功，正在返回设备列表...');
+      message.success('存入备案文档成功');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runCreateContract } = useRequest(createContract, {
+    manual: true,
+    onSuccess: (res: any) => {
+      generateWord(res.data).then((response) => {
+        runStoreDocx(res.data.id, response.data);
+      });
+      message.success('增加合同成功，正在返回设备列表...');
       history.push('/apply/instrument');
     },
     onError: (error: any) => {
@@ -477,41 +525,110 @@ const InstrumentDetailPage: React.FC = () => {
             title="合同"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runPurchase(id, values.price, values.purchase_picture);
+              runCreateContract(
+                id,
+                values.contract_name,
+                values.category,
+                values.contractor,
+                values.source,
+                values.price,
+                values.isImportant,
+                values.contract_file,
+                values.comment,
+                values.isComplement,
+              );
               return true;
             }}
           >
-            <ProFormMoney
-              name="price"
-              label="合同价格"
-              width="md"
-              disabled={current < instrumentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="合同附件："
-              name="purchase_picture"
-              extra={
-                instrumentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={instrumentItem.purchase_picture}
-                  />
-                ) : null
-              }
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'purchase_picture',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
+        <ProFormText
+          width="md"
+          name="contract_name"
+          label="合同名称"
+          placeholder="请输入合同名称"
+          rules={[{ required: true }]}
+        />
+        <ProFormSelect
+          label="类型"
+          name="category"
+          width="md"
+          valueEnum={{
+            JJ: { text: '基建项目', status: 'JJ' },
+            YP: { text: '药品采购', status: 'YP' },
+            XX: { text: '信息采购', status: 'XX' },
+            XS: { text: '医疗协商', status: 'XS' },
+            HZ: { text: '医疗合作', status: 'HZ' },
+            ZW: { text: '物资采购', status: 'ZW' },
+            FW: { text: '服务项目', status: 'FW' },
+            QX: { text: '器械采购', status: 'QX' },
+          }}
+          rules={[{ required: true }]}
+        />
+        <ProFormText
+          width="md"
+          name="contractor"
+          label="签订对象"
+          placeholder="请输入签订对象"
+          rules={[{ required: true }]}
+        />
+        <ProForm.Item
+          name="source"
+          label="资金来源"
+          rules={[{ required: true }]}
+        >
+          <CapitalSourceInput />
+        </ProForm.Item>
+        <ProForm.Group labelLayout="inline">
+          <ProFormDigit
+            width="md"
+            name="price"
+            label="金额"
+            placeholder="请输入金额"
+            rules={[{ required: true }]}
+          />
+          <ProFormRadio.Group
+            name="isImportant"
+            label="是否为重大项目"
+            width="sm"
+            valueEnum={{
+              true: { text: '是' },
+              false: { text: '否' },
+            }}
+            rules={[{ required: true }]}
+          />
+          <ProFormRadio.Group
+            name="isComplement"
+            label="是否为补充协议"
+            width="sm"
+            valueEnum={{
+              true: { text: '是' },
+              false: { text: '否' },
+            }}
+            rules={[{ required: true }]}
+          />
+        </ProForm.Group>
+        <ProFormUploadButton
+          label="合同附件："
+          name="contract_file"
+          fieldProps={{
+            customRequest: (options) => {
+              upload(options.file, (isSuccess: boolean, filename: string) =>
+                handleUpload(
+                  isSuccess,
+                  filename,
+                  'contract_file',
+                  options.file.uid,
+                ),
+              );
+            },
+          }}
+          rules={[{ required: true }]}
+        />
+        <ProFormTextArea
+          width="md"
+          name="comment"
+          label="备注"
+          placeholder="请输入备注"
+        />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ys"
