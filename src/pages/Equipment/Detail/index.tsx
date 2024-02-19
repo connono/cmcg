@@ -1,21 +1,23 @@
 import { PageContainer } from '@ant-design/pro-components';
 //@ts-ignore
+import CapitalSourceInput from '@/components/CapitalSourceInput';
 import PreviewListModal from '@/components/PreviewListModal';
 import { SERVER_HOST } from '@/constants';
+import { generateWord } from '@/utils/contract-word';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
+  ProForm,
   ProFormCheckbox,
   ProFormDatePicker,
+  ProFormDigit,
   ProFormMoney,
+  ProFormRadio,
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProFormUploadButton,
   StepsForm,
-  ProForm,
-  ProFormDigit,
-  ProFormRadio,
 } from '@ant-design/pro-components';
 import { history, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
@@ -27,8 +29,6 @@ import {
   fileStringToAntdFileList,
   upload,
 } from '../../../utils/file-uploader';
-import { generateWord } from '@/utils/contract-word';
-import CapitalSourceInput from '@/components/CapitalSourceInput';
 
 const applyOptions = [
   {
@@ -220,6 +220,17 @@ const install = async (
   });
 };
 
+const warehouse = async (id: string, warehousing_date: Date) => {
+  const form = new FormData();
+  form.append('warehousing_date', formatDate(warehousing_date));
+
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/update/warehouse/${id}`,
+  });
+};
+
 const storeDocx = async (id: number, contract_docx: string) => {
   const form = new FormData();
   form.append('contract_docx', contract_docx);
@@ -349,6 +360,16 @@ const EquipmentDetailPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('增加安装验收记录成功，正在返回设备列表...');
+      history.push('/apply/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runWarehouse } = useRequest(warehouse, {
+    manual: true,
+    onSuccess: () => {
+      message.success('增加入库记录成功，正在返回设备列表...');
       history.push('/apply/equipment');
     },
     onError: (error: any) => {
@@ -875,95 +896,95 @@ const EquipmentDetailPage: React.FC = () => {
               return true;
             }}
           >
-        <ProFormText
-          width="md"
-          name="contract_name"
-          label="合同名称"
-          placeholder="请输入合同名称"
-          rules={[{ required: true }]}
-        />
-        <ProFormSelect
-          label="类型"
-          name="category"
-          width="md"
-          valueEnum={{
-            JJ: { text: '基建项目', status: 'JJ' },
-            YP: { text: '药品采购', status: 'YP' },
-            XX: { text: '信息采购', status: 'XX' },
-            XS: { text: '医疗协商', status: 'XS' },
-            HZ: { text: '医疗合作', status: 'HZ' },
-            ZW: { text: '物资采购', status: 'ZW' },
-            FW: { text: '服务项目', status: 'FW' },
-            QX: { text: '器械采购', status: 'QX' },
-          }}
-          rules={[{ required: true }]}
-        />
-        <ProFormText
-          width="md"
-          name="contractor"
-          label="签订对象"
-          placeholder="请输入签订对象"
-          rules={[{ required: true }]}
-        />
-        <ProForm.Item
-          name="source"
-          label="资金来源"
-          rules={[{ required: true }]}
-        >
-          <CapitalSourceInput />
-        </ProForm.Item>
-        <ProForm.Group labelLayout="inline">
-          <ProFormDigit
-            width="md"
-            name="price"
-            label="金额"
-            placeholder="请输入金额"
-            rules={[{ required: true }]}
-          />
-          <ProFormRadio.Group
-            name="isImportant"
-            label="是否为重大项目"
-            width="sm"
-            valueEnum={{
-              true: { text: '是' },
-              false: { text: '否' },
-            }}
-            rules={[{ required: true }]}
-          />
-          <ProFormRadio.Group
-            name="isComplement"
-            label="是否为补充协议"
-            width="sm"
-            valueEnum={{
-              true: { text: '是' },
-              false: { text: '否' },
-            }}
-            rules={[{ required: true }]}
-          />
-        </ProForm.Group>
-        <ProFormUploadButton
-          label="合同附件："
-          name="contract_file"
-          fieldProps={{
-            customRequest: (options) => {
-              upload(options.file, (isSuccess: boolean, filename: string) =>
-                handleUpload(
-                  isSuccess,
-                  filename,
-                  'contract_file',
-                  options.file.uid,
-                ),
-              );
-            },
-          }}
-          rules={[{ required: true }]}
-        />
-        <ProFormTextArea
-          width="md"
-          name="comment"
-          label="备注"
-          placeholder="请输入备注"
-        />
+            <ProFormText
+              width="md"
+              name="contract_name"
+              label="合同名称"
+              placeholder="请输入合同名称"
+              rules={[{ required: true }]}
+            />
+            <ProFormSelect
+              label="类型"
+              name="category"
+              width="md"
+              valueEnum={{
+                JJ: { text: '基建项目', status: 'JJ' },
+                YP: { text: '药品采购', status: 'YP' },
+                XX: { text: '信息采购', status: 'XX' },
+                XS: { text: '医疗协商', status: 'XS' },
+                HZ: { text: '医疗合作', status: 'HZ' },
+                ZW: { text: '物资采购', status: 'ZW' },
+                FW: { text: '服务项目', status: 'FW' },
+                QX: { text: '器械采购', status: 'QX' },
+              }}
+              rules={[{ required: true }]}
+            />
+            <ProFormText
+              width="md"
+              name="contractor"
+              label="签订对象"
+              placeholder="请输入签订对象"
+              rules={[{ required: true }]}
+            />
+            <ProForm.Item
+              name="source"
+              label="资金来源"
+              rules={[{ required: true }]}
+            >
+              <CapitalSourceInput />
+            </ProForm.Item>
+            <ProForm.Group labelLayout="inline">
+              <ProFormDigit
+                width="md"
+                name="price"
+                label="金额"
+                placeholder="请输入金额"
+                rules={[{ required: true }]}
+              />
+              <ProFormRadio.Group
+                name="isImportant"
+                label="是否为重大项目"
+                width="sm"
+                valueEnum={{
+                  true: { text: '是' },
+                  false: { text: '否' },
+                }}
+                rules={[{ required: true }]}
+              />
+              <ProFormRadio.Group
+                name="isComplement"
+                label="是否为补充协议"
+                width="sm"
+                valueEnum={{
+                  true: { text: '是' },
+                  false: { text: '否' },
+                }}
+                rules={[{ required: true }]}
+              />
+            </ProForm.Group>
+            <ProFormUploadButton
+              label="合同附件："
+              name="contract_file"
+              fieldProps={{
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'contract_file',
+                      options.file.uid,
+                    ),
+                  );
+                },
+              }}
+              rules={[{ required: true }]}
+            />
+            <ProFormTextArea
+              width="md"
+              name="comment"
+              label="备注"
+              placeholder="请输入备注"
+            />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ys"
@@ -1015,6 +1036,23 @@ const EquipmentDetailPage: React.FC = () => {
                   );
                 },
               }}
+              rules={[{ required: true }]}
+            />
+          </StepsForm.StepForm>
+          <StepsForm.StepForm
+            name="rk"
+            title="入库"
+            onFinish={async () => {
+              const values = formRef.current?.getFieldsValue();
+              await runWarehouse(id, values.warehousing_date);
+              return true;
+            }}
+          >
+            <ProFormDatePicker
+              name="warehousing_date"
+              label="入库日期："
+              width="sm"
+              disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
           </StepsForm.StepForm>

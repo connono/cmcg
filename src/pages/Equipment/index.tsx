@@ -115,7 +115,8 @@ const EquipmentPage: React.FC<unknown> = () => {
         3: { text: '投标', status: '3' },
         4: { text: '合同', status: '4' },
         5: { text: '安装验收', status: '5' },
-        6: { text: '完成', status: '6' },
+        6: { text: '入库', status: '6' },
+        7: { text: '完成', status: '7' },
       },
     },
     {
