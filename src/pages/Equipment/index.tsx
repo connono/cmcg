@@ -9,8 +9,8 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
-import { Button, Divider, message } from 'antd';
+import { Access, history, useAccess, useRequest } from '@umijs/max';
+import { Button, Divider, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -30,6 +30,7 @@ const EquipmentPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const access = useAccess();
 
   const getEquipmentList = async () => {
     return await axios({
@@ -172,21 +173,34 @@ const EquipmentPage: React.FC<unknown> = () => {
             录入
           </a>
           <Divider type="vertical" />
-          <a
-            onClick={async () => {
-              const id = record.id;
-              await runBackEquipmentItem(id);
-              action?.reload();
+          <Popconfirm
+            key="back"
+            placement="topLeft"
+            title="确定要回退吗？"
+            onConfirm={async () => {
+              if (!access.canBackEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const id = record.id;
+                await runBackEquipmentItem(id);
+                action?.reload();
+              }
             }}
+            okText="确定"
+            cancelText="取消"
           >
-            回退
-          </a>
+            <a key="back">回退</a>
+          </Popconfirm>
           <Divider type="vertical" />
           <a
             onClick={async () => {
-              const id = record.id;
-              await runDeleteEquipmentItem(id);
-              action?.reload();
+              if (!access.canDeleteEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const id = record.id;
+                await runDeleteEquipmentItem(id);
+                action?.reload();
+              }
             }}
           >
             删除
@@ -325,15 +339,20 @@ const EquipmentPage: React.FC<unknown> = () => {
             ],
           },
           actions: [
-            <Button
-              key="button"
-              onClick={async () => {
-                history.push('/apply/equipment/detail#create');
-              }}
-              type="primary"
+            <Access
+              key="can_apply_equipment"
+              accessible={access.canApplyEquipment}
             >
-              新建
-            </Button>,
+              <Button
+                key="button"
+                onClick={async () => {
+                  history.push('/apply/equipment/detail#create');
+                }}
+                type="primary"
+              >
+                新建
+              </Button>
+            </Access>,
           ],
         }}
       />

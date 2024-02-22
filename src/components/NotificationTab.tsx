@@ -4,6 +4,7 @@ import { Badge, Tabs, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
+import ApplyNotificationTab from './ApplyNotificationTab';
 import PurchaseNotificationTab from './PurchaseNotificationTab';
 
 const getNotificationsList = async (id?: string) => {
@@ -46,6 +47,8 @@ const NotificationTab: React.FC = () => {
     },
   });
 
+  const applyRecordData = _.filter(notificationData, ['category', 'apply']);
+
   const paymentMonitorData = _.filter(notificationData, [
     'category',
     'purchaseMonitor',
@@ -53,9 +56,9 @@ const NotificationTab: React.FC = () => {
 
   const items = [
     {
-      label: '设备申请列表',
+      label: <Badge count={applyRecordData.length}>设备申请列表</Badge>,
       key: '1',
-      children: <div>设备申请列表</div>,
+      children: <ApplyNotificationTab data={applyRecordData} />,
     },
     {
       label: <Badge count={paymentMonitorData.length}>付款流程监控</Badge>,

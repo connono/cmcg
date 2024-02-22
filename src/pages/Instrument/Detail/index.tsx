@@ -1,23 +1,25 @@
 import { PageContainer } from '@ant-design/pro-components';
 //@ts-ignore
+import CapitalSourceInput from '@/components/CapitalSourceInput';
 import PreviewListModal from '@/components/PreviewListModal';
 import { SERVER_HOST } from '@/constants';
+import { generateWord } from '@/utils/contract-word';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
+  ProForm,
   ProFormCheckbox,
   ProFormDatePicker,
+  ProFormDigit,
   ProFormMoney,
+  ProFormRadio,
   ProFormSelect,
   ProFormText,
+  ProFormTextArea,
   ProFormUploadButton,
   StepsForm,
-  ProForm,
-  ProFormDigit,
-  ProFormRadio,
-  ProFormTextArea,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
+import { history, useAccess, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -27,8 +29,6 @@ import {
   fileStringToAntdFileList,
   upload,
 } from '../../../utils/file-uploader';
-import { generateWord } from '@/utils/contract-word';
-import CapitalSourceInput from '@/components/CapitalSourceInput';
 
 const formatDate = (date: any) => {
   console.log('date:', date);
@@ -157,6 +157,7 @@ const InstrumentDetailPage: React.FC = () => {
   const id = hashArray[1];
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
+  const access = useAccess();
   const [current, setCurrent] = useState<number>(0);
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
@@ -406,17 +407,32 @@ const InstrumentDetailPage: React.FC = () => {
             name="base"
             title="申请"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              confirm();
-              await runApply(
-                instrumentItem.serial_number,
-                values.instrument,
-                values.department,
-                values.count,
-                values.budget,
-                values.apply_picture,
-              );
-              return true;
+              if (!access.canApplyInstrument) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('apply_picture')[0].status ===
+                  'done'
+                ) {
+                  confirm();
+                  await runApply(
+                    instrumentItem.serial_number,
+                    values.instrument,
+                    values.department,
+                    values.count,
+                    values.budget,
+                    values.apply_picture,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('apply_picture')[0].status ===
+                  'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormText
@@ -483,9 +499,28 @@ const InstrumentDetailPage: React.FC = () => {
             name="time"
             title="调研"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runSurvey(id, values.survey_date, values.survey_picture);
-              return true;
+              if (!access.canSurveyInstrument) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('survey_picture')[0].status ===
+                  'done'
+                ) {
+                  await runSurvey(
+                    id,
+                    values.survey_date,
+                    values.survey_picture,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('survey_picture')[0].status ===
+                  'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormDatePicker
@@ -524,119 +559,153 @@ const InstrumentDetailPage: React.FC = () => {
             name="ad"
             title="合同"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              runCreateContract(
-                id,
-                values.contract_name,
-                values.category,
-                values.contractor,
-                values.source,
-                values.price,
-                values.isImportant,
-                values.contract_file,
-                values.comment,
-                values.isComplement,
-              );
-              return true;
+              if (!access.canContractInstrument) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('contract_file')[0].status ===
+                  'done'
+                ) {
+                  await runCreateContract(
+                    id,
+                    values.contract_name,
+                    values.category,
+                    values.contractor,
+                    values.source,
+                    values.price,
+                    values.isImportant,
+                    values.contract_file,
+                    values.comment,
+                    values.isComplement,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('contract_file')[0].status ===
+                  'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
-        <ProFormText
-          width="md"
-          name="contract_name"
-          label="合同名称"
-          placeholder="请输入合同名称"
-          rules={[{ required: true }]}
-        />
-        <ProFormSelect
-          label="类型"
-          name="category"
-          width="md"
-          valueEnum={{
-            JJ: { text: '基建项目', status: 'JJ' },
-            YP: { text: '药品采购', status: 'YP' },
-            XX: { text: '信息采购', status: 'XX' },
-            XS: { text: '医疗协商', status: 'XS' },
-            HZ: { text: '医疗合作', status: 'HZ' },
-            ZW: { text: '物资采购', status: 'ZW' },
-            FW: { text: '服务项目', status: 'FW' },
-            QX: { text: '器械采购', status: 'QX' },
-          }}
-          rules={[{ required: true }]}
-        />
-        <ProFormText
-          width="md"
-          name="contractor"
-          label="签订对象"
-          placeholder="请输入签订对象"
-          rules={[{ required: true }]}
-        />
-        <ProForm.Item
-          name="source"
-          label="资金来源"
-          rules={[{ required: true }]}
-        >
-          <CapitalSourceInput />
-        </ProForm.Item>
-        <ProForm.Group labelLayout="inline">
-          <ProFormDigit
-            width="md"
-            name="price"
-            label="金额"
-            placeholder="请输入金额"
-            rules={[{ required: true }]}
-          />
-          <ProFormRadio.Group
-            name="isImportant"
-            label="是否为重大项目"
-            width="sm"
-            valueEnum={{
-              true: { text: '是' },
-              false: { text: '否' },
-            }}
-            rules={[{ required: true }]}
-          />
-          <ProFormRadio.Group
-            name="isComplement"
-            label="是否为补充协议"
-            width="sm"
-            valueEnum={{
-              true: { text: '是' },
-              false: { text: '否' },
-            }}
-            rules={[{ required: true }]}
-          />
-        </ProForm.Group>
-        <ProFormUploadButton
-          label="合同附件："
-          name="contract_file"
-          fieldProps={{
-            customRequest: (options) => {
-              upload(options.file, (isSuccess: boolean, filename: string) =>
-                handleUpload(
-                  isSuccess,
-                  filename,
-                  'contract_file',
-                  options.file.uid,
-                ),
-              );
-            },
-          }}
-          rules={[{ required: true }]}
-        />
-        <ProFormTextArea
-          width="md"
-          name="comment"
-          label="备注"
-          placeholder="请输入备注"
-        />
+            <ProFormText
+              width="md"
+              name="contract_name"
+              label="合同名称"
+              placeholder="请输入合同名称"
+              rules={[{ required: true }]}
+            />
+            <ProFormSelect
+              label="类型"
+              name="category"
+              width="md"
+              valueEnum={{
+                JJ: { text: '基建项目', status: 'JJ' },
+                YP: { text: '药品采购', status: 'YP' },
+                XX: { text: '信息采购', status: 'XX' },
+                XS: { text: '医疗协商', status: 'XS' },
+                HZ: { text: '医疗合作', status: 'HZ' },
+                ZW: { text: '物资采购', status: 'ZW' },
+                FW: { text: '服务项目', status: 'FW' },
+                QX: { text: '器械采购', status: 'QX' },
+              }}
+              rules={[{ required: true }]}
+            />
+            <ProFormText
+              width="md"
+              name="contractor"
+              label="签订对象"
+              placeholder="请输入签订对象"
+              rules={[{ required: true }]}
+            />
+            <ProForm.Item
+              name="source"
+              label="资金来源"
+              rules={[{ required: true }]}
+            >
+              <CapitalSourceInput />
+            </ProForm.Item>
+            <ProForm.Group labelLayout="inline">
+              <ProFormDigit
+                width="md"
+                name="price"
+                label="金额"
+                placeholder="请输入金额"
+                rules={[{ required: true }]}
+              />
+              <ProFormRadio.Group
+                name="isImportant"
+                label="是否为重大项目"
+                width="sm"
+                valueEnum={{
+                  true: { text: '是' },
+                  false: { text: '否' },
+                }}
+                rules={[{ required: true }]}
+              />
+              <ProFormRadio.Group
+                name="isComplement"
+                label="是否为补充协议"
+                width="sm"
+                valueEnum={{
+                  true: { text: '是' },
+                  false: { text: '否' },
+                }}
+                rules={[{ required: true }]}
+              />
+            </ProForm.Group>
+            <ProFormUploadButton
+              label="合同附件："
+              name="contract_file"
+              fieldProps={{
+                customRequest: (options) => {
+                  upload(options.file, (isSuccess: boolean, filename: string) =>
+                    handleUpload(
+                      isSuccess,
+                      filename,
+                      'contract_file',
+                      options.file.uid,
+                    ),
+                  );
+                },
+              }}
+              rules={[{ required: true }]}
+            />
+            <ProFormTextArea
+              width="md"
+              name="comment"
+              label="备注"
+              placeholder="请输入备注"
+            />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ys"
             title="安装验收"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runInstall(id, values.isAdvance, values.install_picture);
-              return true;
+              if (!access.canInstallInstrument) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('install_picture')[0]
+                    .status === 'done'
+                ) {
+                  await runInstall(
+                    id,
+                    values.isAdvance,
+                    values.install_picture,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('install_picture')[0]
+                    .status === 'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormCheckbox

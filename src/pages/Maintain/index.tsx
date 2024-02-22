@@ -9,8 +9,8 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
-import { Button, Divider, message } from 'antd';
+import { Access, history, useAccess, useRequest } from '@umijs/max';
+import { Button, Divider, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -30,6 +30,7 @@ const MaintainPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const access = useAccess();
 
   const getMaintainList = async () => {
     return await axios({
@@ -145,21 +146,34 @@ const MaintainPage: React.FC<unknown> = () => {
             录入
           </a>
           <Divider type="vertical" />
-          <a
-            onClick={async () => {
-              const id = record.id;
-              await runBackMaintainItem(id);
-              action?.reload();
+          <Popconfirm
+            key="back"
+            placement="topLeft"
+            title="确定要回退吗？"
+            onConfirm={async () => {
+              if (!access.canBackRepair) {
+                message.error('你无权进行此操作');
+              } else {
+                const id = record.id;
+                await runBackMaintainItem(id);
+                action?.reload();
+              }
             }}
+            okText="确定"
+            cancelText="取消"
           >
-            回退
-          </a>
+            <a key="back">回退</a>
+          </Popconfirm>
           <Divider type="vertical" />
           <a
             onClick={async () => {
-              const id = record.id;
-              await runDeleteMaintainItem(id);
-              action?.reload();
+              if (!access.canDeleteEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const id = record.id;
+                await runDeleteMaintainItem(id);
+                action?.reload();
+              }
             }}
           >
             删除
@@ -266,15 +280,17 @@ const MaintainPage: React.FC<unknown> = () => {
             ],
           },
           actions: [
-            <Button
-              key="button"
-              onClick={async () => {
-                history.push('/apply/maintain/detail#create');
-              }}
-              type="primary"
-            >
-              新建
-            </Button>,
+            <Access key="can_apply_repair" accessible={access.canApplyRepair}>
+              <Button
+                key="button"
+                onClick={async () => {
+                  history.push('/apply/maintain/detail#create');
+                }}
+                type="primary"
+              >
+                新建
+              </Button>
+            </Access>,
           ],
         }}
       />

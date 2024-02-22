@@ -19,7 +19,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
+import { history, useAccess, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -250,6 +250,7 @@ const EquipmentDetailPage: React.FC = () => {
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const access = useAccess();
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
@@ -541,18 +542,33 @@ const EquipmentDetailPage: React.FC = () => {
             name="base"
             title="申请"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              confirm();
-              await runApply(
-                equipmentItem.serial_number,
-                values.equipment,
-                values.department,
-                values.count,
-                values.budget,
-                values.apply_type,
-                values.apply_picture,
-              );
-              return true;
+              if (!access.canApplyEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('apply_picture')[0].status ===
+                  'done'
+                ) {
+                  confirm();
+                  await runApply(
+                    equipmentItem.serial_number,
+                    values.equipment,
+                    values.department,
+                    values.count,
+                    values.budget,
+                    values.apply_type,
+                    values.apply_picture,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('apply_picture')[0].status ===
+                  'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormText
@@ -626,16 +642,31 @@ const EquipmentDetailPage: React.FC = () => {
             name="time"
             title="调研"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runSurvey(
-                id,
-                values.survey_date,
-                values.purchase_type,
-                values.survey_record,
-                values.meeting_record,
-                values.survey_picture,
-              );
-              return true;
+              if (!access.canSurveyEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('survey_picture')[0].status ===
+                  'done'
+                ) {
+                  await runSurvey(
+                    id,
+                    values.survey_date,
+                    values.purchase_type,
+                    values.survey_record,
+                    values.meeting_record,
+                    values.survey_picture,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('survey_picture')[0].status ===
+                  'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormDatePicker
@@ -697,14 +728,29 @@ const EquipmentDetailPage: React.FC = () => {
             name="tender"
             title="政府审批"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runApprove(
-                id,
-                values.approve_date,
-                values.execute_date,
-                values.approve_picture,
-              );
-              return true;
+              if (!access.canApproveEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('approve_picture')[0]
+                    .status === 'done'
+                ) {
+                  await runApprove(
+                    id,
+                    values.approve_date,
+                    values.execute_date,
+                    values.approve_picture,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('approve_picture')[0]
+                    .status === 'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormDatePicker
@@ -752,17 +798,44 @@ const EquipmentDetailPage: React.FC = () => {
             name="checkbox"
             title="招标"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runTender(
-                id,
-                values.tender_date,
-                values.tender_file,
-                values.tender_boardcast_file,
-                values.tender_out_date,
-                values.bid_winning_file,
-                values.send_tender_file,
-              );
-              return true;
+              if (!access.canTenderEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('tender_file')[0].status ===
+                    'done' &&
+                  formRef.current?.getFieldValue('tender_boardcast_file')[0]
+                    .status === 'done' &&
+                  formRef.current?.getFieldValue('bid_winning_file')[0]
+                    .status === 'done' &&
+                  formRef.current?.getFieldValue('send_tender_file')[0]
+                    .status === 'done'
+                ) {
+                  await runTender(
+                    id,
+                    values.tender_date,
+                    values.tender_file,
+                    values.tender_boardcast_file,
+                    values.tender_out_date,
+                    values.bid_winning_file,
+                    values.send_tender_file,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('tender_file')[0].status ===
+                    'error' &&
+                  formRef.current?.getFieldValue('tender_boardcast_file')[0]
+                    .status === 'error' &&
+                  formRef.current?.getFieldValue('bid_winning_file')[0]
+                    .status === 'error' &&
+                  formRef.current?.getFieldValue('send_tender_file')[0]
+                    .status === 'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormDatePicker
@@ -880,20 +953,35 @@ const EquipmentDetailPage: React.FC = () => {
             name="ad"
             title="合同"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              runCreateContract(
-                id,
-                values.contract_name,
-                values.category,
-                values.contractor,
-                values.source,
-                values.price,
-                values.isImportant,
-                values.contract_file,
-                values.comment,
-                values.isComplement,
-              );
-              return true;
+              if (!access.canContractEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('contract_file')[0].status ===
+                  'done'
+                ) {
+                  await runCreateContract(
+                    id,
+                    values.contract_name,
+                    values.category,
+                    values.contractor,
+                    values.source,
+                    values.price,
+                    values.isImportant,
+                    values.contract_file,
+                    values.comment,
+                    values.isComplement,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('contract_file')[0].status ===
+                  'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormText
@@ -990,14 +1078,29 @@ const EquipmentDetailPage: React.FC = () => {
             name="ys"
             title="安装验收"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runInstall(
-                id,
-                values.install_date,
-                values.isAdvance,
-                values.install_picture,
-              );
-              return true;
+              if (!access.canInstallEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (
+                  formRef.current?.getFieldValue('install_picture')[0]
+                    .status === 'done'
+                ) {
+                  await runInstall(
+                    id,
+                    values.install_date,
+                    values.isAdvance,
+                    values.install_picture,
+                  );
+                } else if (
+                  formRef.current?.getFieldValue('install_picture')[0]
+                    .status === 'error'
+                ) {
+                  message.error('文件上传失败！');
+                } else {
+                  message.error('文件上传中，请等待...');
+                }
+              }
             }}
           >
             <ProFormDatePicker
@@ -1043,9 +1146,12 @@ const EquipmentDetailPage: React.FC = () => {
             name="rk"
             title="入库"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              await runWarehouse(id, values.warehousing_date);
-              return true;
+              if (!access.canWarehouseEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                await runWarehouse(id, values.warehousing_date);
+              }
             }}
           >
             <ProFormDatePicker

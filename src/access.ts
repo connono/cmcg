@@ -33,6 +33,39 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_create_payment_process');
   const canStopPaymentProcess =
     permissions && permissions.has('can_update_payment_process');
+  const canApplyEquipment =
+    permissions && permissions.has('can_apply_equipment');
+  const canSurveyEquipment =
+    permissions && permissions.has('can_survey_equipment');
+  const canApproveEquipment =
+    permissions && permissions.has('can_approve_equipment');
+  const canTenderEquipment =
+    permissions && permissions.has('can_tender_equipment');
+  const canContractEquipment =
+    permissions && permissions.has('can_contract_equipment');
+  const canInstallEquipment =
+    permissions && permissions.has('can_install_equipment');
+  const canWarehouseEquipment =
+    permissions && permissions.has('can_warehouse_equipment');
+  const canBackEquipment = permissions && permissions.has('can_back_equipment');
+  const canDeleteEquipment =
+    permissions && permissions.has('can_delete_equipment');
+  const canApplyInstrument =
+    permissions && permissions.has('can_apply_instrument');
+  const canSurveyInstrument =
+    permissions && permissions.has('can_survey_instrument');
+  const canContractInstrument =
+    permissions && permissions.has('can_contract_instrument');
+  const canInstallInstrument =
+    permissions && permissions.has('can_install_instrument');
+  const canBackInstrument =
+    permissions && permissions.has('can_back_instrument');
+  const canDeleteInstrument =
+    permissions && permissions.has('can_delete_instrument');
+  const canApplyRepair = permissions && permissions.has('can_apply_repair');
+  const canInstallRepair = permissions && permissions.has('can_install_repair');
+  const canBackRepair = permissions && permissions.has('can_back_repair');
+  const canDeleteRepair = permissions && permissions.has('can_delete_repair');
 
   return {
     canSeeHome,
@@ -52,5 +85,24 @@ export default (initialState: API.UserToken) => {
     canSeePaymentProcess,
     canCreatePaymentProcess,
     canStopPaymentProcess,
+    canApplyEquipment,
+    canSurveyEquipment,
+    canApproveEquipment,
+    canTenderEquipment,
+    canContractEquipment,
+    canInstallEquipment,
+    canWarehouseEquipment,
+    canBackEquipment,
+    canDeleteEquipment,
+    canApplyInstrument,
+    canSurveyInstrument,
+    canContractInstrument,
+    canInstallInstrument,
+    canBackInstrument,
+    canDeleteInstrument,
+    canApplyRepair,
+    canInstallRepair,
+    canBackRepair,
+    canDeleteRepair,
   };
 };
