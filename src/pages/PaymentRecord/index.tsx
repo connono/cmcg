@@ -11,11 +11,11 @@ import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 
 const getPlanRecords = async (id: number) => {
-  return await axios.get(`${SERVER_HOST}/payment/records/planIndex/${id}`);
+  return await axios.get(`${SERVER_HOST}/payment/records/index/${id}`);
 };
 
 const getProcessRecords = async (id: number) => {
-  return await axios.get(`${SERVER_HOST}/payment/records/processIndex/${id}`);
+  return await axios.get(`${SERVER_HOST}/payment/process/records/index/${id}`);
 };
 
 const PaymentRecordCardChildren: React.FC = (props: any) => {

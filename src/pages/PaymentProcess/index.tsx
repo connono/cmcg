@@ -65,7 +65,7 @@ const createRecord = async (
   contract_name: string,
   department: string,
   company: string,
-  plan_id: number,
+  process_id: number,
   next_date: string,
 ) => {
   const form = new FormData();
@@ -73,13 +73,13 @@ const createRecord = async (
   form.append('department', department);
   form.append('company', company);
   form.append('next_date', next_date);
-  form.append('plan_id', plan_id.toString());
+  form.append('process_id', process_id.toString());
   form.append('type', 'process');
 
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/payment/records/store`,
+    url: `${SERVER_HOST}/payment/process/records/store`,
   });
 };
 
@@ -279,7 +279,9 @@ const PaymentProcessPage: React.FC = () => {
       valueEnum: {
         wait: { text: '待设置下次时间', status: 'Default' },
         apply: { text: '待申请', status: 'Processing' },
-        audit: { text: '待审核', status: 'Processing' },
+        document: { text: '待制单', status: 'Processing' },
+        finance_audit: { text: '待财务科审核', status: 'Processing' },
+        dean_audit: { text: '待副院长审核', status: 'Processing' },
         process: { text: '待收付款', status: 'Processing' },
         stop: { text: '已停止', status: 'Error' },
       },
@@ -329,22 +331,58 @@ const PaymentProcessPage: React.FC = () => {
               待申请
             </a>
           );
-        } else if (record.status === 'audit') {
+        } else if (record.status === 'document') {
           update = (
             <a
               key="update"
               onClick={() => {
-                if (!access.canAuditPaymentRecord) {
+                if (!access.canDocumentPaymentProcessRecord) {
                   message.error('你无权进行此操作');
                 } else {
                   history.push(
-                    `/purchase/paymentProcess/detail#audit&${record.id}&${record.current_payment_record_id}`,
+                    `/purchase/paymentProcess/detail#document&${record.id}&${record.current_payment_record_id}`,
                     record,
                   );
                 }
               }}
             >
-              待审核
+              待制单
+            </a>
+          );
+        } else if (record.status === 'finance_audit') {
+          update = (
+            <a
+              key="update"
+              onClick={() => {
+                if (!access.canFinanceAuditPaymentProcessRecord) {
+                  message.error('你无权进行此操作');
+                } else {
+                  history.push(
+                    `/purchase/paymentProcess/detail#finance_audit&${record.id}&${record.current_payment_record_id}`,
+                    record,
+                  );
+                }
+              }}
+            >
+              待财务科审核
+            </a>
+          );
+        } else if (record.status === 'dean_audit') {
+          update = (
+            <a
+              key="update"
+              onClick={() => {
+                if (!access.canDeanAuditPaymentProcessRecord) {
+                  message.error('你无权进行此操作');
+                } else {
+                  history.push(
+                    `/purchase/paymentProcess/detail#dean_audit&${record.id}&${record.current_payment_record_id}`,
+                    record,
+                  );
+                }
+              }}
+            >
+              待副院长审核
             </a>
           );
         } else if (record.status === 'process') {
@@ -600,6 +638,7 @@ const PaymentProcessPage: React.FC = () => {
             width="sm"
             rules={[{ required: true }]}
           />
+          <span>入库日期： {selectedRecord.warehousing_date}</span>
           <PreviewListVisible fileListString={selectedRecord.payment_file} />
         </ModalForm>
       )}

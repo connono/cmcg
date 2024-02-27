@@ -50,7 +50,7 @@ export default defineConfig({
           name: '器械医疗用品采购',
           path: '/apply/instrument',
           component: './Instrument',
-          access: 'canSeeEquipment',
+          access: 'canSeeInstrument',
         },
         {
           name: '设备维修',
@@ -107,7 +107,7 @@ export default defineConfig({
           name: '垫付款管理',
           path: '/purchase/advance',
           component: './Advance',
-          access: 'canSeeEquipment',
+          access: 'canSeePaymentMonitor',
         },
         {
           path: '/purchase/paymentRecord',

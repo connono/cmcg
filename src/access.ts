@@ -66,6 +66,18 @@ export default (initialState: API.UserToken) => {
   const canInstallRepair = permissions && permissions.has('can_install_repair');
   const canBackRepair = permissions && permissions.has('can_back_repair');
   const canDeleteRepair = permissions && permissions.has('can_delete_repair');
+  const canApplyPaymentProcessRecord =
+    permissions && permissions.has('can_apply_payment_process_record');
+  const canDocumentPaymentProcessRecord =
+    permissions && permissions.has('can_document_payment_process_record');
+  const canFinanceAuditPaymentProcessRecord =
+    permissions && permissions.has('can_finance_audit_payment_process_record');
+  const canDeanAuditPaymentProcessRecord =
+    permissions && permissions.has('can_dean_audit_payment_process_record');
+  const canProcessPaymentProcessRecord =
+    permissions && permissions.has('can_process_payment_process_record');
+  const canStopPaymentProcessRecord =
+    permissions && permissions.has('can_stop_payment_process_record');
 
   return {
     canSeeHome,
@@ -104,5 +116,11 @@ export default (initialState: API.UserToken) => {
     canInstallRepair,
     canBackRepair,
     canDeleteRepair,
+    canApplyPaymentProcessRecord,
+    canDocumentPaymentProcessRecord,
+    canFinanceAuditPaymentProcessRecord,
+    canDeanAuditPaymentProcessRecord,
+    canProcessPaymentProcessRecord,
+    canStopPaymentProcessRecord,
   };
 };

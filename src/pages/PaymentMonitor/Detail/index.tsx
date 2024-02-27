@@ -318,9 +318,9 @@ const PaymentRecordDetailPage: React.FC = () => {
                   formRef.current?.getFieldValue('payment_voucher_file')[0]
                     .status === 'error'
                 ) {
-                  message.error('文件上传失败');
+                  message.error('文件上传失败！');
                 } else {
-                  message.error('文件上传中，请等待');
+                  message.error('文件上传中，请等待...');
                 }
               }
             }}

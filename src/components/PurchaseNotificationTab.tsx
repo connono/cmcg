@@ -18,6 +18,9 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
   if (!props.data) return <div></div>;
   const listTitleMap = new Map([
     ['wait', '待设置下次时间'],
+    ['document', '待制单'],
+    ['finance_audit', '待财务科审核'],
+    ['dean_audit', '待副院长审核'],
     ['audit', '待审核'],
     ['process', '待收款'],
     ['apply', '待申请'],
@@ -26,6 +29,7 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
     _.groupBy(props.data, 'type'),
     (value: any, key: any) => {
       const procardlist = _.map(value, (v: any, k: any) => {
+        console.log(v);
         return (
           <ProCard
             key={k}
@@ -33,7 +37,8 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
               <span>
                 {v.title}
                 <span>的{_.get(v, 'data.category')}</span>
-                {_.get(v, 'data.assessment') ? (
+                {_.get(v, 'data.assessment') &&
+                _.get(v, 'data.assessment') !== 'undefined' ? (
                   <span>{_.get(v, 'data.assessment')}元</span>
                 ) : null}
               </span>
