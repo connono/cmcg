@@ -440,6 +440,16 @@ const PaymentRecordDetailPage: React.FC = () => {
               }
             }}
           >
+            <ProFormItem label="合同附件：">
+              <PreviewListModal
+                fileListString={history.location.state.payment_file}
+              />
+            </ProFormItem>
+            <ProFormItem label="验收资料：">
+              <PreviewListModal
+                fileListString={history.location.state.install_picture}
+              />
+            </ProFormItem>
             <ProFormText
               name="contract_name"
               label="合同名称"
@@ -527,6 +537,16 @@ const PaymentRecordDetailPage: React.FC = () => {
               }
             }}
           >
+            <ProFormItem label="合同附件：">
+              <PreviewListModal
+                fileListString={history.location.state.payment_file}
+              />
+            </ProFormItem>
+            <ProFormItem label="验收资料：">
+              <PreviewListModal
+                fileListString={history.location.state.install_picture}
+              />
+            </ProFormItem>
             <ProFormUploadButton
               name="payment_voucher_file"
               label={
@@ -604,7 +624,7 @@ const PaymentRecordDetailPage: React.FC = () => {
             name="dean_audit"
             title="副院长审核"
             onFinish={async () => {
-              if (!access.canAuditPaymentRecord) {
+              if (!access.canDeanAuditPaymentProcessRecord) {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();

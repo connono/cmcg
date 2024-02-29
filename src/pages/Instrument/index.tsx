@@ -114,7 +114,8 @@ const InstrumentPage: React.FC<unknown> = () => {
         1: { text: '调研', status: '1' },
         2: { text: '合同', status: '2' },
         3: { text: '安装验收', status: '3' },
-        4: { text: '完成', status: '4' },
+        4: { text: '医工科审核', status: '4' },
+        5: { text: '完成', status: '5' },
       },
     },
     {
@@ -279,7 +280,8 @@ const InstrumentPage: React.FC<unknown> = () => {
                   1: { text: '调研', status: '1' },
                   2: { text: '合同', status: '2' },
                   3: { text: '安装验收', status: '3' },
-                  4: { text: '完成', status: '4' },
+                  4: { text: '医工科审核', status: '4' },
+                  5: { text: '完成', status: '5' },
                   all: { text: '全部', status: 'all' },
                 }}
               />

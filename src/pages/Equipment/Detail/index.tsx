@@ -2,13 +2,13 @@ import { PageContainer } from '@ant-design/pro-components';
 //@ts-ignore
 import CapitalSourceInput from '@/components/CapitalSourceInput';
 import PreviewListModal from '@/components/PreviewListModal';
+import PreviewListVisible from '@/components/PreviewListVisible';
 import { SERVER_HOST } from '@/constants';
 import { generateWord } from '@/utils/contract-word';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
   ProForm,
-  ProFormCheckbox,
   ProFormDatePicker,
   ProFormDigit,
   ProFormMoney,
@@ -22,11 +22,13 @@ import {
 import { history, useAccess, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
+import * as docx from 'docx-preview';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import {
   fileListToString,
   fileStringToAntdFileList,
+  preview,
   upload,
 } from '../../../utils/file-uploader';
 
@@ -76,6 +78,10 @@ const getSerialNumber = async () => {
 
 const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
+};
+
+const getContract = async (id: string) => {
+  return await axios.get(`${SERVER_HOST}/payment/contracts/getItem?id=${id}`);
 };
 
 const apply = async (
@@ -205,18 +211,27 @@ const createContract = async (
 const install = async (
   id: string,
   install_date: Date,
-  isAdvance: boolean,
   install_picture: string,
 ) => {
   const form = new FormData();
   form.append('install_date', formatDate(install_date));
-  form.append('isAdvance', isAdvance.toString());
   form.append('install_picture', fileListToString(install_picture));
 
   return await axios({
     method: 'POST',
     data: form,
     url: `${SERVER_HOST}/equipment/update/install/${id}`,
+  });
+};
+
+const engineerApprove = async (id: string, isAdvance: boolean) => {
+  const form = new FormData();
+  form.append('isAdvance', isAdvance.toString());
+
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/equipment/update/engineer_approve/${id}`,
   });
 };
 
@@ -242,6 +257,10 @@ const storeDocx = async (id: number, contract_docx: string) => {
   });
 };
 
+const backEquipmentItem = async (id: any) => {
+  return await axios.patch(`${SERVER_HOST}/equipment/back/${id}`);
+};
+
 const EquipmentDetailPage: React.FC = () => {
   const [equipmentItem, setEquipmentItem] = useState<any>({});
   const hashArray = history.location.hash.split('#')[1].split('&');
@@ -251,6 +270,25 @@ const EquipmentDetailPage: React.FC = () => {
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
   const access = useAccess();
+
+  const { run: runGetContract } = useRequest(getContract, {
+    manual: true,
+    onSuccess: (result: any) => {
+      if (result.data.contract_docx) {
+        preview(result.data.contract_docx, (file: File) => {
+          docx.renderAsync(
+            file.arrayBuffer(),
+            //@ts-ignore
+            document.getElementById('preview'),
+          );
+        });
+      }
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
@@ -367,11 +405,31 @@ const EquipmentDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
+  const { run: runEngineerApprove } = useRequest(engineerApprove, {
+    manual: true,
+    onSuccess: () => {
+      message.success('审核成功，正在返回设备列表...');
+      history.push('/apply/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
   const { run: runWarehouse } = useRequest(warehouse, {
     manual: true,
     onSuccess: () => {
       message.success('增加入库记录成功，正在返回设备列表...');
       history.push('/apply/equipment');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runBackEquipmentItem } = useRequest(backEquipmentItem, {
+    manual: true,
+    onSuccess: () => {
+      message.success('回退成功');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -401,6 +459,7 @@ const EquipmentDetailPage: React.FC = () => {
       parseInt(equipmentItem.purchase_type) !== 1
     )
       return;
+    if (current === 4) runGetContract(equipmentItem.contract_id);
     setCurrent(current);
     _.forEach(equipmentItem, (key: any, value: any) => {
       const length = value.split('_').length;
@@ -984,6 +1043,23 @@ const EquipmentDetailPage: React.FC = () => {
               }
             }}
           >
+            {current < equipmentItem.status ? (
+              <div>
+                <div
+                  id="preview"
+                  style={{
+                    height: '1200px',
+                    margin: '0 40px',
+                    overflowY: 'visible',
+                  }}
+                ></div>
+                <div style={{ margin: '0 40px' }}>
+                  <PreviewListVisible
+                    fileListString={equipmentItem.contract_file}
+                  />
+                </div>
+              </div>
+            ) : null}
             <ProFormText
               width="md"
               name="contract_name"
@@ -1089,7 +1165,6 @@ const EquipmentDetailPage: React.FC = () => {
                   await runInstall(
                     id,
                     values.install_date,
-                    values.isAdvance,
                     values.install_picture,
                   );
                 } else if (
@@ -1110,23 +1185,9 @@ const EquipmentDetailPage: React.FC = () => {
               disabled={current < equipmentItem.status}
               rules={[{ required: true }]}
             />
-            <ProFormCheckbox
-              label="是否垫付："
-              name="isAdvance"
-              width="md"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
             <ProFormUploadButton
               label="验收资料："
               name="install_picture"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.install_picture}
-                  />
-                ) : null
-              }
               fieldProps={{
                 customRequest: (options) => {
                   upload(options.file, (isSuccess: boolean, filename: string) =>
@@ -1140,6 +1201,50 @@ const EquipmentDetailPage: React.FC = () => {
                 },
               }}
               rules={[{ required: true }]}
+            />
+          </StepsForm.StepForm>
+          <StepsForm.StepForm
+            name="sh"
+            title="医工科审核"
+            onFinish={async () => {
+              if (!access.canEnginnerApproveEquipment) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (values.audit)
+                  await runEngineerApprove(id, values.isAdvance);
+                else await runBackEquipmentItem(id);
+              }
+            }}
+          >
+            <ProFormRadio.Group
+              name="isAdvance"
+              label="是否垫付："
+              rules={[{ required: true }]}
+              disabled={current < equipmentItem.status}
+              options={[
+                {
+                  label: '是',
+                  value: true,
+                },
+                {
+                  label: '否',
+                  value: false,
+                },
+              ]}
+            />
+            <ProFormRadio.Group
+              name="audit"
+              options={[
+                {
+                  label: '审核通过',
+                  value: true,
+                },
+                {
+                  label: '审核驳回',
+                  value: false,
+                },
+              ]}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm

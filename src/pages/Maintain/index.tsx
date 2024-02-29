@@ -108,7 +108,8 @@ const MaintainPage: React.FC<unknown> = () => {
       valueEnum: {
         0: { text: '申请', status: '0' },
         1: { text: '安装验收', status: '1' },
-        2: { text: '完成', status: '2' },
+        2: { text: '医工科审核', status: '2' },
+        3: { text: '完成', status: '3' },
       },
     },
     {
@@ -263,7 +264,8 @@ const MaintainPage: React.FC<unknown> = () => {
                 valueEnum={{
                   0: { text: '申请', status: '0' },
                   1: { text: '安装验收', status: '1' },
-                  2: { text: '完成', status: '2' },
+                  2: { text: '医工科审核', status: '2' },
+                  3: { text: '完成', status: '3' },
                   all: { text: '全部', status: 'all' },
                 }}
               />

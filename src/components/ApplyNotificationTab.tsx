@@ -20,6 +20,7 @@ const ApplyNotificationCard: React.FC<ApplyNotificationCardProps> = (props) => {
     ['tender', '待招标'],
     ['contract', '待合同'],
     ['install', '待安装验收'],
+    ['engineer_approve', '待医工科审核'],
     ['warehouse', '待入库'],
     ['finish', '入库结束'],
   ]);

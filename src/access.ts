@@ -78,6 +78,14 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_process_payment_process_record');
   const canStopPaymentProcessRecord =
     permissions && permissions.has('can_stop_payment_process_record');
+  const canEnginnerApproveEquipment =
+    permissions && permissions.has('can_engineer_approve_equipment');
+  const canEnginnerApproveInstrument =
+    permissions && permissions.has('can_engineer_approve_instrument');
+  const canEnginnerApproveRepair =
+    permissions && permissions.has('can_engineer_approve_repair');
+  const canCreateContractProcess =
+    permissions && permissions.has('can_create_contract_process');
 
   return {
     canSeeHome,
@@ -122,5 +130,9 @@ export default (initialState: API.UserToken) => {
     canDeanAuditPaymentProcessRecord,
     canProcessPaymentProcessRecord,
     canStopPaymentProcessRecord,
+    canEnginnerApproveEquipment,
+    canEnginnerApproveInstrument,
+    canEnginnerApproveRepair,
+    canCreateContractProcess,
   };
 };

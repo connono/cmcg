@@ -287,7 +287,7 @@ const PaymentMonitorPage: React.FC = () => {
               <a
                 key="update"
                 onClick={() => {
-                  if (!access.canUpdatePaymentPlan) {
+                  if (!access.canApplyPaymentRecord) {
                     message.error('你无权进行此操作');
                   } else {
                     setMode(MODE.UPDATE);

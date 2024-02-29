@@ -5,15 +5,15 @@ import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
-  ProFormCheckbox,
   ProFormDatePicker,
   ProFormMoney,
+  ProFormRadio,
   ProFormSelect,
   ProFormText,
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
+import { history, useAccess, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -42,6 +42,10 @@ const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
 };
 
+const backMaintainItem = async (id: any) => {
+  return await axios.patch(`${SERVER_HOST}/maintain/back/${id}`);
+};
+
 const apply = async (
   serial_number: number,
   name: string,
@@ -67,21 +71,26 @@ const apply = async (
   });
 };
 
-const install = async (
-  id: string,
-  price: number,
-  isAdvance: boolean,
-  install_file: string,
-) => {
+const install = async (id: string, price: number, install_file: string) => {
   const form = new FormData();
   form.append('price', price.toString());
-  form.append('isAdvance', isAdvance.toString());
   form.append('install_file', fileListToString(install_file));
 
   return await axios({
     method: 'POST',
     data: form,
     url: `${SERVER_HOST}/maintain/update/install/${id}`,
+  });
+};
+
+const engineerApprove = async (id: string, isAdvance: boolean) => {
+  const form = new FormData();
+  form.append('isAdvance', isAdvance.toString());
+
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/maintain/update/engineer_approve/${id}`,
   });
 };
 
@@ -93,6 +102,7 @@ const MaintainDetailPage: React.FC = () => {
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const access = useAccess();
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
@@ -152,6 +162,26 @@ const MaintainDetailPage: React.FC = () => {
     onSuccess: () => {
       message.success('增加安装验收记录成功，正在返回设备列表...');
       history.push('/apply/maintain');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runEngineerApprove } = useRequest(engineerApprove, {
+    manual: true,
+    onSuccess: () => {
+      message.success('审核成功，正在返回设备列表...');
+      history.push('/apply/maintain');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runBackMaintainItem } = useRequest(backMaintainItem, {
+    manual: true,
+    onSuccess: () => {
+      message.success('回退成功');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -393,25 +423,13 @@ const MaintainDetailPage: React.FC = () => {
             title="安装验收"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(
-                id,
-                values.price,
-                values.isAdvance,
-                values.install_file,
-              );
+              await runInstall(id, values.price, values.install_file);
               return true;
             }}
           >
             <ProFormMoney
               name="price"
               label="发票金额："
-              width="md"
-              disabled={current < maintainItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormCheckbox
-              label="是否垫付："
-              name="isAdvance"
               width="md"
               disabled={current < maintainItem.status}
               rules={[{ required: true }]}
@@ -439,6 +457,50 @@ const MaintainDetailPage: React.FC = () => {
                 },
               }}
               rules={[{ required: true }]}
+            />
+          </StepsForm.StepForm>
+          <StepsForm.StepForm
+            name="sh"
+            title="医工科审核"
+            onFinish={async () => {
+              if (!access.canEnginnerApproveRepair) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (values.audit)
+                  await runEngineerApprove(id, values.isAdvance);
+                else await runBackMaintainItem(id);
+              }
+            }}
+          >
+            <ProFormRadio.Group
+              name="isAdvance"
+              label="是否垫付："
+              rules={[{ required: true }]}
+              disabled={current < maintainItem.status}
+              options={[
+                {
+                  label: '是',
+                  value: true,
+                },
+                {
+                  label: '否',
+                  value: false,
+                },
+              ]}
+            />
+            <ProFormRadio.Group
+              name="audit"
+              options={[
+                {
+                  label: '审核通过',
+                  value: true,
+                },
+                {
+                  label: '审核驳回',
+                  value: false,
+                },
+              ]}
             />
           </StepsForm.StepForm>
         </StepsForm>

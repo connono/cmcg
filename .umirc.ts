@@ -101,7 +101,7 @@ export default defineConfig({
           name: '物资型合同',
           path: '/purchase/paymentProcess',
           component: './PaymentProcess',
-          access: 'canSeePaymentProcess',
+          // access: 'canSeePaymentProcess',
         },
         {
           name: '垫付款管理',
@@ -135,7 +135,7 @@ export default defineConfig({
           component: './PaymentProcess/Detail',
           name: '物资型付款流程监控-详情',
           hideInMenu: true,
-          access: 'canSeePaymentProcess',
+          // access: 'canSeePaymentProcess',
         },
       ],
     },
