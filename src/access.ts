@@ -6,7 +6,10 @@ export default (initialState: API.UserToken) => {
   //   initialState && initialState.name !== 'dontHaveAccess'
   // );
   const canSeeHome = permissions && permissions.has('can_see_home');
-  const canSeeEquipment = permissions && permissions.has('can_see_equipment');
+  const canSeeEquipment =
+    permissions &&
+    (permissions.has('can_see_equipment') ||
+      permissions.has('can_contract_equipment'));
   const canSeeInstrument = permissions && permissions.has('can_see_instrument');
   const canSeeUserList = permissions && permissions.has('can_see_userlist');
   const canCreateUser = permissions && permissions.has('can_create_user');
@@ -86,6 +89,8 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_engineer_approve_repair');
   const canCreateContractProcess =
     permissions && permissions.has('can_create_contract_process');
+  const doNotSeeEquipmentExceptInstall =
+    permissions && permissions.has('do_not_see_equipment_except_install');
 
   return {
     canSeeHome,
@@ -134,5 +139,6 @@ export default (initialState: API.UserToken) => {
     canEnginnerApproveInstrument,
     canEnginnerApproveRepair,
     canCreateContractProcess,
+    doNotSeeEquipmentExceptInstall,
   };
 };

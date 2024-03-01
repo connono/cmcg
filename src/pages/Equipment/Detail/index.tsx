@@ -19,7 +19,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useAccess, useRequest } from '@umijs/max';
+import { Access, history, useAccess, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import * as docx from 'docx-preview';
@@ -269,6 +269,7 @@ const EquipmentDetailPage: React.FC = () => {
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const [contractFile, setContractFile] = useState();
   const access = useAccess();
 
   const { run: runGetContract } = useRequest(getContract, {
@@ -282,6 +283,9 @@ const EquipmentDetailPage: React.FC = () => {
             document.getElementById('preview'),
           );
         });
+      }
+      if (result.data.contract_file) {
+        setContractFile(result.data.contract_file);
       }
     },
     onError: (error: any) => {
@@ -630,72 +634,79 @@ const EquipmentDetailPage: React.FC = () => {
               }
             }}
           >
-            <ProFormText
-              name="serial_number"
-              label="申请单号"
-              width="md"
-              disabled
-              rules={[{ required: true }]}
-            />
-            <ProFormText
-              name="equipment"
-              label="设备名称"
-              width="md"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormSelect
-              label="申请科室"
-              request={departments}
-              name="department"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormText
-              name="count"
-              label="数量"
-              width="md"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormMoney
-              name="budget"
-              label="总预算"
-              width="md"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormSelect
-              label="申请方式："
-              name="apply_type"
-              disabled={current < equipmentItem.status}
-              options={applyOptions}
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="申请文件："
-              name="apply_picture"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.apply_picture}
-                  />
-                ) : null
-              }
-              rules={[{ required: true }]}
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'apply_picture',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-            />
+            <Access
+              key="do_not_see_equipment_except_install"
+              accessible={!access.doNotSeeEquipmentExceptInstall}
+            >
+              <ProFormText
+                name="serial_number"
+                label="申请单号"
+                width="md"
+                disabled
+                rules={[{ required: true }]}
+              />
+              <ProFormText
+                name="equipment"
+                label="设备名称"
+                width="md"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormSelect
+                label="申请科室"
+                request={departments}
+                name="department"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormText
+                name="count"
+                label="数量"
+                width="md"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormMoney
+                name="budget"
+                label="总预算"
+                width="md"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormSelect
+                label="申请方式："
+                name="apply_type"
+                disabled={current < equipmentItem.status}
+                options={applyOptions}
+                rules={[{ required: true }]}
+              />
+              <ProFormUploadButton
+                label="申请文件："
+                name="apply_picture"
+                extra={
+                  equipmentItem.status > current ? (
+                    <PreviewListModal
+                      fileListString={equipmentItem.apply_picture}
+                    />
+                  ) : null
+                }
+                rules={[{ required: true }]}
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'apply_picture',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+              />
+            </Access>
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="time"
@@ -728,58 +739,64 @@ const EquipmentDetailPage: React.FC = () => {
               }
             }}
           >
-            <ProFormDatePicker
-              name="survey_date"
-              label="调研日期："
-              width="sm"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormSelect
-              label="采购方式："
-              name="purchase_type"
-              options={purchaseOptions}
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormTextArea
-              name="survey_record"
-              label="调研记录："
-              disabled={current < equipmentItem.status}
-              width="md"
-              rules={[{ required: true }]}
-            />
-            <ProFormTextArea
-              name="meeting_record"
-              label="上会记录："
-              disabled={current < equipmentItem.status}
-              width="md"
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="执行单附件："
-              name="survey_picture"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.survey_picture}
-                  />
-                ) : null
-              }
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'survey_picture',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
+            <Access
+              key="do_not_see_equipment_except_install"
+              accessible={!access.doNotSeeEquipmentExceptInstall}
+            >
+              <ProFormDatePicker
+                name="survey_date"
+                label="调研日期："
+                width="sm"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormSelect
+                label="采购方式："
+                name="purchase_type"
+                options={purchaseOptions}
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormTextArea
+                name="survey_record"
+                label="调研记录："
+                disabled={current < equipmentItem.status}
+                width="md"
+                rules={[{ required: true }]}
+              />
+              <ProFormTextArea
+                name="meeting_record"
+                label="上会记录："
+                disabled={current < equipmentItem.status}
+                width="md"
+                rules={[{ required: true }]}
+              />
+              <ProFormUploadButton
+                label="执行单附件："
+                name="survey_picture"
+                extra={
+                  equipmentItem.status > current ? (
+                    <PreviewListModal
+                      fileListString={equipmentItem.survey_picture}
+                    />
+                  ) : null
+                }
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'survey_picture',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+              />
+            </Access>
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
             checkbox: string;
@@ -812,44 +829,51 @@ const EquipmentDetailPage: React.FC = () => {
               }
             }}
           >
-            <ProFormDatePicker
-              name="approve_date"
-              label="政府审批日期："
-              disabled={current < equipmentItem.status}
-              width="sm"
-              rules={[{ required: true }]}
-            />
-            <ProFormDatePicker
-              name="execute_date"
-              label="预算执行单日期："
-              width="sm"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="执行单附件："
-              name="approve_picture"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.approve_picture}
-                  />
-                ) : null
-              }
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'approve_picture',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
+            <Access
+              key="do_not_see_equipment_except_install"
+              accessible={!access.doNotSeeEquipmentExceptInstall}
+            >
+              <ProFormDatePicker
+                name="approve_date"
+                label="政府审批日期："
+                disabled={current < equipmentItem.status}
+                width="sm"
+                rules={[{ required: true }]}
+              />
+              <ProFormDatePicker
+                name="execute_date"
+                label="预算执行单日期："
+                width="sm"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormUploadButton
+                label="执行单附件："
+                name="approve_picture"
+                extra={
+                  equipmentItem.status > current ? (
+                    <PreviewListModal
+                      fileListString={equipmentItem.approve_picture}
+                    />
+                  ) : null
+                }
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'approve_picture',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+                rules={[{ required: true }]}
+              />
+            </Access>
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
             checkbox: string;
@@ -897,116 +921,129 @@ const EquipmentDetailPage: React.FC = () => {
               }
             }}
           >
-            <ProFormDatePicker
-              name="tender_date"
-              label="招标书日期："
-              width="sm"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormDatePicker
-              name="tender_out_date"
-              label="招标日期："
-              width="sm"
-              disabled={current < equipmentItem.status}
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="招标书附件："
-              name="tender_file"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.tender_file}
-                  />
-                ) : null
-              }
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'tender_file',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="招标公告附件："
-              name="tender_boardcast_file"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.tender_boardcast_file}
-                  />
-                ) : null
-              }
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'tender_boardcast_file',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="中标通知书："
-              name="bid_winning_file"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.bid_winning_file}
-                  />
-                ) : null
-              }
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'bid_winning_file',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
-            <ProFormUploadButton
-              label="投标文件："
-              name="send_tender_file"
-              extra={
-                equipmentItem.status > current ? (
-                  <PreviewListModal
-                    fileListString={equipmentItem.send_tender_file}
-                  />
-                ) : null
-              }
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'send_tender_file',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
+            <Access
+              key="do_not_see_equipment_except_install"
+              accessible={!access.doNotSeeEquipmentExceptInstall}
+            >
+              <ProFormDatePicker
+                name="tender_date"
+                label="招标书日期："
+                width="sm"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormDatePicker
+                name="tender_out_date"
+                label="招标日期："
+                width="sm"
+                disabled={current < equipmentItem.status}
+                rules={[{ required: true }]}
+              />
+              <ProFormUploadButton
+                label="招标书附件："
+                name="tender_file"
+                extra={
+                  equipmentItem.status > current ? (
+                    <PreviewListModal
+                      fileListString={equipmentItem.tender_file}
+                    />
+                  ) : null
+                }
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'tender_file',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+                rules={[{ required: true }]}
+              />
+              <ProFormUploadButton
+                label="招标公告附件："
+                name="tender_boardcast_file"
+                extra={
+                  equipmentItem.status > current ? (
+                    <PreviewListModal
+                      fileListString={equipmentItem.tender_boardcast_file}
+                    />
+                  ) : null
+                }
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'tender_boardcast_file',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+                rules={[{ required: true }]}
+              />
+              <ProFormUploadButton
+                label="中标通知书："
+                name="bid_winning_file"
+                extra={
+                  equipmentItem.status > current ? (
+                    <PreviewListModal
+                      fileListString={equipmentItem.bid_winning_file}
+                    />
+                  ) : null
+                }
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'bid_winning_file',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+                rules={[{ required: true }]}
+              />
+              <ProFormUploadButton
+                label="投标文件："
+                name="send_tender_file"
+                extra={
+                  equipmentItem.status > current ? (
+                    <PreviewListModal
+                      fileListString={equipmentItem.send_tender_file}
+                    />
+                  ) : null
+                }
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'send_tender_file',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+                rules={[{ required: true }]}
+              />
+            </Access>
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ad"
@@ -1054,101 +1091,104 @@ const EquipmentDetailPage: React.FC = () => {
                   }}
                 ></div>
                 <div style={{ margin: '0 40px' }}>
-                  <PreviewListVisible
-                    fileListString={equipmentItem.contract_file}
-                  />
+                  <PreviewListVisible fileListString={contractFile} />
                 </div>
               </div>
-            ) : null}
-            <ProFormText
-              width="md"
-              name="contract_name"
-              label="合同名称"
-              placeholder="请输入合同名称"
-              rules={[{ required: true }]}
-            />
-            <ProFormSelect
-              label="类型"
-              name="category"
-              width="md"
-              valueEnum={{
-                JJ: { text: '基建项目', status: 'JJ' },
-                YP: { text: '药品采购', status: 'YP' },
-                XX: { text: '信息采购', status: 'XX' },
-                XS: { text: '医疗协商', status: 'XS' },
-                HZ: { text: '医疗合作', status: 'HZ' },
-                ZW: { text: '物资采购', status: 'ZW' },
-                FW: { text: '服务项目', status: 'FW' },
-                QX: { text: '器械采购', status: 'QX' },
-              }}
-              rules={[{ required: true }]}
-            />
-            <ProFormText
-              width="md"
-              name="contractor"
-              label="签订对象"
-              placeholder="请输入签订对象"
-              rules={[{ required: true }]}
-            />
-            <ProForm.Item
-              name="source"
-              label="资金来源"
-              rules={[{ required: true }]}
-            >
-              <CapitalSourceInput />
-            </ProForm.Item>
-            <ProForm.Group labelLayout="inline">
-              <ProFormDigit
-                width="md"
-                name="price"
-                label="金额"
-                placeholder="请输入金额"
-                rules={[{ required: true }]}
-              />
-              <ProFormRadio.Group
-                name="isImportant"
-                label="是否为重大项目"
-                width="sm"
-                valueEnum={{
-                  true: { text: '是' },
-                  false: { text: '否' },
-                }}
-                rules={[{ required: true }]}
-              />
-              <ProFormRadio.Group
-                name="isComplement"
-                label="是否为补充协议"
-                width="sm"
-                valueEnum={{
-                  true: { text: '是' },
-                  false: { text: '否' },
-                }}
-                rules={[{ required: true }]}
-              />
-            </ProForm.Group>
-            <ProFormUploadButton
-              label="合同附件："
-              name="contract_file"
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'contract_file',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-              rules={[{ required: true }]}
-            />
-            <ProFormTextArea
-              width="md"
-              name="comment"
-              label="备注"
-              placeholder="请输入备注"
-            />
+            ) : (
+              <div>
+                <ProFormText
+                  width="md"
+                  name="contract_name"
+                  label="合同名称"
+                  placeholder="请输入合同名称"
+                  rules={[{ required: true }]}
+                />
+                <ProFormSelect
+                  label="类型"
+                  name="category"
+                  width="md"
+                  valueEnum={{
+                    JJ: { text: '基建项目', status: 'JJ' },
+                    YP: { text: '药品采购', status: 'YP' },
+                    XX: { text: '信息采购', status: 'XX' },
+                    XS: { text: '医疗协商', status: 'XS' },
+                    HZ: { text: '医疗合作', status: 'HZ' },
+                    ZW: { text: '物资采购', status: 'ZW' },
+                    FW: { text: '服务项目', status: 'FW' },
+                    QX: { text: '器械采购', status: 'QX' },
+                  }}
+                  rules={[{ required: true }]}
+                />
+                <ProFormText
+                  width="md"
+                  name="contractor"
+                  label="签订对象"
+                  placeholder="请输入签订对象"
+                  rules={[{ required: true }]}
+                />
+                <ProForm.Item
+                  name="source"
+                  label="资金来源"
+                  rules={[{ required: true }]}
+                >
+                  <CapitalSourceInput />
+                </ProForm.Item>
+                <ProForm.Group labelLayout="inline">
+                  <ProFormDigit
+                    width="md"
+                    name="price"
+                    label="金额"
+                    placeholder="请输入金额"
+                    rules={[{ required: true }]}
+                  />
+                  <ProFormRadio.Group
+                    name="isImportant"
+                    label="是否为重大项目"
+                    width="sm"
+                    valueEnum={{
+                      true: { text: '是' },
+                      false: { text: '否' },
+                    }}
+                    rules={[{ required: true }]}
+                  />
+                  <ProFormRadio.Group
+                    name="isComplement"
+                    label="是否为补充协议"
+                    width="sm"
+                    valueEnum={{
+                      true: { text: '是' },
+                      false: { text: '否' },
+                    }}
+                    rules={[{ required: true }]}
+                  />
+                </ProForm.Group>
+                <ProFormUploadButton
+                  label="合同附件："
+                  name="contract_file"
+                  fieldProps={{
+                    customRequest: (options) => {
+                      upload(
+                        options.file,
+                        (isSuccess: boolean, filename: string) =>
+                          handleUpload(
+                            isSuccess,
+                            filename,
+                            'contract_file',
+                            options.file.uid,
+                          ),
+                      );
+                    },
+                  }}
+                  rules={[{ required: true }]}
+                />
+                <ProFormTextArea
+                  width="md"
+                  name="comment"
+                  label="备注"
+                  placeholder="请输入备注"
+                />
+              </div>
+            )}
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ys"
@@ -1200,6 +1240,13 @@ const EquipmentDetailPage: React.FC = () => {
                   );
                 },
               }}
+              extra={
+                equipmentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={equipmentItem.install_picture}
+                  />
+                ) : null
+              }
               rules={[{ required: true }]}
             />
           </StepsForm.StepForm>
