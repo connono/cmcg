@@ -44,7 +44,14 @@ const AdvancePaybackCollapse: React.FC<AdvancePaybackCollapseProps> = (
             description={
               <div>
                 <span>{`科室：${item.department} 合同价格：${item.price}`}</span>
-                <PreviewListVisible fileListString={item.purchase_picture} />
+                <PreviewListVisible
+                  title="合同信息"
+                  fileListString={item.purchase_picture}
+                />
+                <PreviewListVisible
+                  title="验收资料"
+                  fileListString={item.install_picture}
+                />
               </div>
             }
           />
@@ -66,7 +73,14 @@ const AdvancePaybackCollapse: React.FC<AdvancePaybackCollapseProps> = (
             description={
               <div>
                 <span>{`科室：${item.department} 合同价格：${item.price}`}</span>
-                <PreviewListVisible fileListString={item.purchase_picture} />
+                <PreviewListVisible
+                  title="合同信息"
+                  fileListString={item.purchase_picture}
+                />
+                <PreviewListVisible
+                  title="验收资料"
+                  fileListString={item.install_picture}
+                />
               </div>
             }
           />
@@ -88,7 +102,10 @@ const AdvancePaybackCollapse: React.FC<AdvancePaybackCollapseProps> = (
             description={
               <div>
                 <span>{`设备：${item.equipment} 科室：${item.department} 合同价格：${item.price}`}</span>
-                <PreviewListVisible fileListString={item.install_file} />
+                <PreviewListVisible
+                  title="验收资料"
+                  fileListString={item.install_file}
+                />
               </div>
             }
           />

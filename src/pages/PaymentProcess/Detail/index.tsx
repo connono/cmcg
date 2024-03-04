@@ -606,6 +606,11 @@ const PaymentRecordDetailPage: React.FC = () => {
                 )
               }
             </ProFormItem>
+            <ProFormItem label="验收资料：">
+              <PreviewListModal
+                fileListString={history.location.state.install_picture}
+              />
+            </ProFormItem>
             <ProFormRadio.Group
               name="audit"
               options={[
@@ -657,6 +662,11 @@ const PaymentRecordDetailPage: React.FC = () => {
                 )
               }
             </ProFormItem>
+            <ProFormItem label="验收资料：">
+              <PreviewListModal
+                fileListString={history.location.state.install_picture}
+              />
+            </ProFormItem>
             <ProFormRadio.Group
               name="audit"
               options={[
@@ -689,7 +699,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                     process_id,
                     id,
                     values.assessment_date.format('YYYY-MM-DD'),
-                    values.payment_file[0].filename,
+                    values.payment_file,
                   );
                 } else if (
                   formRef.current?.getFieldValue('payment_file')[0].status ===

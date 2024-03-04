@@ -15,7 +15,9 @@ export default (initialState: API.UserToken) => {
   const canCreateUser = permissions && permissions.has('can_create_user');
   const canUpdateUser = permissions && permissions.has('can_update_user');
   const canSeePaymentMonitor =
-    permissions && permissions.has('can_see_payment_monitor');
+    permissions &&
+    (permissions.has('can_see_payment_monitor') ||
+      permissions.has('can_apply_payment_process_record'));
   const canCreatePaymentPlan =
     permissions && permissions.has('can_create_payment_plan');
   const canUpdatePaymentPlan =

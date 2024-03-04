@@ -465,24 +465,32 @@ const EquipmentDetailPage: React.FC = () => {
       return;
     if (current === 4) runGetContract(equipmentItem.contract_id);
     setCurrent(current);
-    _.forEach(equipmentItem, (key: any, value: any) => {
-      const length = value.split('_').length;
-      const extension = value.split('_')[length - 1];
-      if (extension === 'picture' || extension === 'file') {
-        setTimeout(
-          () =>
-            formRef.current?.setFieldValue(
-              value,
-              fileStringToAntdFileList(key),
-            ),
-          0,
-        );
-      } else if (extension === 'date') {
-        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
-      } else {
-        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
-      }
-    });
+    if (current === 6 && equipmentItem.status === 7) {
+      setTimeout(() => {
+        const isAdvance = equipmentItem.isAdvance === 'true' ? true : false;
+        formRef.current?.setFieldValue('audit', true);
+        formRef.current?.setFieldValue('isAdvance', isAdvance);
+      }, 0);
+    } else {
+      _.forEach(equipmentItem, (key: any, value: any) => {
+        const length = value.split('_').length;
+        const extension = value.split('_')[length - 1];
+        if (extension === 'picture' || extension === 'file') {
+          setTimeout(
+            () =>
+              formRef.current?.setFieldValue(
+                value,
+                fileStringToAntdFileList(key),
+              ),
+            0,
+          );
+        } else if (extension === 'date') {
+          setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
+        } else {
+          setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
+        }
+      });
+    }
   };
 
   const handleUpload = (
@@ -716,9 +724,11 @@ const EquipmentDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
+                console.log(values);
                 if (
+                  values.survey_picture.length === 0 ||
                   formRef.current?.getFieldValue('survey_picture')[0].status ===
-                  'done'
+                    'done'
                 ) {
                   await runSurvey(
                     id,

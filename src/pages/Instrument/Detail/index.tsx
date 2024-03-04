@@ -487,8 +487,11 @@ const InstrumentDetailPage: React.FC = () => {
               } else {
                 const values = formRef.current?.getFieldsValue();
                 if (
+                  values.survey_picture === undefined ||
+                  (values.survey_picture &&
+                    values.survey_picture.length === 0) ||
                   formRef.current?.getFieldValue('survey_picture')[0].status ===
-                  'done'
+                    'done'
                 ) {
                   await runSurvey(
                     id,
@@ -535,7 +538,6 @@ const InstrumentDetailPage: React.FC = () => {
                   );
                 },
               }}
-              rules={[{ required: true }]}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
@@ -547,6 +549,9 @@ const InstrumentDetailPage: React.FC = () => {
               } else {
                 const values = formRef.current?.getFieldsValue();
                 if (
+                  values.purchase_picture === undefined ||
+                  (values.purchase_picture &&
+                    values.purchase_picture.length === 0) ||
                   formRef.current?.getFieldValue('purchase_picture')[0]
                     .status === 'done'
                 ) {
@@ -584,7 +589,13 @@ const InstrumentDetailPage: React.FC = () => {
                   );
                 },
               }}
-              rules={[{ required: true }]}
+              extra={
+                instrumentItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={instrumentItem.purchase_picture}
+                  />
+                ) : null
+              }
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm

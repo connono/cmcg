@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import PreviewList from './PreviewList';
 
 interface Props {
+  title?: string;
   fileListString: string;
 }
 
@@ -11,7 +12,7 @@ const PreviewListVisible: React.FC<Props> = (props) => {
 
   return (
     <div>
-      合同信息：
+      {props.title}：
       <Button type="link" onClick={() => setIsVisible(!isVisible)}>
         {isVisible ? '点击收起' : '点击查看'}
       </Button>
