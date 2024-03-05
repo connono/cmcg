@@ -5,6 +5,7 @@ import {
   PageContainer,
   ProDescriptionsItemProps,
   ProFormCheckbox,
+  ProFormRadio,
   ProFormSelect,
   ProFormText,
   ProTable,
@@ -105,6 +106,10 @@ const InstrumentPage: React.FC<unknown> = () => {
           },
         ],
       },
+    },
+    {
+      title: '类型',
+      dataIndex: 'type',
     },
     {
       title: '状态',
@@ -238,6 +243,11 @@ const InstrumentPage: React.FC<unknown> = () => {
                   instrument: _.isUndefined(value.instrument)
                     ? filter.instrument
                     : value.instrument,
+                  type: value.type
+                    ? value.type === 'all'
+                      ? null
+                      : value.type
+                    : value.type,
                   status: value.status
                     ? value.status === 'all'
                       ? null
@@ -271,6 +281,24 @@ const InstrumentPage: React.FC<unknown> = () => {
                 name="department"
                 label="申请科室"
                 request={departments}
+              />
+              <ProFormRadio.Group
+                name="type"
+                label="类型："
+                options={[
+                  {
+                    label: '医疗用品',
+                    value: '医疗用品',
+                  },
+                  {
+                    label: '维修配件',
+                    value: '维修配件',
+                  },
+                  {
+                    label: '全部',
+                    value: 'all',
+                  },
+                ]}
               />
               <ProFormSelect
                 name="status"

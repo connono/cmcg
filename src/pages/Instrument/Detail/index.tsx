@@ -50,6 +50,7 @@ const backInstrumentItem = async (id: any) => {
 const apply = async (
   serial_number: number,
   instrument: string,
+  type: string,
   department: string,
   count: number,
   budget: number,
@@ -58,6 +59,7 @@ const apply = async (
   const form = new FormData();
   form.append('serial_number', serial_number.toString());
   form.append('instrument', instrument);
+  form.append('type', type);
   form.append('department', department);
   form.append('count', count.toString());
   form.append('budget', budget.toString());
@@ -402,6 +404,7 @@ const InstrumentDetailPage: React.FC = () => {
                   await runApply(
                     instrumentItem.serial_number,
                     values.instrument,
+                    values.type,
                     values.department,
                     values.count,
                     values.budget,
@@ -431,6 +434,22 @@ const InstrumentDetailPage: React.FC = () => {
               width="md"
               disabled={current < instrumentItem.status}
               rules={[{ required: true }]}
+            />
+            <ProFormRadio.Group
+              name="type"
+              label="类型："
+              rules={[{ required: true }]}
+              disabled={current < instrumentItem.status}
+              options={[
+                {
+                  label: '医疗用品',
+                  value: '医疗用品',
+                },
+                {
+                  label: '维修配件',
+                  value: '维修配件',
+                },
+              ]}
             />
             <ProFormSelect
               label="申请科室"
