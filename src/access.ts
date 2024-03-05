@@ -8,9 +8,13 @@ export default (initialState: API.UserToken) => {
   const canSeeHome = permissions && permissions.has('can_see_home');
   const canSeeEquipment =
     permissions &&
-    (permissions.has('can_see_equipment') ||
+    (permissions.has('can_dean_audit_payment_process_record') ||
+      permissions.has('can_see_equipment') ||
       permissions.has('can_contract_equipment'));
-  const canSeeInstrument = permissions && permissions.has('can_see_instrument');
+  const canSeeInstrument =
+    permissions &&
+    (permissions.has('can_see_instrument') ||
+      permissions.has('can_dean_audit_payment_process_record'));
   const canSeeUserList = permissions && permissions.has('can_see_userlist');
   const canCreateUser = permissions && permissions.has('can_create_user');
   const canUpdateUser = permissions && permissions.has('can_update_user');
