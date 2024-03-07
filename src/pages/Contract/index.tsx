@@ -143,6 +143,18 @@ const ContractPage: React.FC = () => {
           >
             删除
           </a>
+          <Divider type="vertical" />
+          {record.equipment_apply_record_id ? (
+            <a
+              onClick={async () => {
+                history.push(
+                  `/apply/equipment/detail#update&${record.equipment_apply_record_id}`,
+                );
+              }}
+            >
+              采购详情
+            </a>
+          ) : null}
         </>
       ),
     },

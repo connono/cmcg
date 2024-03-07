@@ -12,6 +12,10 @@ interface InstrumentApplyNotificationCardProps {
   data?: any;
 }
 
+interface RepairApplyNotificationCardProps {
+  data?: any;
+}
+
 interface Props {
   data?: any;
 }
@@ -45,9 +49,15 @@ const EquipmentApplyNotificationCard: React.FC<
                 <span style={{ marginRight: '25px' }}>
                   数量: {v.data.count}
                 </span>
-                <span style={{ marginRight: '25px' }}>
-                  金额：{v.data.budget}
-                </span>
+                {v.data.price ? (
+                  <span style={{ marginRight: '25px' }}>
+                    金额：{v.data.price}
+                  </span>
+                ) : (
+                  <span style={{ marginRight: '25px' }}>
+                    预算：{v.data.budget}
+                  </span>
+                )}
               </div>
             }
             extra={
@@ -114,9 +124,88 @@ const InstrumentApplyNotificationCard: React.FC<
                 <span style={{ marginRight: '25px' }}>
                   数量: {v.data.count}
                 </span>
+                {v.data.price ? (
+                  <span style={{ marginRight: '25px' }}>
+                    金额：{v.data.price}
+                  </span>
+                ) : (
+                  <span style={{ marginRight: '25px' }}>
+                    预算：{v.data.budget}
+                  </span>
+                )}
+              </div>
+            }
+            extra={
+              <Button
+                size="small"
+                type="primary"
+                onClick={() => history.push(v.link, v.data)}
+              >
+                去处理
+              </Button>
+            }
+          ></ProCard>
+        );
+      });
+      return (
+        <ProCard
+          layout="center"
+          direction="column"
+          title={
+            <div style={{ display: 'inline-block' }}>
+              {listTitleMap.get(key)}
+              <Badge
+                count={procardlist.length}
+                title={'还有' + procardlist.length + '条任务等待处理'}
+              />
+            </div>
+          }
+          ghost
+          key={key}
+          gutter={8}
+          collapsible
+          bordered
+        >
+          {procardlist}
+        </ProCard>
+      );
+    },
+  );
+  return <>{procardlists}</>;
+};
+
+const RepairApplyNotificationCard: React.FC<
+  RepairApplyNotificationCardProps
+> = (props) => {
+  if (!props.data) return <div></div>;
+  const listTitleMap = new Map([
+    ['install', '待验收'],
+    ['engineer_approve', '待医工科审核'],
+  ]);
+  const procardlists = _.map(
+    _.groupBy(props.data, 'type'),
+    (value: any, key: any) => {
+      const procardlist = _.map(value, (v: any, k: any) => {
+        return (
+          <ProCard
+            key={k}
+            title={
+              <div>
                 <span style={{ marginRight: '25px' }}>
-                  金额：{v.data.budget}
+                  维修项目名称：{v.data.name}
                 </span>
+                <span style={{ marginRight: '25px' }}>
+                  维修设备：{v.data.equipment}
+                </span>
+                {v.data.price ? (
+                  <span style={{ marginRight: '25px' }}>
+                    金额：{v.data.price}
+                  </span>
+                ) : (
+                  <span style={{ marginRight: '25px' }}>
+                    最高报价：{v.data.budget}
+                  </span>
+                )}
               </div>
             }
             extra={
@@ -167,6 +256,10 @@ const ApplyNotificationTab: React.FC<Props> = (props) => {
     'n_category',
     'instrumentApplyRecord',
   ]);
+  const repairApplyRecordData = _.filter(props.data, [
+    'n_category',
+    'repairApplyRecord',
+  ]);
   const items = [
     {
       label: <Badge count={equipmentApplyRecordData.length}>设备采购</Badge>,
@@ -183,6 +276,11 @@ const ApplyNotificationTab: React.FC<Props> = (props) => {
       children: (
         <InstrumentApplyNotificationCard data={instrumentApplyRecordData} />
       ),
+    },
+    {
+      label: <Badge count={repairApplyRecordData.length}>设备维修</Badge>,
+      key: '3',
+      children: <RepairApplyNotificationCard data={repairApplyRecordData} />,
     },
   ];
 

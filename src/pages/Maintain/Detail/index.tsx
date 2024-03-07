@@ -206,24 +206,32 @@ const MaintainDetailPage: React.FC = () => {
     if (!maintainItem.status) return;
     if (maintainItem.status < current) return;
     setCurrent(current);
-    _.forEach(maintainItem, (key: any, value: any) => {
-      const length = value.split('_').length;
-      const extension = value.split('_')[length - 1];
-      if (extension === 'picture' || extension === 'file') {
-        setTimeout(
-          () =>
-            formRef.current?.setFieldValue(
-              value,
-              fileStringToAntdFileList(key),
-            ),
-          0,
-        );
-      } else if (extension === 'date') {
-        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
-      } else {
-        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
-      }
-    });
+    if (current === 2 && maintainItem.status === 3) {
+      setTimeout(() => {
+        const isAdvance = maintainItem.isAdvance === 'true' ? true : false;
+        formRef.current?.setFieldValue('audit', true);
+        formRef.current?.setFieldValue('isAdvance', isAdvance);
+      }, 0);
+    } else {
+      _.forEach(maintainItem, (key: any, value: any) => {
+        const length = value.split('_').length;
+        const extension = value.split('_')[length - 1];
+        if (extension === 'picture' || extension === 'file') {
+          setTimeout(
+            () =>
+              formRef.current?.setFieldValue(
+                value,
+                fileStringToAntdFileList(key),
+              ),
+            0,
+          );
+        } else if (extension === 'date') {
+          setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
+        } else {
+          setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
+        }
+      });
+    }
   };
 
   const handleUpload = (
@@ -340,17 +348,28 @@ const MaintainDetailPage: React.FC = () => {
             title="申请"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
+              if (
+                formRef.current?.getFieldValue('apply_file')[0].status ===
+                'done'
+              ) {
+                await runApply(
+                  maintainItem.serial_number,
+                  values.name,
+                  values.equipment,
+                  values.department,
+                  values.budget,
+                  values.apply_date,
+                  values.apply_file,
+                );
+              } else if (
+                formRef.current?.getFieldValue('apply_file')[0].status ===
+                'error'
+              ) {
+                message.error('文件上传失败！');
+              } else {
+                message.error('文件上传中，请等待...');
+              }
               confirm();
-              await runApply(
-                maintainItem.serial_number,
-                values.name,
-                values.equipment,
-                values.department,
-                values.budget,
-                values.apply_date,
-                values.apply_file,
-              );
-              return true;
             }}
           >
             <ProFormText
@@ -423,8 +442,19 @@ const MaintainDetailPage: React.FC = () => {
             title="安装验收"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              await runInstall(id, values.price, values.install_file);
-              return true;
+              if (
+                formRef.current?.getFieldValue('install_file')[0].status ===
+                'done'
+              ) {
+                await runInstall(id, values.price, values.install_file);
+              } else if (
+                formRef.current?.getFieldValue('install_file')[0].status ===
+                'error'
+              ) {
+                message.error('文件上传失败！');
+              } else {
+                message.error('文件上传中，请等待...');
+              }
             }}
           >
             <ProFormMoney

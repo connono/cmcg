@@ -20,9 +20,11 @@ const AmountProgress: React.FC<Props> = (props) => {
       annotations: [
         {
           type: 'text',
-          position: ['median', 'median'],
+          position: ['median', 'start'],
           content: percent * 100 + '%',
           style: {
+            fontWeight: 'bold',
+            fill: percent <= 0.1 ? 'black' : 'white',
             fontSize: 15,
           },
         },

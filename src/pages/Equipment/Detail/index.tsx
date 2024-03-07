@@ -726,7 +726,9 @@ const EquipmentDetailPage: React.FC = () => {
                 const values = formRef.current?.getFieldsValue();
                 console.log(values);
                 if (
-                  values.survey_picture.length === 0 ||
+                  values.survey_picture === undefined ||
+                  (values.survey_picture && values.survey_picture.length) ===
+                    0 ||
                   formRef.current?.getFieldValue('survey_picture')[0].status ===
                     'done'
                 ) {
@@ -1101,7 +1103,10 @@ const EquipmentDetailPage: React.FC = () => {
                   }}
                 ></div>
                 <div style={{ margin: '0 40px' }}>
-                  <PreviewListVisible fileListString={contractFile} />
+                  <PreviewListVisible
+                    title="合同附件"
+                    fileListString={contractFile}
+                  />
                 </div>
               </div>
             ) : (

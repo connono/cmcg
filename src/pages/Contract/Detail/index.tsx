@@ -66,6 +66,7 @@ const ContractDetailPage: React.FC = () => {
       ></div>
       <div style={{ margin: '0 40px' }}>
         <PreviewListVisible
+          title="合同附件"
           fileListString={history.location.state.contract_file}
         />
       </div>

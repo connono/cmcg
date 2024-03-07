@@ -6,7 +6,6 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
   ProFormDatePicker,
-  ProFormDigit,
   ProFormMoney,
   ProFormRadio,
   ProFormSelect,
@@ -259,24 +258,32 @@ const InstrumentDetailPage: React.FC = () => {
     if (!instrumentItem.status) return;
     if (instrumentItem.status < current) return;
     setCurrent(current);
-    _.forEach(instrumentItem, (key: any, value: any) => {
-      const length = value.split('_').length;
-      const extension = value.split('_')[length - 1];
-      if (extension === 'picture' || extension === 'file') {
-        setTimeout(
-          () =>
-            formRef.current?.setFieldValue(
-              value,
-              fileStringToAntdFileList(key),
-            ),
-          0,
-        );
-      } else if (extension === 'date') {
-        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
-      } else {
-        setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
-      }
-    });
+    if (current === 4 && instrumentItem.status === 5) {
+      setTimeout(() => {
+        const isAdvance = instrumentItem.isAdvance === 'true' ? true : false;
+        formRef.current?.setFieldValue('audit', true);
+        formRef.current?.setFieldValue('isAdvance', isAdvance);
+      }, 0);
+    } else {
+      _.forEach(instrumentItem, (key: any, value: any) => {
+        const length = value.split('_').length;
+        const extension = value.split('_')[length - 1];
+        if (extension === 'picture' || extension === 'file') {
+          setTimeout(
+            () =>
+              formRef.current?.setFieldValue(
+                value,
+                fileStringToAntdFileList(key),
+              ),
+            0,
+          );
+        } else if (extension === 'date') {
+          setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
+        } else {
+          setTimeout(() => formRef.current?.setFieldValue(value, key), 0);
+        }
+      });
+    }
   };
 
   const handleUpload = (
@@ -586,11 +593,11 @@ const InstrumentDetailPage: React.FC = () => {
               }
             }}
           >
-            <ProFormDigit
-              width="md"
+            <ProFormMoney
               name="price"
               label="采购金额"
-              placeholder="请输入金额"
+              width="md"
+              disabled={current < instrumentItem.status}
               rules={[{ required: true }]}
             />
             <ProFormUploadButton

@@ -31,10 +31,21 @@ export default defineConfig({
       layout: false,
     },
     {
-      name: '用户列表管理',
-      path: '/userList',
-      component: './UserList',
-      access: 'canSeeUserList',
+      name: '人员管理',
+      path: '/userManager',
+      routes: [
+        {
+          name: '用户列表管理',
+          path: '/userManager/userList',
+          component: './UserList',
+          access: 'canSeeUserList',
+        },
+        {
+          name: '工程师管理',
+          path: './userManager/engineerList',
+          component: './EngineerList',
+        },
+      ],
     },
     {
       name: '采购申请管理',
