@@ -32,14 +32,26 @@ const EquipmentPage: React.FC<unknown> = () => {
   const [filter, setFilter] = useState<any>({});
   const access = useAccess();
 
-  const getEquipmentList = async () => {
-    return await axios({
+  const getEquipmentList = async (params: any) => {
+    const data = await axios({
       method: 'GET',
       params: {
         ...filter,
       },
-      url: `${SERVER_HOST}/equipment/index`,
-    });
+      url: `${SERVER_HOST}/equipment/index?page=${params.current}`,
+    })
+      .then((result) => {
+        setData(result.data.data);
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+    return data;
   };
 
   const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
@@ -50,15 +62,6 @@ const EquipmentPage: React.FC<unknown> = () => {
     },
   });
 
-  const { run: runGetEquipmentList } = useRequest(getEquipmentList, {
-    manual: true,
-    onSuccess: (result: any) => {
-      setData(result.data);
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
   const { run: runDeleteEquipmentItem } = useRequest(deleteEquipmentItem, {
     manual: true,
     onSuccess: () => {
@@ -225,7 +228,7 @@ const EquipmentPage: React.FC<unknown> = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetEquipmentList}
+        request={getEquipmentList}
         rowKey="serial_number"
         search={false}
         options={{
@@ -234,7 +237,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           },
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         headerTitle="设备申请记录列表"

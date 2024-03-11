@@ -32,14 +32,26 @@ const MaintainPage: React.FC<unknown> = () => {
   const [filter, setFilter] = useState<any>({});
   const access = useAccess();
 
-  const getMaintainList = async () => {
-    return await axios({
+  const getMaintainList = async (params: any) => {
+    const data = await axios({
       method: 'GET',
       params: {
         ...filter,
       },
-      url: `${SERVER_HOST}/maintain/index`,
-    });
+      url: `${SERVER_HOST}/maintain/index?page=${params.current}`,
+    })
+      .then((result) => {
+        setData(result.data.data);
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+    return data;
   };
 
   const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
@@ -50,15 +62,6 @@ const MaintainPage: React.FC<unknown> = () => {
     },
   });
 
-  const { run: runGetMaintainList } = useRequest(getMaintainList, {
-    manual: true,
-    onSuccess: (result: any) => {
-      setData(result.data);
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
   const { run: runDeleteMaintainItem } = useRequest(deleteMaintainItem, {
     manual: true,
     onSuccess: () => {
@@ -198,7 +201,8 @@ const MaintainPage: React.FC<unknown> = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetMaintainList}
+        // @ts-ignore
+        request={getMaintainList}
         rowKey="serial_number"
         search={false}
         options={{
@@ -207,7 +211,7 @@ const MaintainPage: React.FC<unknown> = () => {
           },
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         headerTitle="设备维修保养管理"

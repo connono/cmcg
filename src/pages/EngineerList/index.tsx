@@ -23,8 +23,22 @@ const getUserList = async () => {
   return await axios.get(`${SERVER_HOST}/users/index?department=医学工程科`);
 };
 
-const getEngineerList = async () => {
-  return await axios.get(`${SERVER_HOST}/engineers/index`);
+const getEngineerList = async (params: any) => {
+  const data = await axios({
+    method: 'GET',
+    url: `${SERVER_HOST}/engineers/index?page=${params.current}`,
+  })
+    .then((result) => {
+      return {
+        data: result.data.data,
+        success: true,
+        total: result.data.meta.total,
+      };
+    })
+    .catch((err) => {
+      message.error(err);
+    });
+  return data;
 };
 
 const getAllDepartments = async () => {
@@ -75,14 +89,6 @@ const EngineerListPage: React.FC = () => {
     },
   });
 
-  const { run: runGetEngineerList } = useRequest(getEngineerList, {
-    manual: true,
-    onSuccess: () => {},
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-
   const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
     manual: true,
     onSuccess: () => {},
@@ -96,6 +102,7 @@ const EngineerListPage: React.FC = () => {
     onSuccess: () => {
       message.success('提交成功');
       setCreateModalVisible(false);
+      actionRef.current?.reload();
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -106,6 +113,7 @@ const EngineerListPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('更新成功');
+      actionRef.current?.reload();
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -218,7 +226,8 @@ const EngineerListPage: React.FC = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetEngineerList}
+        //@ts-ignore
+        request={getEngineerList}
         rowKey="id"
         options={{
           setting: {
@@ -226,7 +235,7 @@ const EngineerListPage: React.FC = () => {
           },
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         toolBarRender={() => [
@@ -255,7 +264,6 @@ const EngineerListPage: React.FC = () => {
           }}
           onFinish={async (values: any) => {
             await runCreateEngineer(values.user_id);
-            actionRef.current?.reload();
           }}
         >
           <ProFormSelect
@@ -278,7 +286,6 @@ const EngineerListPage: React.FC = () => {
           }}
           onFinish={async (values: any) => {
             runUpdateEngineer(selectedId, values.department_id);
-            actionRef.current?.reload();
           }}
         >
           <ProFormSelect

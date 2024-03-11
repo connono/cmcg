@@ -28,8 +28,23 @@ type UserInfo = {
   department: string;
 };
 
-const getUserList = async () => {
-  return await axios.get(`${SERVER_HOST}/users/index`);
+const getUserList = async (params: any) => {
+  const data = await axios({
+    method: 'GET',
+    url: `${SERVER_HOST}/users/index?page=${params.current}`,
+  })
+    .then((result) => {
+      return {
+        data: result.data.data,
+        success: true,
+        total: result.data.meta.total,
+      };
+    })
+    .catch((err) => {
+      message.error(err);
+    });
+
+  return data;
 };
 
 const getAllRoles = async () => {
@@ -97,13 +112,6 @@ const UserListPage: React.FC = () => {
   const [mode, setMode] = useState<MODE>(MODE.CREATE);
   const [selectedId, setSelectedId] = useState<number>(0);
 
-  const { run: runGetUserList } = useRequest(getUserList, {
-    manual: true,
-    onSuccess: () => {},
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
   const { run: runGetAllRoles } = useRequest(getAllRoles, {
     manual: true,
     onSuccess: () => {},
@@ -261,7 +269,7 @@ const UserListPage: React.FC = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetUserList}
+        request={getUserList}
         rowKey="id"
         search={{
           labelWidth: 'auto',
@@ -272,7 +280,7 @@ const UserListPage: React.FC = () => {
           },
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         toolBarRender={(action) => [

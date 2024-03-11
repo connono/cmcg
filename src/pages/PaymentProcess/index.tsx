@@ -94,26 +94,28 @@ const PaymentProcessPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const [filter, setFilter] = useState<any>({});
 
-  const getProcessesList = async () => {
-    return await axios({
+  const getProcessesList = async (params: any) => {
+    const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         department: initialState?.department,
       },
-      url: `${SERVER_HOST}/payment/processes/index`,
-    });
+      url: `${SERVER_HOST}/payment/processes/index?page=${params.current}`,
+    })
+      .then((result) => {
+        setData(result.data.data);
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+    return data;
   };
-
-  const { run: runGetProcessesList } = useRequest(getProcessesList, {
-    manual: true,
-    onSuccess: (result: any) => {
-      setData(result.data);
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
 
   const { run: runCreateProcess } = useRequest(createProcess, {
     manual: true,
@@ -456,7 +458,7 @@ const PaymentProcessPage: React.FC = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetProcessesList}
+        request={getProcessesList}
         rowKey="id"
         options={{
           setting: {
@@ -468,7 +470,7 @@ const PaymentProcessPage: React.FC = () => {
           return record.is_pay === 'true' ? styles.payrow : styles.chargerow;
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         toolbar={{

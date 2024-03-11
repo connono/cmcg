@@ -99,26 +99,28 @@ const PaymentMonitorPage: React.FC = () => {
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
 
-  const getPlansList = async () => {
-    return await axios({
+  const getPlansList = async (params: any) => {
+    const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         department: initialState?.department,
       },
-      url: `${SERVER_HOST}/payment/plans/index`,
-    });
+      url: `${SERVER_HOST}/payment/plans/index?page=${params.current}`,
+    })
+      .then((result) => {
+        setData(result.data.data);
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+    return data;
   };
-
-  const { run: runGetPlansList } = useRequest(getPlansList, {
-    manual: true,
-    onSuccess: (result) => {
-      setData(result.data);
-    },
-    onError: (error) => {
-      message.error(error.message);
-    },
-  });
 
   const { run: runCreatePlan } = useRequest(createPlan, {
     manual: true,
@@ -407,7 +409,7 @@ const PaymentMonitorPage: React.FC = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetPlansList}
+        request={getPlansList}
         rowKey="id"
         search={false}
         options={{
@@ -419,7 +421,7 @@ const PaymentMonitorPage: React.FC = () => {
           return record.is_pay === 'true' ? styles.payrow : styles.chargerow;
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         toolbar={{

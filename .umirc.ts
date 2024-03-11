@@ -44,6 +44,7 @@ export default defineConfig({
           name: '工程师管理',
           path: './userManager/engineerList',
           component: './EngineerList',
+          access: 'canEnginnerApproveEquipment',
         },
       ],
     },

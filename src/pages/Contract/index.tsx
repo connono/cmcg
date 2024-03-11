@@ -28,25 +28,28 @@ const ContractPage: React.FC = () => {
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
 
-  const getContractList = async () => {
-    return await axios({
+  const getContractList = async (params: any) => {
+    const data = await axios({
       method: 'GET',
       params: {
         ...filter,
       },
-      url: `${SERVER_HOST}/payment/contracts/index`,
-    });
+      url: `${SERVER_HOST}/payment/contracts/index?page=${params.current}`,
+    })
+      .then((result) => {
+        setData(result.data.data);
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+    return data;
   };
 
-  const { run: runGetContractList } = useRequest(getContractList, {
-    manual: true,
-    onSuccess: (result: any) => {
-      setData(result.data);
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
   const { run: runDeleteContract } = useRequest(deleteContract, {
     manual: true,
     onSuccess: () => {
@@ -174,7 +177,8 @@ const ContractPage: React.FC = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetContractList}
+        //@ts-ignore
+        request={getContractList}
         rowKey="series_number"
         search={false}
         options={{
@@ -183,7 +187,7 @@ const ContractPage: React.FC = () => {
           },
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         headerTitle="合同管理列表"

@@ -139,7 +139,7 @@ const AdvancePage: React.FC<unknown> = () => {
   const { run: runGetAdvanceList } = useRequest(getAdvanceList, {
     manual: true,
     onSuccess: (result: any) => {
-      setData(result.data);
+      setData(result.data.data);
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -438,7 +438,7 @@ const AdvancePage: React.FC<unknown> = () => {
           },
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         headerTitle="垫付款管理"

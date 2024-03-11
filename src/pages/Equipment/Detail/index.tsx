@@ -77,7 +77,7 @@ const getSerialNumber = async () => {
 };
 
 const getAllDepartments = async () => {
-  return await axios.get(`${SERVER_HOST}/department/index`);
+  return await axios.get(`${SERVER_HOST}/department/index?is_functional=0`);
 };
 
 const getContract = async (id: string) => {

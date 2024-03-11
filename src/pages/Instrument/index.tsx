@@ -33,14 +33,26 @@ const InstrumentPage: React.FC<unknown> = () => {
   const [filter, setFilter] = useState<any>({});
   const access = useAccess();
 
-  const getInstrumentList = async () => {
-    return await axios({
+  const getInstrumentList = async (params: any) => {
+    const data = await axios({
       method: 'GET',
       params: {
         ...filter,
       },
-      url: `${SERVER_HOST}/instrument/index`,
-    });
+      url: `${SERVER_HOST}/instrument/index?page=${params.current}`,
+    })
+      .then((result) => {
+        setData(result.data.data);
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+    return data;
   };
 
   const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
@@ -51,15 +63,6 @@ const InstrumentPage: React.FC<unknown> = () => {
     },
   });
 
-  const { run: runGetInstrumentList } = useRequest(getInstrumentList, {
-    manual: true,
-    onSuccess: (result: any) => {
-      setData(result.data);
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
   const { run: runDeleteInstrumentItem } = useRequest(deleteInstrumentItem, {
     manual: true,
     onSuccess: () => {
@@ -209,7 +212,7 @@ const InstrumentPage: React.FC<unknown> = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetInstrumentList}
+        request={getInstrumentList}
         rowKey="serial_number"
         search={false}
         options={{
@@ -218,7 +221,7 @@ const InstrumentPage: React.FC<unknown> = () => {
           },
         }}
         pagination={{
-          pageSize: 5,
+          pageSize: 15,
         }}
         dateFormatter="string"
         headerTitle="器械耗材采购管理"
