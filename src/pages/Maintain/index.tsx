@@ -37,6 +37,7 @@ const MaintainPage: React.FC<unknown> = () => {
       method: 'GET',
       params: {
         ...filter,
+        isPaginate: true,
       },
       url: `${SERVER_HOST}/maintain/index?page=${params.current}`,
     })

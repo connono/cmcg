@@ -156,7 +156,7 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             values.price,
             values.isImportant,
             values.contract_file,
-            values.comment,
+            values.comment ? values.comment : '',
             values.isComplement,
           );
           setModalVisible(false);

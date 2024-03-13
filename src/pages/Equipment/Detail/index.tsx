@@ -1078,7 +1078,7 @@ const EquipmentDetailPage: React.FC = () => {
                     values.price,
                     values.isImportant,
                     values.contract_file,
-                    values.comment,
+                    values.comment ? values.comment : '',
                     values.isComplement,
                   );
                 } else if (

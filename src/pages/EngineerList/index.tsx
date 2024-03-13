@@ -26,6 +26,9 @@ const getUserList = async () => {
 const getEngineerList = async (params: any) => {
   const data = await axios({
     method: 'GET',
+    params: {
+      isPaginate: true,
+    },
     url: `${SERVER_HOST}/engineers/index?page=${params.current}`,
   })
     .then((result) => {

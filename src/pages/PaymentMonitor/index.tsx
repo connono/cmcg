@@ -104,6 +104,7 @@ const PaymentMonitorPage: React.FC = () => {
       method: 'GET',
       params: {
         ...filter,
+        isPaginate: true,
         department: initialState?.department,
       },
       url: `${SERVER_HOST}/payment/plans/index?page=${params.current}`,

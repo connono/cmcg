@@ -105,14 +105,27 @@ const AdvancePage: React.FC<unknown> = () => {
   const [serverBudget, setServerBudget] = useState<any>({});
   const [treeData, setTreeData] = useState<any>(initialTreeData);
 
-  const getAdvanceList = async () => {
-    return await axios({
+  const getAdvanceList = async (params: any) => {
+    const data = await axios({
       method: 'GET',
       params: {
         ...filter,
+        isPaginate: true,
       },
-      url: `${SERVER_HOST}/advance/records/index`,
-    });
+      url: `${SERVER_HOST}/advance/records/index?page=${params.current}`,
+    })
+      .then((result) => {
+        setData(result.data.data);
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+    return data;
   };
 
   const { run: runGetAdvanceBudget } = useRequest(getAdvanceBudget, {
@@ -130,16 +143,6 @@ const AdvancePage: React.FC<unknown> = () => {
     onSuccess: () => {
       message.success(`预算设置成功:${budget}元`);
       runGetAdvanceBudget();
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-
-  const { run: runGetAdvanceList } = useRequest(getAdvanceList, {
-    manual: true,
-    onSuccess: (result: any) => {
-      setData(result.data.data);
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -429,7 +432,8 @@ const AdvancePage: React.FC<unknown> = () => {
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        request={runGetAdvanceList}
+        // @ts-ignore
+        request={getAdvanceList}
         rowKey="id"
         search={false}
         options={{

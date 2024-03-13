@@ -15,6 +15,7 @@ export default (initialState: API.UserToken) => {
     permissions &&
     (permissions.has('can_see_instrument') ||
       permissions.has('can_dean_audit_payment_process_record'));
+  const canSeeMaintain = permissions && permissions.has('can_apply_repair');
   const canSeeUserList = permissions && permissions.has('can_see_userlist');
   const canCreateUser = permissions && permissions.has('can_create_user');
   const canUpdateUser = permissions && permissions.has('can_update_user');
@@ -102,6 +103,7 @@ export default (initialState: API.UserToken) => {
     canSeeHome,
     canSeeEquipment,
     canSeeInstrument,
+    canSeeMaintain,
     canSeeUserList,
     canCreateUser,
     canUpdateUser,

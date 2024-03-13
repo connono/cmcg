@@ -38,6 +38,7 @@ const InstrumentPage: React.FC<unknown> = () => {
       method: 'GET',
       params: {
         ...filter,
+        isPaginate: true,
       },
       url: `${SERVER_HOST}/instrument/index?page=${params.current}`,
     })

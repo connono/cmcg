@@ -37,6 +37,7 @@ const EquipmentPage: React.FC<unknown> = () => {
       method: 'GET',
       params: {
         ...filter,
+        isPaginate: true,
       },
       url: `${SERVER_HOST}/equipment/index?page=${params.current}`,
     })

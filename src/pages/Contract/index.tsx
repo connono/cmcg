@@ -33,6 +33,7 @@ const ContractPage: React.FC = () => {
       method: 'GET',
       params: {
         ...filter,
+        isPaginate: true,
       },
       url: `${SERVER_HOST}/payment/contracts/index?page=${params.current}`,
     })
@@ -111,6 +112,10 @@ const ContractPage: React.FC = () => {
         true: { text: '是' },
         false: { text: '否' },
       },
+    },
+    {
+      title: '备注',
+      dataIndex: 'comment',
     },
     {
       title: '操作',

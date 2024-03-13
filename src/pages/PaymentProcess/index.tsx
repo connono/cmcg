@@ -99,6 +99,7 @@ const PaymentProcessPage: React.FC = () => {
       method: 'GET',
       params: {
         ...filter,
+        isPaginate: true,
         department: initialState?.department,
       },
       url: `${SERVER_HOST}/payment/processes/index?page=${params.current}`,
