@@ -37,7 +37,7 @@ export function fileStringToAntdFileList(fileString) {
 
 export function getsuffix(filename) {
   const filenameArray = filename.split('.');
-  const suffix = filenameArray[filenameArray.length - 1];
+  const suffix = _.toLower(filenameArray[filenameArray.length - 1]);
   return suffix;
 }
 
@@ -49,6 +49,18 @@ export function isPicture(filename) {
     suffix === 'gif' ||
     suffix === 'svg' ||
     suffix === 'jpeg'
+  );
+}
+
+export function isZip(filename) {
+  const suffix = getsuffix(filename);
+  return (
+    suffix === 'zip' ||
+    suffix === 'rar' ||
+    suffix === '7z' ||
+    suffix === 'tar' ||
+    suffix === 'gz' ||
+    suffix === 'bz2'
   );
 }
 

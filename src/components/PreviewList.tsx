@@ -1,9 +1,15 @@
-import { fileStringToList, isPDF, isPicture } from '@/utils/file-uploader';
+import {
+  fileStringToList,
+  isPDF,
+  isPicture,
+  isZip,
+} from '@/utils/file-uploader';
 import { List } from 'antd';
 import _ from 'lodash';
 import React from 'react';
 import PdfPreview from './PdfPreview';
 import PicturePreview from './PicturePreview';
+import ZipDownload from './ZipDownload';
 
 interface Props {
   fileListString: string;
@@ -32,6 +38,15 @@ const PreviewList: React.FC<Props> = (props) => {
               <List.Item.Meta
                 title={`文件名称：${_.split(item, '/')[1]}`}
                 description={<PicturePreview url={item} />}
+              />
+            </List.Item>
+          );
+        if (isZip(item))
+          return (
+            <List.Item>
+              <List.Item.Meta
+                title={`文件名称：${_.split(item, '/')[1]}`}
+                description={<ZipDownload url={item} />}
               />
             </List.Item>
           );

@@ -22,7 +22,6 @@ const PicturePreview: React.FC<Props> = (props) => {
     fetch(newURL)
       .then((response) => response.blob())
       .then((blob) => {
-        console.log('blob:', blob);
         const url = URL.createObjectURL(new Blob([blob]));
         const link = document.createElement('a');
         link.href = url;
