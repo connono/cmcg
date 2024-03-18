@@ -98,6 +98,8 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_create_contract_process');
   const doNotSeeEquipmentExceptInstall =
     permissions && permissions.has('do_not_see_equipment_except_install');
+  const canStopEquipmentApplyRecord =
+    permissions && permissions.has('can_stop_equipment_apply_record');
 
   return {
     canSeeHome,
@@ -148,5 +150,6 @@ export default (initialState: API.UserToken) => {
     canEnginnerApproveRepair,
     canCreateContractProcess,
     doNotSeeEquipmentExceptInstall,
+    canStopEquipmentApplyRecord,
   };
 };

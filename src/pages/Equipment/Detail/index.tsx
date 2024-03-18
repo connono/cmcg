@@ -48,6 +48,7 @@ const applyOptions = [
 ];
 
 const formatDate = (date: any) => {
+  if (_.isUndefined(date)) return null;
   if (_.isString(date)) return date;
   if (!date.$isDayjsObject) return null;
   return date.format('YYYY-MM-DD');
@@ -116,6 +117,8 @@ const survey = async (
   survey_record: string,
   meeting_record: string,
   survey_picture: string,
+  is_stop: boolean,
+  stop_reason: string,
 ) => {
   const form = new FormData();
   form.append('survey_date', formatDate(survey_date));
@@ -123,6 +126,8 @@ const survey = async (
   form.append('survey_record', survey_record);
   form.append('meeting_record', meeting_record);
   form.append('survey_picture', fileListToString(survey_picture));
+  form.append('is_stop', is_stop.toString());
+  if (is_stop) form.append('stop_reason', stop_reason);
 
   return await axios({
     method: 'POST',
@@ -610,7 +615,7 @@ const EquipmentDetailPage: React.FC = () => {
           <StepsForm.StepForm<{
             name: string;
           }>
-            name="base"
+            name="apply"
             title="申请"
             onFinish={async () => {
               if (!access.canApplyEquipment) {
@@ -717,7 +722,7 @@ const EquipmentDetailPage: React.FC = () => {
             </Access>
           </StepsForm.StepForm>
           <StepsForm.StepForm
-            name="time"
+            name="survey"
             title="调研"
             onFinish={async () => {
               if (!access.canSurveyEquipment) {
@@ -739,6 +744,8 @@ const EquipmentDetailPage: React.FC = () => {
                     values.survey_record,
                     values.meeting_record,
                     values.survey_picture,
+                    values.is_stop,
+                    values.stop_reason,
                   );
                 } else if (
                   formRef.current?.getFieldValue('survey_picture')[0].status ===
@@ -782,6 +789,28 @@ const EquipmentDetailPage: React.FC = () => {
                 disabled={current < equipmentItem.status}
                 width="md"
                 rules={[{ required: true }]}
+              />
+              <ProFormRadio.Group
+                name="is_stop"
+                label="是否终止："
+                rules={[{ required: true }]}
+                disabled={current < equipmentItem.status}
+                options={[
+                  {
+                    label: '是',
+                    value: true,
+                  },
+                  {
+                    label: '否',
+                    value: false,
+                  },
+                ]}
+              />
+              <ProFormTextArea
+                name="stop_reason"
+                label="终止原因："
+                disabled={current < equipmentItem.status}
+                width="md"
               />
               <ProFormUploadButton
                 label="执行单附件："

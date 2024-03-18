@@ -113,16 +113,20 @@ const EquipmentPage: React.FC<unknown> = () => {
     {
       title: '状态',
       dataIndex: 'status',
-      valueEnum: {
-        0: { text: '申请', status: '0' },
-        1: { text: '调研', status: '1' },
-        2: { text: '政府审批', status: '2' },
-        3: { text: '投标', status: '3' },
-        4: { text: '合同', status: '4' },
-        5: { text: '安装验收', status: '5' },
-        6: { text: '医工科审核', status: '6' },
-        7: { text: '入库', status: '7' },
-        8: { text: '完成', status: '8' },
+      render: (text, record) => {
+        const statusArray = [
+          '申请',
+          '调研',
+          '政府审批',
+          '投标',
+          '合同',
+          '安装验收',
+          '医工科审核',
+          '入库',
+          '完成',
+        ];
+        if (record.is_stop === 'true') return '已终止';
+        else return statusArray[parseInt(record.status)];
       },
     },
     {
@@ -175,7 +179,7 @@ const EquipmentPage: React.FC<unknown> = () => {
               history.push(`/apply/equipment/detail#update&${id}`);
             }}
           >
-            录入
+            {record.is_stop === 'true' ? '已终止' : '录入'}
           </a>
           <Divider type="vertical" />
           <Popconfirm
@@ -310,6 +314,7 @@ const EquipmentPage: React.FC<unknown> = () => {
                   6: { text: '医工科审核', status: '6' },
                   7: { text: '入库', status: '7' },
                   8: { text: '完成', status: '8' },
+                  stop: { text: '已终止', status: 'stop' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
