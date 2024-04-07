@@ -15,6 +15,6 @@ export const generateWord = async (contractInformation) => {
   return await axios({
     method: 'POST',
     data: data,
-    url: 'http://localhost:3000/generateDocument',
+    url: 'http://10.10.0.27:3300/generateDocument',
   });
 };

@@ -42,9 +42,15 @@ export default defineConfig({
         },
         {
           name: '工程师管理',
-          path: './userManager/engineerList',
+          path: '/userManager/engineerList',
           component: './EngineerList',
           access: 'canEnginnerApproveEquipment',
+        },
+        {
+          name: '院长室管理',
+          path: '/userManager/leaderList',
+          component: './LeaderList',
+          access: 'canSeeUserList',
         },
       ],
     },

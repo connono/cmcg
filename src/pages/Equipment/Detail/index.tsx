@@ -729,7 +729,6 @@ const EquipmentDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                console.log(values);
                 if (
                   values.survey_picture === undefined ||
                   (values.survey_picture && values.survey_picture.length) ===

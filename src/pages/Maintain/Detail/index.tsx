@@ -422,7 +422,6 @@ const MaintainDetailPage: React.FC = () => {
                   <PreviewListModal fileListString={maintainItem.apply_file} />
                 ) : null
               }
-              rules={[{ required: true }]}
               fieldProps={{
                 customRequest: (options) => {
                   upload(options.file, (isSuccess: boolean, filename: string) =>
@@ -443,8 +442,10 @@ const MaintainDetailPage: React.FC = () => {
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               if (
+                values.install_file === undefined ||
+                (values.install_file && values.install_file.length) === 0 ||
                 formRef.current?.getFieldValue('install_file')[0].status ===
-                'done'
+                  'done'
               ) {
                 await runInstall(id, values.price, values.install_file);
               } else if (

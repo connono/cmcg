@@ -14,22 +14,22 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
 
-type EngineerInfo = {
+type LeaderInfo = {
   id: number;
   name: string;
 };
 
 const getUserList = async () => {
-  return await axios.get(`${SERVER_HOST}/users/index?department=医学工程科`);
+  return await axios.get(`${SERVER_HOST}/users/index?`);
 };
 
-const getEngineerList = async (params: any) => {
+const getLeaderList = async (params: any) => {
   const data = await axios({
     method: 'GET',
     params: {
       isPaginate: true,
     },
-    url: `${SERVER_HOST}/engineers/index?page=${params.current}`,
+    url: `${SERVER_HOST}/leaders/index?page=${params.current}`,
   })
     .then((result) => {
       return {
@@ -46,36 +46,36 @@ const getEngineerList = async (params: any) => {
 
 const getAllDepartments = async () => {
   return await axios.get(
-    `${SERVER_HOST}/department/engineer/index?is_functional=0`,
+    `${SERVER_HOST}/department/leader/index?is_functional=1`,
   );
 };
 
-const deleteEngineer = async (id: number) => {
-  return await axios.delete(`${SERVER_HOST}/engineers/${id}`);
+const deleteLeader = async (id: number) => {
+  return await axios.delete(`${SERVER_HOST}/leaders/${id}`);
 };
 
-const createEngineer = async (user_id: string) => {
+const createLeader = async (user_id: string) => {
   const form = new FormData();
   form.append('user_id', user_id);
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/engineers`,
+    url: `${SERVER_HOST}/leaders`,
   });
 };
 
-const updateEngineer = async (id: number, department_id?: string[]) => {
+const updateLeader = async (id: number, department_id?: string[]) => {
   const form = new FormData();
   const departmentString = department_id ? department_id.join('&') : '';
   form.append('department_id', departmentString);
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/engineers/${id}`,
+    url: `${SERVER_HOST}/leaders/${id}`,
   });
 };
 
-const EngineerListPage: React.FC = () => {
+const LeaderListPage: React.FC = () => {
   const access = useAccess();
   const createFormRef = useRef<ProFormInstance>();
   const updateFormRef = useRef<ProFormInstance>();
@@ -100,7 +100,7 @@ const EngineerListPage: React.FC = () => {
     },
   });
 
-  const { run: runCreateEngineer } = useRequest(createEngineer, {
+  const { run: runCreateLeader } = useRequest(createLeader, {
     manual: true,
     onSuccess: () => {
       message.success('提交成功');
@@ -112,7 +112,7 @@ const EngineerListPage: React.FC = () => {
     },
   });
 
-  const { run: runUpdateEngineer } = useRequest(updateEngineer, {
+  const { run: runUpdateLeader } = useRequest(updateLeader, {
     manual: true,
     onSuccess: () => {
       message.success('更新成功');
@@ -124,7 +124,7 @@ const EngineerListPage: React.FC = () => {
     },
   });
 
-  const { run: runDeleteEngineer } = useRequest(deleteEngineer, {
+  const { run: runDeleteLeader } = useRequest(deleteLeader, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -149,7 +149,7 @@ const EngineerListPage: React.FC = () => {
     const usersData = await runGetUserList();
     const filteredUsersData = _.filter(
       usersData.data,
-      (value: any) => !value.engineer_id,
+      (value: any) => !value.leader_id,
     );
     const data = _.map(filteredUsersData, (value: any) => {
       return {
@@ -160,7 +160,7 @@ const EngineerListPage: React.FC = () => {
     return data;
   };
 
-  const columns: ProColumns<EngineerInfo>[] = [
+  const columns: ProColumns<LeaderInfo>[] = [
     {
       dataIndex: 'id',
       title: 'ID',
@@ -190,7 +190,7 @@ const EngineerListPage: React.FC = () => {
         <a
           key="patch"
           onClick={() => {
-            if (!access.canUpdateUser) {
+            if (!access.canAddDepartmentToLeader) {
               message.error('你没有权限进行操作');
             } else {
               setUpdateModalVisible(true);
@@ -203,10 +203,10 @@ const EngineerListPage: React.FC = () => {
         <a
           key="delete"
           onClick={async () => {
-            if (!access.canUpdateUser) {
+            if (!access.canCreateLeader) {
               message.error('你没有权限进行操作');
             } else {
-              await runDeleteEngineer(record.id);
+              await runDeleteLeader(record.id);
               await runGetUserList();
               action?.reload();
             }
@@ -222,7 +222,7 @@ const EngineerListPage: React.FC = () => {
     <PageContainer
       ghost
       header={{
-        title: '工程师列表管理',
+        title: '院长室管理',
       }}
     >
       <ProTable
@@ -231,7 +231,7 @@ const EngineerListPage: React.FC = () => {
         cardBordered
         actionRef={actionRef}
         //@ts-ignore
-        request={getEngineerList}
+        request={getLeaderList}
         rowKey="id"
         options={{
           setting: {
@@ -243,7 +243,7 @@ const EngineerListPage: React.FC = () => {
         }}
         dateFormatter="string"
         toolBarRender={() => [
-          <Access key="can_create_user" accessible={access.canCreateUser}>
+          <Access key="can_create_leader" accessible={access.canCreateLeader}>
             <Button
               key="button"
               onClick={() => {
@@ -267,7 +267,7 @@ const EngineerListPage: React.FC = () => {
             onCancel: () => setCreateModalVisible(false),
           }}
           onFinish={async (values: any) => {
-            await runCreateEngineer(values.user_id);
+            await runCreateLeader(values.user_id);
           }}
         >
           <ProFormSelect
@@ -289,7 +289,7 @@ const EngineerListPage: React.FC = () => {
             onCancel: () => setUpdateModalVisible(false),
           }}
           onFinish={async (values: any) => {
-            runUpdateEngineer(selectedId, values.department_id);
+            runUpdateLeader(selectedId, values.department_id);
           }}
         >
           <ProFormSelect
@@ -304,4 +304,4 @@ const EngineerListPage: React.FC = () => {
   );
 };
 
-export default EngineerListPage;
+export default LeaderListPage;

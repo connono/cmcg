@@ -38,7 +38,9 @@ export default (initialState: API.UserToken) => {
   const canStopPaymentRecord =
     permissions && permissions.has('can_stop_payment_record');
   const canSeePaymentProcess =
-    permissions && permissions.has('can_see_payment_process');
+    permissions &&
+    (permissions.has('can_install_equipment') ||
+      permissions.has('can_see_payment_process'));
   const canCreatePaymentProcess =
     permissions && permissions.has('can_create_payment_process');
   const canStopPaymentProcess =
@@ -100,6 +102,9 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('do_not_see_equipment_except_install');
   const canStopEquipmentApplyRecord =
     permissions && permissions.has('can_stop_equipment_apply_record');
+  const canCreateLeader = permissions && permissions.has('can_create_leader');
+  const canAddDepartmentToLeader =
+    permissions && permissions.has('can_add_department_to_leader');
 
   return {
     canSeeHome,
@@ -151,5 +156,7 @@ export default (initialState: API.UserToken) => {
     canCreateContractProcess,
     doNotSeeEquipmentExceptInstall,
     canStopEquipmentApplyRecord,
+    canCreateLeader,
+    canAddDepartmentToLeader,
   };
 };
