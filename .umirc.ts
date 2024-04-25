@@ -158,10 +158,22 @@ export default defineConfig({
       ],
     },
     {
-      name: '修改账号密码',
-      path: '/resetPassword',
-      component: './ResetPassword',
-      access: 'canSeeHome',
+      name: '个人信息管理',
+      path: '/information',
+      routes: [
+        {
+          name: '修改账号密码',
+          path: '/information/resetPassword',
+          component: './ResetPassword',
+          access: 'canSeeHome',
+        },
+        {
+          name: '设置个人签名',
+          path: '/information/setSignature',
+          component: './Signature',
+          access: 'canSeeHome',
+        },
+      ],
     },
     {
       name: '数据分析',
