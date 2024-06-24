@@ -38,6 +38,7 @@ const generateTree = (treeNodes: any = [], checkedKeys: string[] = []): any =>
   }));
 
 const createAdvanceRecord = async (treeData: any, targetKeys: string[]) => {
+  console.log(treeData, targetKeys);
   const form = new FormData();
   const allItems = _.chain(targetKeys)
     .map((key: string) => {
@@ -160,6 +161,7 @@ const AdvanceTransfer: React.FC<TreeTransferProps> = ({
 };
 
 const AdvanceTransferModal: React.FC<Props> = (props) => {
+  console.log('data:', props.treeData);
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
 
   const onChange = (keys: string[]) => {

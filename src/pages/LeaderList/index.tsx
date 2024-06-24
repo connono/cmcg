@@ -5,6 +5,7 @@ import {
   ModalForm,
   PageContainer,
   ProColumns,
+  ProFormRadio,
   ProFormSelect,
   ProTable,
 } from '@ant-design/pro-components';
@@ -45,18 +46,17 @@ const getLeaderList = async (params: any) => {
 };
 
 const getAllDepartments = async () => {
-  return await axios.get(
-    `${SERVER_HOST}/department/leader/index?is_functional=1`,
-  );
+  return await axios.get(`${SERVER_HOST}/department/index?is_functional=1`);
 };
 
 const deleteLeader = async (id: number) => {
   return await axios.delete(`${SERVER_HOST}/leaders/${id}`);
 };
 
-const createLeader = async (user_id: string) => {
+const createLeader = async (user_id: string, type: string) => {
   const form = new FormData();
   form.append('user_id', user_id);
+  form.append('type', type);
   return await axios({
     method: 'POST',
     data: form,
@@ -170,6 +170,14 @@ const LeaderListPage: React.FC = () => {
       title: '用户名',
     },
     {
+      dataIndex: 'type',
+      title: '职位',
+      valueEnum: {
+        chief_leader: { text: '科长' },
+        leader: { text: '院长' },
+      },
+    },
+    {
       dataIndex: 'departments',
       title: '分配科室',
       render: (text, record: any) => {
@@ -222,7 +230,7 @@ const LeaderListPage: React.FC = () => {
     <PageContainer
       ghost
       header={{
-        title: '院长室管理',
+        title: '审批用户管理',
       }}
     >
       <ProTable
@@ -267,13 +275,23 @@ const LeaderListPage: React.FC = () => {
             onCancel: () => setCreateModalVisible(false),
           }}
           onFinish={async (values: any) => {
-            await runCreateLeader(values.user_id);
+            await runCreateLeader(values.user_id, values.type);
           }}
         >
           <ProFormSelect
             request={users}
             name="user_id"
             label="选择用户"
+            rules={[{ required: true }]}
+          />
+          <ProFormRadio.Group
+            name="type"
+            label="职位"
+            width="sm"
+            valueEnum={{
+              leader: { text: '院长' },
+              chief_leader: { text: '科长' },
+            }}
             rules={[{ required: true }]}
           />
         </ModalForm>

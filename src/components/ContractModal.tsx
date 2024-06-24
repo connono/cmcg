@@ -33,6 +33,7 @@ const createContract = async (
   contract_file: any,
   comment: string,
   isComplement: string,
+  payment_terms: string,
 ) => {
   const form = new FormData();
   if (source.type === '更多') {
@@ -48,6 +49,7 @@ const createContract = async (
   form.append('contract_file', fileListToString(contract_file));
   form.append('comment', comment);
   form.append('isComplement', isComplement);
+  form.append('payment_terms', payment_terms);
 
   return await axios({
     method: 'POST',
@@ -158,6 +160,7 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             values.contract_file,
             values.comment ? values.comment : '',
             values.isComplement,
+            values.payment_terms,
           );
           setModalVisible(false);
           if (props.callback) props.callback(formRef);
@@ -245,6 +248,12 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             },
           }}
           rules={[{ required: true }]}
+        />
+        <ProFormTextArea
+          width="md"
+          name="payment_terms"
+          label="合同支付条件"
+          placeholder="请输入合同支付条件"
         />
         <ProFormTextArea
           width="md"

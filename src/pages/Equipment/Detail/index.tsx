@@ -189,6 +189,7 @@ const createContract = async (
   contract_file: any,
   comment: string,
   isComplement: string,
+  payment_terms: string,
 ) => {
   const form = new FormData();
   if (source.type === '更多') {
@@ -205,6 +206,7 @@ const createContract = async (
   form.append('contract_file', fileListToString(contract_file));
   form.append('comment', comment);
   form.append('isComplement', isComplement);
+  form.append('payment_terms', payment_terms);
 
   return await axios({
     method: 'POST',
@@ -538,7 +540,7 @@ const EquipmentDetailPage: React.FC = () => {
     const { data: departmentsData } = await runGetAllDepartments();
     const data = _.map(departmentsData, (value: any) => {
       return {
-        value: value.name,
+        value: value.label,
         label: value.label,
       };
     });
@@ -669,8 +671,10 @@ const EquipmentDetailPage: React.FC = () => {
                 label="申请科室"
                 request={departments}
                 name="department"
-                disabled={current < equipmentItem.status}
+                mode="multiple"
+                allowClear
                 rules={[{ required: true }]}
+                disabled={current < equipmentItem.status}
               />
               <ProFormText
                 name="count"
@@ -1108,6 +1112,7 @@ const EquipmentDetailPage: React.FC = () => {
                     values.contract_file,
                     values.comment ? values.comment : '',
                     values.isComplement,
+                    values.payment_terms,
                   );
                 } else if (
                   formRef.current?.getFieldValue('contract_file')[0].status ===
@@ -1223,6 +1228,12 @@ const EquipmentDetailPage: React.FC = () => {
                     },
                   }}
                   rules={[{ required: true }]}
+                />
+                <ProFormTextArea
+                  width="md"
+                  name="payment_terms"
+                  label="合同支付条件"
+                  placeholder="请输入合同支付条件"
                 />
                 <ProFormTextArea
                   width="md"

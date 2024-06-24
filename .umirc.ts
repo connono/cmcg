@@ -47,7 +47,7 @@ export default defineConfig({
           access: 'canEnginnerApproveEquipment',
         },
         {
-          name: '院长室管理',
+          name: '审批用户管理',
           path: '/userManager/leaderList',
           component: './LeaderList',
           access: 'canSeeUserList',
@@ -128,6 +128,12 @@ export default defineConfig({
           access: 'canSeePaymentProcess',
         },
         {
+          name: '制单管理',
+          path: '/purchase/paymentDocument',
+          component: './PaymentDocument',
+          access: 'canSeePaymentProcess',
+        },
+        {
           path: '/purchase/paymentRecord',
           component: './PaymentRecord',
           name: '付款记录列表',
@@ -152,6 +158,13 @@ export default defineConfig({
           path: '/purchase/paymentProcess/detail',
           component: './PaymentProcess/Detail',
           name: '物资型付款流程监控-详情',
+          hideInMenu: true,
+          access: 'canSeePaymentProcess',
+        },
+        {
+          path: '/purchase/paymentDocument/detail',
+          component: './PaymentDocument/Detail',
+          name: '制单管理-详情',
           hideInMenu: true,
           access: 'canSeePaymentProcess',
         },

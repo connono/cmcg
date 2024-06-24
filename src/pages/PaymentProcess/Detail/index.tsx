@@ -11,6 +11,7 @@ import {
   ProFormItem,
   ProFormRadio,
   ProFormText,
+  ProFormTextArea,
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
@@ -52,11 +53,13 @@ const apply = async (
   process_id: string,
   record_id: string,
   assessment: string,
+  payment_terms: string,
 ) => {
   const form = new FormData();
   form.append('method', 'apply');
   form.append('process_id', process_id);
   form.append('assessment', assessment);
+  form.append('payment_terms', payment_terms);
 
   return await axios({
     method: 'POST',
@@ -436,7 +439,12 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                await runApply(process_id, id, values.assessment);
+                await runApply(
+                  process_id,
+                  id,
+                  values.assessment,
+                  values.payment_terms,
+                );
               }
             }}
           >
@@ -508,6 +516,12 @@ const PaymentRecordDetailPage: React.FC = () => {
               />
               <ProFormCheckbox name="is_all_assessment" label="是否全额付款" />
             </ProForm.Group>
+            <ProFormTextArea
+              width="md"
+              name="payment_terms"
+              label="合同支付条件"
+              placeholder="请输入合同支付条件"
+            />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="document"
