@@ -31,6 +31,7 @@ const NotificationTab: React.FC = () => {
         const data = JSON.parse(value.body);
         return {
           notification_id: value.id,
+          user_id: value.user_id,
           title: value.title,
           data,
           link: value.link,

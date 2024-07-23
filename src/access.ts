@@ -105,6 +105,16 @@ export default (initialState: API.UserToken) => {
   const canCreateLeader = permissions && permissions.has('can_create_leader');
   const canAddDepartmentToLeader =
     permissions && permissions.has('can_add_department_to_leader');
+  const canSeePaymentDocument =
+    permissions && permissions.has('can_see_payment_document');
+  const canCreatePaymentDocument =
+    permissions && permissions.has('can_create_payment_document');
+  const canFinanceAuditPaymentDocument =
+    permissions && permissions.has('can_finance_audit_payment_document');
+  const canDeanAuditPaymentDocument =
+    permissions && permissions.has('can_dean_audit_payment_document');
+  const canFinanceDeanAuditPaymentDocument =
+    permissions && permissions.has('can_finance_dean_audit_payment_document');
 
   return {
     canSeeHome,
@@ -158,5 +168,10 @@ export default (initialState: API.UserToken) => {
     canStopEquipmentApplyRecord,
     canCreateLeader,
     canAddDepartmentToLeader,
+    canSeePaymentDocument,
+    canCreatePaymentDocument,
+    canFinanceAuditPaymentDocument,
+    canDeanAuditPaymentDocument,
+    canFinanceDeanAuditPaymentDocument,
   };
 };

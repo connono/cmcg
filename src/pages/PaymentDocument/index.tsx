@@ -1,4 +1,3 @@
-import AdvancePaybackModal from '@/components/AdvancePaybackModal';
 import PaymentDocumentTransferModal from '@/components/PaymentDocumentTransfer';
 import { SERVER_HOST } from '@/constants';
 import {
@@ -10,8 +9,8 @@ import {
   ProFormSelect,
   ProTable,
 } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
-import { Button, message } from 'antd';
+import { Access, history, useAccess, useRequest } from '@umijs/max';
+import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -20,9 +19,11 @@ const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index?is_functional=1`);
 };
 
-// const deletePaymentDocumentItem = async (id?: number) => {
-//   return await axios.delete(`${SERVER_HOST}/payment/document/records/delete/${id}`);
-// };
+const deletePaymentDocumentItem = async (id?: number) => {
+  return await axios.delete(
+    `${SERVER_HOST}/payment/document/records/delete/${id}`,
+  );
+};
 
 const getPaymentProcessRecordList = async (department: string) => {
   if (_.isUndefined(department)) return [];
@@ -46,11 +47,10 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
-  const [paybackOpen, setPaybackOpen] = useState<boolean>(false);
-  const [selectedRecord] = useState<any>();
   const [transferOpen, setTransferOpen] = useState<boolean>(false);
   const [treeData, setTreeData] = useState<any>(initialTreeData);
   const [selectedDepartment, setSelectedDepartment] = useState<any>();
+  const access = useAccess();
 
   const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
     manual: true,
@@ -83,15 +83,18 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
     return data;
   };
 
-  // const { run: runDeletePaymentDocumentItem } = useRequest(deletePaymentDocumentItem, {
-  //   manual: true,
-  //   onSuccess: () => {
-  //     message.success('删除成功');
-  //   },
-  //   onError: (error: any) => {
-  //     message.error(error.message);
-  //   },
-  // });
+  const { run: runDeletePaymentDocumentItem } = useRequest(
+    deletePaymentDocumentItem,
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('删除成功');
+      },
+      onError: (error: any) => {
+        message.error(error.message);
+      },
+    },
+  );
 
   const { run: runGetPaymentProcessRecordList } = useRequest(
     getPaymentProcessRecordList,
@@ -142,10 +145,6 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
   //   actionRef.current?.reload();
   // };
 
-  const closeModal = () => {
-    setPaybackOpen(false);
-  };
-
   const departments = async () => {
     const { data: departmentsData } = await runGetAllDepartments();
     const data = _.map(departmentsData, (value: any) => {
@@ -156,23 +155,6 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
     });
     return data;
   };
-
-  const STATUS = [
-    {
-      optionText: '制单',
-      onOk: closeModal,
-      okText: '确认',
-      onCancel: closeModal,
-      cancelText: '取消',
-    },
-    {
-      optionText: '查看记录',
-      onOk: closeModal,
-      okText: '确认',
-      onCancel: closeModal,
-      cancelText: '取消',
-    },
-  ];
 
   const columns: ProDescriptionsItemProps[] = [
     {
@@ -201,35 +183,70 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      // render: (text, record, _, action) => {
-      //   let update;
-      //   if (record.status === 'finance_audit') {
-      //     update =
-      //   }
-      //   return(
-      //     <>
-      //       <a
-      //         onClick={() => {
-      //           console.log('record:', record);
-      //           history.push(`/purchase/paymentDocument/detail#finance_audit&${record.id}`, record);
-      //         }}
-      //       >
-      //         待财务科审核
-      //       </a>
-      //       <Divider type="vertical" />
-      //       <a
-      //         onClick={async () => {
-      //           const id = record.id;
-      //           await runDeletePaymentDocumentItem(id);
-      //           await runGetPaymentProcessRecordList(selectedDepartment);
-      //           action?.reload();
-      //         }}
-      //       >
-      //         删除
-      //       </a>
-      //     </>
-      //   );
-      // },
+      render: (text, record, _, action) => {
+        let update;
+        if (record.status === 'finance_audit') {
+          update = (
+            <a
+              onClick={() => {
+                console.log('record:', record);
+                history.push(
+                  `/purchase/paymentDocument/detail#finance_audit&${record.id}`,
+                  record,
+                );
+              }}
+            >
+              待财务科审核
+            </a>
+          );
+        } else if (record.status === 'dean_audit') {
+          update = (
+            <a
+              onClick={() => {
+                console.log('record:', record);
+                history.push(
+                  `/purchase/paymentDocument/detail#finance_audit&${record.id}`,
+                  record,
+                );
+              }}
+            >
+              待分管院长审核
+            </a>
+          );
+        } else if (record.status === 'finance_dean_audit') {
+          update = (
+            <a
+              onClick={() => {
+                console.log('record:', record);
+                history.push(
+                  `/purchase/paymentDocument/detail#finance_audit&${record.id}`,
+                  record,
+                );
+              }}
+            >
+              待财务院长审核
+            </a>
+          );
+        } else if (record.status === 'finish') {
+          update = <span>已通过</span>;
+        }
+        return (
+          <>
+            {update}
+            <Divider type="vertical" />
+            <a
+              onClick={async () => {
+                const id = record.id;
+                await runDeletePaymentDocumentItem(id);
+                await runGetPaymentProcessRecordList(selectedDepartment);
+                action?.reload();
+              }}
+            >
+              删除
+            </a>
+          </>
+        );
+      },
     },
   ];
 
@@ -330,15 +347,20 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
                 label="选择科室"
               />
             </div>,
-            <Button
-              key="button"
-              onClick={() => {
-                setTransferOpen(true);
-              }}
-              type="primary"
+            <Access
+              key="canCreatePaymentDocument"
+              accessible={access.canCreatePaymentDocument}
             >
-              新建
-            </Button>,
+              <Button
+                key="button"
+                onClick={() => {
+                  setTransferOpen(true);
+                }}
+                type="primary"
+              >
+                新建
+              </Button>
+            </Access>,
           ],
         }}
       />
@@ -353,18 +375,6 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
         }}
         cancel={() => setTransferOpen(false)}
       />
-      {selectedRecord && selectedRecord.id ? (
-        <AdvancePaybackModal
-          selectedId={selectedRecord.id}
-          open={paybackOpen}
-          // @ts-ignore
-          onOk={STATUS[parseInt(selectedRecord.status)].onOk}
-          okText={STATUS[parseInt(selectedRecord.status)].okText}
-          // @ts-ignore
-          onCancel={STATUS[parseInt(selectedRecord.status)].onCancel}
-          cancelText={STATUS[parseInt(selectedRecord.status)].cancelText}
-        />
-      ) : null}
     </PageContainer>
   );
 };

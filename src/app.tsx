@@ -81,6 +81,13 @@ export async function getInitialState(): Promise<{
       data = await getUser(access_token);
       permissions = await getPermissions(data.id);
       allRoles = await getAllRoles();
+      console.log('has_access_token', {
+        id: data.id,
+        name: data.name,
+        department: data.department,
+        permissions: permissions ? permissions : new Set(),
+        allRoles: allRoles,
+      });
       return {
         id: data.id,
         name: data.name,
@@ -89,6 +96,13 @@ export async function getInitialState(): Promise<{
         allRoles: allRoles,
       };
     } catch (error) {
+      console.log('not_access_token', {
+        id: -1,
+        name: '',
+        department: '',
+        permissions: new Set(),
+        allRoles: [],
+      });
       localStorage.removeItem('access_token');
       message.error('登录已过期，请重新登录！');
       history.push('/login');

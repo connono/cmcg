@@ -9,14 +9,13 @@ import {
   ProFormDatePicker,
   ProFormDigit,
   ProFormItem,
-  ProFormRadio,
   ProFormText,
   ProFormTextArea,
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
 import { history, useAccess, useRequest } from '@umijs/max';
-import { Button, Modal, Steps, message } from 'antd';
+import { Button, Modal, Steps, Table, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
@@ -30,16 +29,10 @@ const int_status = (status: string) => {
   switch (status) {
     case 'apply':
       return 0;
-    case 'document':
-      return 1;
-    case 'finance_audit':
-      return 2;
-    case 'dean_audit':
-      return 3;
     case 'process':
-      return 4;
+      return 2;
     default:
-      return -1;
+      return 1;
   }
 };
 
@@ -68,44 +61,8 @@ const apply = async (
   });
 };
 
-const document = async (
-  process_id: string,
-  record_id: string,
-  payment_voucher_file: string,
-) => {
-  const form = new FormData();
-  form.append('method', 'document');
-  form.append('process_id', process_id);
-  form.append('record_id', record_id);
-  form.append('payment_voucher_file', fileListToString(payment_voucher_file));
-
-  return await axios({
-    method: 'POST',
-    data: form,
-    url: `${SERVER_HOST}/payment/process/records/update/${record_id}`,
-  });
-};
-
-const financeAudit = async (process_id: string, record_id: string) => {
-  const form = new FormData();
-  form.append('method', 'finance_audit');
-  form.append('process_id', process_id);
-  return await axios({
-    method: 'POST',
-    data: form,
-    url: `${SERVER_HOST}/payment/process/records/update/${record_id}`,
-  });
-};
-
-const deanAudit = async (process_id: string, record_id: string) => {
-  const form = new FormData();
-  form.append('method', 'dean_audit');
-  form.append('process_id', process_id);
-  return await axios({
-    method: 'POST',
-    data: form,
-    url: `${SERVER_HOST}/payment/process/records/update/${record_id}`,
-  });
+const getDocument = async (id: string) => {
+  return await axios.get(`${SERVER_HOST}/payment/document/records/item/${id}`);
 };
 
 const process = async (
@@ -127,13 +84,13 @@ const process = async (
   });
 };
 
-const back = async (process_id: string, record_id: string) => {
-  return await axios({
-    method: 'PATCH',
-    data: { process_id, type: 'process' },
-    url: `${SERVER_HOST}/payment/process/records/back/${record_id}`,
-  });
-};
+// const back = async (process_id: string, record_id: string) => {
+//   return await axios({
+//     method: 'PATCH',
+//     data: { process_id, type: 'process' },
+//     url: `${SERVER_HOST}/payment/process/records/back/${record_id}`,
+//   });
+// };
 
 const PaymentRecordDetailPage: React.FC = () => {
   const [paymentRecord, setPaymentRecord] = useState({});
@@ -144,7 +101,19 @@ const PaymentRecordDetailPage: React.FC = () => {
   const [modal, contextHolder] = Modal.useModal(); // eslint-disable-line
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const [dataSource, setDataSource] = useState<any>();
   const access = useAccess();
+
+  const { run: runGetDocument } = useRequest(getDocument, {
+    manual: true,
+    onSuccess: (result: any) => {
+      console.log(result);
+      setDataSource(result.data);
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
 
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
@@ -182,46 +151,7 @@ const PaymentRecordDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
-  const { run: runDocument } = useRequest(document, {
-    manual: true,
-    onSuccess: () => {
-      message.success('申请制单成功，正在返回计划列表...');
-      history.push('/purchase/paymentProcess');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run: runFinanceAudit } = useRequest(financeAudit, {
-    manual: true,
-    onSuccess: () => {
-      message.success('审核成功，正在返回计划列表...');
-      history.push('/purchase/paymentProcess');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run: runDeanAudit } = useRequest(deanAudit, {
-    manual: true,
-    onSuccess: () => {
-      message.success('审核成功，正在返回计划列表...');
-      history.push('/purchase/paymentProcess');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run: runBack } = useRequest(back, {
-    manual: true,
-    onSuccess: () => {
-      message.success('已驳回，正在返回计划列表...');
-      history.push('/purchase/paymentProcess');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
+
   const { run: runProcess } = useRequest(process, {
     manual: true,
     onSuccess: () => {
@@ -295,11 +225,72 @@ const PaymentRecordDetailPage: React.FC = () => {
     }
   };
 
+  const columns = [
+    {
+      title: '应付款单位',
+      dataIndex: 'company',
+      key: 'company',
+    },
+    {
+      title: '设备名称',
+      dataIndex: 'equipment',
+      key: 'equipment',
+    },
+    {
+      title: '合同金额',
+      dataIndex: 'price',
+      key: 'price',
+    },
+    {
+      title: '款项',
+      dataIndex: 'type',
+      key: 'type',
+    },
+    {
+      title: '已支付情况',
+      children: [
+        {
+          title: '支付时间',
+          dataIndex: 'last_pay_date',
+          key: 'last_pay_date',
+        },
+        {
+          title: '支付金额',
+          dataIndex: 'assessment_count',
+          key: 'assessment_count',
+        },
+      ],
+    },
+    {
+      title: '本期支付金额',
+      dataIndex: 'assessment',
+      key: 'assessment',
+    },
+    {
+      title: '未支付金额',
+      dataIndex: 'rest_money',
+      key: 'rest_money',
+    },
+    {
+      title: '本期合同支付条件',
+      dataIndex: 'payment_terms_now',
+      key: 'payment_terms_now',
+    },
+    {
+      title: '合同支付条件',
+      dataIndex: 'payment_terms',
+      key: 'payment_terms',
+    },
+  ];
+
   useEffect(() => {
     if (id) {
       runGetItem(id);
     } else {
       history.push('/purchase/paymentProcess');
+    }
+    if (paymentRecord.payment_document_id) {
+      runGetDocument(paymentRecord.payment_document_id);
     }
   }, []);
   return (
@@ -523,177 +514,8 @@ const PaymentRecordDetailPage: React.FC = () => {
               placeholder="请输入合同支付条件"
             />
           </StepsForm.StepForm>
-          <StepsForm.StepForm
-            name="document"
-            title="制单"
-            onFinish={async () => {
-              if (!access.canDocumentPaymentProcessRecord) {
-                message.error('你无权进行此操作');
-              } else {
-                const values = formRef.current?.getFieldsValue();
-                if (
-                  formRef.current?.getFieldValue('payment_voucher_file')[0]
-                    .status === 'done'
-                ) {
-                  await runDocument(
-                    process_id,
-                    id,
-                    values.payment_voucher_file,
-                  );
-                } else if (
-                  formRef.current?.getFieldValue('payment_voucher_file')[0]
-                    .status === 'error'
-                ) {
-                  message.error('文件上传失败');
-                } else {
-                  message.error('文件上传中，请等待');
-                }
-              }
-            }}
-          >
-            <ProFormItem label="合同附件：">
-              <PreviewListModal
-                fileListString={history.location.state.payment_file}
-              />
-            </ProFormItem>
-            <ProFormItem label="验收资料：">
-              <PreviewListModal
-                fileListString={history.location.state.install_picture}
-              />
-            </ProFormItem>
-            <ProFormUploadButton
-              name="payment_voucher_file"
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款凭证'
-                  : '收款凭证'
-              }
-              rules={[{ required: true }]}
-              fieldProps={{
-                customRequest: (options) => {
-                  upload(options.file, (isSuccess: boolean, filename: string) =>
-                    handleUpload(
-                      isSuccess,
-                      filename,
-                      'payment_voucher_file',
-                      options.file.uid,
-                    ),
-                  );
-                },
-              }}
-            />
-          </StepsForm.StepForm>
-          <StepsForm.StepForm
-            name="finance_audit"
-            title="财务科审核"
-            onFinish={async () => {
-              if (!access.canAuditPaymentRecord) {
-                message.error('你无权进行此操作');
-              } else {
-                const values = formRef.current?.getFieldsValue();
-                if (values.audit) await runFinanceAudit(process_id, id);
-                else await runBack(process_id, id);
-                return true;
-              }
-            }}
-          >
-            <ProFormItem label="合同附件：">
-              <PreviewListModal
-                fileListString={history.location.state.payment_file}
-              />
-            </ProFormItem>
-            <ProFormItem
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款凭证：'
-                  : '收款凭证：'
-              }
-            >
-              {
-                // @ts-ignore
-                paymentRecord?.payment_voucher_file ? (
-                  <PreviewListModal
-                    fileListString={paymentRecord.payment_voucher_file}
-                  />
-                ) : (
-                  <span>找不到该文件</span>
-                )
-              }
-            </ProFormItem>
-            <ProFormItem label="验收资料：">
-              <PreviewListModal
-                fileListString={history.location.state.install_picture}
-              />
-            </ProFormItem>
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
-          </StepsForm.StepForm>
-          <StepsForm.StepForm
-            name="dean_audit"
-            title="副院长审核"
-            onFinish={async () => {
-              if (!access.canDeanAuditPaymentProcessRecord) {
-                message.error('你无权进行此操作');
-              } else {
-                const values = formRef.current?.getFieldsValue();
-                if (values.audit) await runDeanAudit(process_id, id);
-                else await runBack(process_id, id);
-                return true;
-              }
-            }}
-          >
-            <ProFormItem label="合同附件：">
-              <PreviewListModal
-                fileListString={history.location.state.payment_file}
-              />
-            </ProFormItem>
-            <ProFormItem
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款凭证：'
-                  : '收款凭证：'
-              }
-            >
-              {
-                // @ts-ignore
-                paymentRecord?.payment_voucher_file ? (
-                  <PreviewListModal
-                    fileListString={paymentRecord.payment_voucher_file}
-                  />
-                ) : (
-                  <span>找不到该文件</span>
-                )
-              }
-            </ProFormItem>
-            <ProFormItem label="验收资料：">
-              <PreviewListModal
-                fileListString={history.location.state.install_picture}
-              />
-            </ProFormItem>
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
+          <StepsForm.StepForm name="audit" title="审核">
+            <Table dataSource={dataSource} columns={columns} />{' '}
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
             checkbox: string;

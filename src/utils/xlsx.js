@@ -12,8 +12,7 @@ export const generateXlsx = async (d, images) => {
   return await axios({
     method: 'POST',
     data: data,
-    url: 'http://localhost:3000/generateXlsx',
-    //url: 'http://10.10.0.27:3300/generateXlsx',
+    url: 'http://10.10.0.27:3300/generateXlsx',
   });
 };
 
@@ -25,6 +24,6 @@ export const branchXlsx = async (excel_url, signature, position) => {
   return axios({
     method: 'POST',
     data: data,
-    url: 'http://localhost:3000/branchXlsx',
+    url: 'http://10.10.0.27:3300/branchXlsx',
   });
 };
