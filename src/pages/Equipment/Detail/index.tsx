@@ -181,10 +181,15 @@ const tender = async (
 const createContract = async (
   equipment_apply_record_id: string,
   contract_name: string,
+  type: string,
+  complement_code: string,
+  department_source: string,
   category: string,
   contractor: string,
   source: any,
   price: number,
+  dean_type: string,
+  law_advice: string,
   isImportant: string,
   contract_file: any,
   comment: string,
@@ -199,9 +204,14 @@ const createContract = async (
   }
   form.append('equipment_apply_record_id', equipment_apply_record_id);
   form.append('contract_name', contract_name);
+  form.append('type', type);
+  form.append('complement_code', complement_code);
+  form.append('department_source', department_source);
   form.append('category', category);
   form.append('contractor', contractor);
   form.append('price', price.toString());
+  form.append('dean_type', dean_type);
+  form.append('law_advice', law_advice);
   form.append('isImportant', isImportant);
   form.append('contract_file', fileListToString(contract_file));
   form.append('comment', comment);
@@ -1104,10 +1114,15 @@ const EquipmentDetailPage: React.FC = () => {
                   await runCreateContract(
                     id,
                     values.contract_name,
+                    values.type,
+                    values.complement_code,
+                    values.department_source,
                     values.category,
                     values.contractor,
                     values.source,
                     values.price,
+                    values.dean_type,
+                    values.law_advice,
                     values.isImportant,
                     values.contract_file,
                     values.comment ? values.comment : '',
@@ -1151,19 +1166,64 @@ const EquipmentDetailPage: React.FC = () => {
                   placeholder="请输入合同名称"
                   rules={[{ required: true }]}
                 />
+                <ProFormRadio.Group
+                  name="type"
+                  label="请选择"
+                  width="sm"
+                  rules={[{ required: true }]}
+                >
+                  <div style={{ display: 'flex' }}>
+                    <ProFormRadio fieldProps={{ value: 'true' }}>
+                      新签
+                    </ProFormRadio>
+                    <ProFormRadio fieldProps={{ value: 'false' }}>
+                      <div style={{ display: 'flex' }}>
+                        <div style={{ lineHeight: '34px', margin: '0px 10px' }}>
+                          变更
+                        </div>
+                        <ProFormText
+                          width="md"
+                          name="complement_code"
+                          placeholder="请输入合同编码"
+                        />
+                      </div>
+                    </ProFormRadio>
+                  </div>
+                </ProFormRadio.Group>
+                <ProFormSelect
+                  label="归口码"
+                  name="department_source"
+                  width="md"
+                  valueEnum={{
+                    ZW: { text: '总务归口' },
+                    YJ: { text: '药剂归口' },
+                    XX: { text: '信息归口' },
+                    YH: { text: '医患协商' },
+                    CW: { text: '财务归口' },
+                    YW: { text: '医务归口' },
+                    CG: { text: '采购归口' },
+                    YG: { text: '医工归口' },
+                    DZ: { text: '党政归口' },
+                    RS: { text: '人事归口' },
+                    KJ: { text: '科教归口' },
+                  }}
+                  rules={[{ required: true }]}
+                />
                 <ProFormSelect
                   label="类型"
                   name="category"
                   width="md"
                   valueEnum={{
-                    JJ: { text: '基建项目', status: 'JJ' },
-                    YP: { text: '药品采购', status: 'YP' },
-                    XX: { text: '信息采购', status: 'XX' },
-                    XS: { text: '医疗协商', status: 'XS' },
-                    HZ: { text: '医疗合作', status: 'HZ' },
-                    ZW: { text: '物资采购', status: 'ZW' },
-                    FW: { text: '服务项目', status: 'FW' },
-                    QX: { text: '器械采购', status: 'QX' },
+                    JJXM: { text: '基建项目' },
+                    YPCG: { text: '药品采购' },
+                    XXCG: { text: '信息采购' },
+                    QXCG: { text: '器械采购' },
+                    QRHZ: { text: '金融合作' },
+                    WZCG: { text: '物资采购' },
+                    YLHZ: { text: '医疗合作' },
+                    YLXS: { text: '医疗协商' },
+                    DSFFW: { text: '第三方服务' },
+                    QT: { text: '其他' },
                   }}
                   rules={[{ required: true }]}
                 />
@@ -1210,6 +1270,27 @@ const EquipmentDetailPage: React.FC = () => {
                     rules={[{ required: true }]}
                   />
                 </ProForm.Group>
+                <ProFormRadio.Group
+                  name="dean_type"
+                  label="签署人"
+                  width="sm"
+                  valueEnum={{
+                    charge_dean: { text: '分管院长' },
+                    dean: { text: '院长' },
+                  }}
+                  rules={[{ required: true }]}
+                />
+                <ProFormRadio.Group
+                  name="law_advice"
+                  label="法律意见"
+                  width="sm"
+                  valueEnum={{
+                    written_request: { text: '书面征询' },
+                    oral_inquiry: { text: '口头征询' },
+                    none: { text: '无' },
+                  }}
+                  rules={[{ required: true }]}
+                />
                 <ProFormUploadButton
                   label="合同附件："
                   name="contract_file"
