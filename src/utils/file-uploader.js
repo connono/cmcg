@@ -112,7 +112,7 @@ export function uploadFile(file, url, handleUpload, filename, uid) {
 }
 
 export function retrieveGetNewURL(name, cb) {
-  fetch(`http://localhost:3000/presignedGetUrl?name=${name}`)
+  fetch(`http://10.10.0.27:3300/presignedGetUrl?name=${name}`)
     .then((response) => {
       response.text().then((body) => {
         cb(body);

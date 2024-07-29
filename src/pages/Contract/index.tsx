@@ -10,7 +10,7 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
+import { history, useModel, useRequest } from '@umijs/max';
 import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -19,14 +19,11 @@ const deleteContract = async (id?: number) => {
   return await axios.delete(`${SERVER_HOST}/payment/contracts/delete/${id}`);
 };
 
-const backEquipmentItem = async (id?: number) => {
-  return await axios.patch(`${SERVER_HOST}/equipment/back/${id}`);
-};
-
 const ContractPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const { initialState } = useModel('@@initialState');
 
   const getContractList = async (params: any) => {
     const data = await axios({
@@ -34,6 +31,7 @@ const ContractPage: React.FC = () => {
       params: {
         ...filter,
         isPaginate: true,
+        user_id: initialState.id,
       },
       url: `${SERVER_HOST}/payment/contracts/index?page=${params.current}`,
     })
@@ -55,15 +53,6 @@ const ContractPage: React.FC = () => {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run: runBackEquipmentItem } = useRequest(backEquipmentItem, {
-    manual: true,
-    onSuccess: () => {
-      message.success('回退成功');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -121,50 +110,68 @@ const ContractPage: React.FC = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (text, record, _, action) => (
-        <>
-          <a
-            onClick={() => {
-              const id = record.id;
-              history.push(`/purchase/contract/detail#${id}`, record);
-            }}
-          >
-            详情
-          </a>
-          <Divider type="vertical" />
-          <a
-            onClick={async () => {
-              const id = record.id;
-              await runBackEquipmentItem(id);
-              action?.reload();
-            }}
-          >
-            回退
-          </a>
-          <Divider type="vertical" />
-          <a
-            onClick={async () => {
-              const id = record.id;
-              await runDeleteContract(id);
-              action?.reload();
-            }}
-          >
-            删除
-          </a>
-          <Divider type="vertical" />
-          {record.equipment_apply_record_id ? (
+      render: (text, record, _, action) => {
+        let update;
+        if (record.status === 'approve') {
+          update = (
             <a
-              onClick={async () => {
-                history.push(
-                  `/apply/equipment/detail#update&${record.equipment_apply_record_id}`,
-                );
+              onClick={() => {
+                history.push(`/purchase/contract/detail#${record.id}`, record);
               }}
             >
-              采购详情
+              待审核
             </a>
-          ) : null}
-        </>
-      ),
+          );
+        } else if (record.status === 'upload') {
+          update = (
+            <a
+              onClick={() => {
+                history.push(`/purchase/contract/detail#${record.id}`, record);
+              }}
+            >
+              待上传
+            </a>
+          );
+        } else if (record.status === 'finish') {
+          update = (
+            <a
+              onClick={() => {
+                history.push(`/purchase/contract/detail#${record.id}`, record);
+              }}
+            >
+              查看详情
+            </a>
+          );
+        }
+        return (
+          <>
+            {update}
+            <Divider type="vertical" />
+            <a
+              onClick={async () => {
+                const id = record.id;
+                await runDeleteContract(id);
+                action?.reload();
+              }}
+            >
+              删除
+            </a>
+            <Divider type="vertical" />
+            {record.equipment_apply_record_id ? (
+              <a
+                onClick={async () => {
+                  history.push(
+                    `/apply/equipment/detail#update&${record.equipment_apply_record_id}`,
+                    record,
+                  );
+                }}
+              >
+                采购详情
+              </a>
+            ) : null}
+          </>
+        );
+      },
     },
   ];
 
@@ -217,6 +224,11 @@ const ContractPage: React.FC = () => {
                   contract_name: _.isUndefined(value.contract_name)
                     ? filter.contract_name
                     : value.contract_name,
+                  status: value.status
+                    ? value.status === 'all'
+                      ? null
+                      : value.status
+                    : filter.status,
                   series_number: _.isUndefined(value.series_number)
                     ? filter.series_number
                     : value.series_number,
@@ -240,6 +252,17 @@ const ContractPage: React.FC = () => {
             >
               <ProFormText name="contract_name" label="合同名称" />
               <ProFormText name="series_number" label="合同编号" />
+              <ProFormSelect
+                label="状态"
+                name="status"
+                width="md"
+                valueEnum={{
+                  approve: { text: '待审核' },
+                  upload: { text: '待上传' },
+                  finish: { text: '已完成' },
+                  all: { text: '全部' },
+                }}
+              />
               <ProFormSelect
                 label="类型"
                 name="category"

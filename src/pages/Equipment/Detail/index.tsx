@@ -185,13 +185,13 @@ const createContract = async (
   complement_code: string,
   department_source: string,
   category: string,
+  purchase_type: string,
   contractor: string,
   source: any,
   price: number,
   dean_type: string,
   law_advice: string,
   isImportant: string,
-  contract_file: any,
   comment: string,
   isComplement: string,
   payment_terms: string,
@@ -212,9 +212,9 @@ const createContract = async (
   form.append('price', price.toString());
   form.append('dean_type', dean_type);
   form.append('law_advice', law_advice);
+  form.append('purchase_type', purchase_type);
   form.append('isImportant', isImportant);
-  form.append('contract_file', fileListToString(contract_file));
-  form.append('comment', comment);
+  form.append('comment', comment ? comment : '无');
   form.append('isComplement', isComplement);
   form.append('payment_terms', payment_terms);
 
@@ -660,7 +660,7 @@ const EquipmentDetailPage: React.FC = () => {
             }}
           >
             <Access
-              key="do_not_see_equipment_except_install"
+              key="do_not_see_eipment_except_install"
               accessible={!access.doNotSeeEquipmentExceptInstall}
             >
               <ProFormText
@@ -1107,36 +1107,24 @@ const EquipmentDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                if (
-                  formRef.current?.getFieldValue('contract_file')[0].status ===
-                  'done'
-                ) {
-                  await runCreateContract(
-                    id,
-                    values.contract_name,
-                    values.type,
-                    values.complement_code,
-                    values.department_source,
-                    values.category,
-                    values.contractor,
-                    values.source,
-                    values.price,
-                    values.dean_type,
-                    values.law_advice,
-                    values.isImportant,
-                    values.contract_file,
-                    values.comment ? values.comment : '',
-                    values.isComplement,
-                    values.payment_terms,
-                  );
-                } else if (
-                  formRef.current?.getFieldValue('contract_file')[0].status ===
-                  'error'
-                ) {
-                  message.error('文件上传失败！');
-                } else {
-                  message.error('文件上传中，请等待...');
-                }
+                await runCreateContract(
+                  id,
+                  values.contract_name,
+                  values.type,
+                  values.complement_code,
+                  values.department_source,
+                  values.category,
+                  values.purchase_type,
+                  values.contractor,
+                  values.source,
+                  values.price,
+                  values.dean_type,
+                  values.law_advice,
+                  values.isImportant,
+                  values.comment ? values.comment : '',
+                  values.isComplement,
+                  values.payment_terms,
+                );
               }
             }}
           >
@@ -1170,26 +1158,18 @@ const EquipmentDetailPage: React.FC = () => {
                   name="type"
                   label="请选择"
                   width="sm"
+                  valueEnum={{
+                    create: { text: '新签' },
+                    update: { text: '变更' },
+                  }}
                   rules={[{ required: true }]}
-                >
-                  <div style={{ display: 'flex' }}>
-                    <ProFormRadio fieldProps={{ value: 'true' }}>
-                      新签
-                    </ProFormRadio>
-                    <ProFormRadio fieldProps={{ value: 'false' }}>
-                      <div style={{ display: 'flex' }}>
-                        <div style={{ lineHeight: '34px', margin: '0px 10px' }}>
-                          变更
-                        </div>
-                        <ProFormText
-                          width="md"
-                          name="complement_code"
-                          placeholder="请输入合同编码"
-                        />
-                      </div>
-                    </ProFormRadio>
-                  </div>
-                </ProFormRadio.Group>
+                />
+                <ProFormText
+                  label="变更合同编码"
+                  width="md"
+                  name="complement_code"
+                  placeholder="请输入合同编码"
+                />
                 <ProFormSelect
                   label="归口码"
                   name="department_source"
@@ -1223,6 +1203,23 @@ const EquipmentDetailPage: React.FC = () => {
                     YLHZ: { text: '医疗合作' },
                     YLXS: { text: '医疗协商' },
                     DSFFW: { text: '第三方服务' },
+                    QT: { text: '其他' },
+                  }}
+                  rules={[{ required: true }]}
+                />
+                <ProFormSelect
+                  label="采购类型"
+                  name="purchase_type"
+                  width="md"
+                  valueEnum={{
+                    GKZB: { text: '公开招标' },
+                    DYLYCG: { text: '单一来源采购' },
+                    JZXCS: { text: '竞争性磋商' },
+                    YQZB: { text: '邀请招标' },
+                    XQ: { text: '续签' },
+                    JZXTP: { text: '竞争性谈判' },
+                    ZFZB: { text: '政府招标采购目录内服务商' },
+                    XJ: { text: '询价' },
                     QT: { text: '其他' },
                   }}
                   rules={[{ required: true }]}
@@ -1288,25 +1285,6 @@ const EquipmentDetailPage: React.FC = () => {
                     written_request: { text: '书面征询' },
                     oral_inquiry: { text: '口头征询' },
                     none: { text: '无' },
-                  }}
-                  rules={[{ required: true }]}
-                />
-                <ProFormUploadButton
-                  label="合同附件："
-                  name="contract_file"
-                  fieldProps={{
-                    customRequest: (options) => {
-                      upload(
-                        options.file,
-                        (isSuccess: boolean, filename: string) =>
-                          handleUpload(
-                            isSuccess,
-                            filename,
-                            'contract_file',
-                            options.file.uid,
-                          ),
-                      );
-                    },
                   }}
                   rules={[{ required: true }]}
                 />

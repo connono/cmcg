@@ -1,6 +1,5 @@
 import { SERVER_HOST } from '@/constants';
 import { generateWord } from '@/utils/contract-word';
-import { fileListToString, upload } from '@/utils/file-uploader';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
@@ -10,12 +9,10 @@ import {
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProFormUploadButton,
 } from '@ant-design/pro-components';
 import { useRequest } from '@umijs/max';
 import { Button, message } from 'antd';
 import axios from 'axios';
-import _ from 'lodash';
 import React, { useRef, useState } from 'react';
 import CapitalSourceInput from './CapitalSourceInput';
 
@@ -24,19 +21,18 @@ interface ContractModalProps {
 }
 
 const createContract = async (
-  equipment_apply_record_id: string,
   contract_name: string,
   type: string,
   complement_code: string,
   department_source: string,
   category: string,
+  purchase_type: string,
   contractor: string,
   source: any,
   price: number,
   dean_type: string,
   law_advice: string,
   isImportant: string,
-  contract_file: any,
   comment: string,
   isComplement: string,
   payment_terms: string,
@@ -47,7 +43,6 @@ const createContract = async (
   } else {
     form.append('source', source.type);
   }
-  form.append('equipment_apply_record_id', equipment_apply_record_id);
   form.append('contract_name', contract_name);
   form.append('type', type);
   form.append('complement_code', complement_code);
@@ -58,8 +53,8 @@ const createContract = async (
   form.append('dean_type', dean_type);
   form.append('law_advice', law_advice);
   form.append('isImportant', isImportant);
-  form.append('contract_file', fileListToString(contract_file));
-  form.append('comment', comment);
+  form.append('purchase_type', purchase_type);
+  form.append('comment', comment ? comment : '无');
   form.append('isComplement', isComplement);
   form.append('payment_terms', payment_terms);
 
@@ -83,6 +78,7 @@ const storeDocx = async (id: number, contract_docx: string) => {
 const ContractModal: React.FC<ContractModalProps> = (props) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const formRef = useRef<ProFormInstance>();
+  console.log('formRef:', formRef);
 
   const { run: runStoreDocx } = useRequest(storeDocx, {
     manual: true,
@@ -106,42 +102,6 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
       message.error(error.message);
     },
   });
-
-  const handleUpload = (
-    isSuccess: boolean,
-    filename: string,
-    field: string,
-    uid: string,
-  ) => {
-    const payment_file = formRef.current?.getFieldValue(field);
-    const current_payment_file = _.find(payment_file, (file: any) => {
-      return file.uid === uid;
-    });
-    const other_payment_files = _.filter(payment_file, (file: any) => {
-      return file.uid !== uid;
-    });
-    if (isSuccess) {
-      formRef.current?.setFieldValue(field, [
-        ...other_payment_files,
-        {
-          ...current_payment_file,
-          status: 'done',
-          percent: 100,
-          filename,
-        },
-      ]);
-    } else {
-      formRef.current?.setFieldValue(field, [
-        ...other_payment_files,
-        {
-          ...current_payment_file,
-          status: 'error',
-          percent: 100,
-          filename,
-        },
-      ]);
-    }
-  };
 
   return (
     <div key="contract">
@@ -167,13 +127,13 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             values.complement_code,
             values.department_source,
             values.category,
+            values.purchase_type,
             values.contractor,
             values.source,
             values.price,
             values.dean_type,
             values.law_advice,
             values.isImportant,
-            values.contract_file,
             values.comment ? values.comment : '',
             values.isComplement,
             values.payment_terms,
@@ -193,24 +153,18 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
           name="type"
           label="请选择"
           width="sm"
+          valueEnum={{
+            create: { text: '新签' },
+            update: { text: '变更' },
+          }}
           rules={[{ required: true }]}
-        >
-          <div style={{ display: 'flex' }}>
-            <ProFormRadio fieldProps={{ value: 'true' }}>新签</ProFormRadio>
-            <ProFormRadio fieldProps={{ value: 'false' }}>
-              <div style={{ display: 'flex' }}>
-                <div style={{ lineHeight: '34px', margin: '0px 10px' }}>
-                  变更
-                </div>
-                <ProFormText
-                  width="md"
-                  name="complement_code"
-                  placeholder="请输入合同编码"
-                />
-              </div>
-            </ProFormRadio>
-          </div>
-        </ProFormRadio.Group>
+        />
+        <ProFormText
+          label="变更合同编码"
+          width="md"
+          name="complement_code"
+          placeholder="请输入合同编码"
+        />
         <ProFormSelect
           label="归口码"
           name="department_source"
@@ -244,6 +198,23 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             YLHZ: { text: '医疗合作' },
             YLXS: { text: '医疗协商' },
             DSFFW: { text: '第三方服务' },
+            QT: { text: '其他' },
+          }}
+          rules={[{ required: true }]}
+        />
+        <ProFormSelect
+          label="采购类型"
+          name="purchase_type"
+          width="md"
+          valueEnum={{
+            GKZB: { text: '公开招标' },
+            DYLYCG: { text: '单一来源采购' },
+            JZXCS: { text: '竞争性磋商' },
+            YQZB: { text: '邀请招标' },
+            XQ: { text: '续签' },
+            JZXTP: { text: '竞争性谈判' },
+            ZFZB: { text: '政府招标采购目录内服务商' },
+            XJ: { text: '询价' },
             QT: { text: '其他' },
           }}
           rules={[{ required: true }]}
@@ -309,23 +280,6 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             written_request: { text: '书面征询' },
             oral_inquiry: { text: '口头征询' },
             none: { text: '无' },
-          }}
-          rules={[{ required: true }]}
-        />
-        <ProFormUploadButton
-          label="合同附件："
-          name="contract_file"
-          fieldProps={{
-            customRequest: (options) => {
-              upload(options.file, (isSuccess: boolean, filename: string) =>
-                handleUpload(
-                  isSuccess,
-                  filename,
-                  'contract_file',
-                  options.file.uid,
-                ),
-              );
-            },
           }}
           rules={[{ required: true }]}
         />

@@ -115,6 +115,8 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_dean_audit_payment_document');
   const canFinanceDeanAuditPaymentDocument =
     permissions && permissions.has('can_finance_dean_audit_payment_document');
+  const canApproveContracts =
+    permissions && permissions.has('can_approve_contracts');
 
   return {
     canSeeHome,
@@ -173,5 +175,6 @@ export default (initialState: API.UserToken) => {
     canFinanceAuditPaymentDocument,
     canDeanAuditPaymentDocument,
     canFinanceDeanAuditPaymentDocument,
+    canApproveContracts,
   };
 };
