@@ -10,14 +10,10 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useModel, useRequest } from '@umijs/max';
+import { history, useModel } from '@umijs/max';
 import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
-
-const deleteContract = async (id?: number) => {
-  return await axios.delete(`${SERVER_HOST}/payment/contracts/delete/${id}`);
-};
 
 const ContractPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
@@ -49,16 +45,6 @@ const ContractPage: React.FC = () => {
     return data;
   };
 
-  const { run: runDeleteContract } = useRequest(deleteContract, {
-    manual: true,
-    onSuccess: () => {
-      message.success('删除成功');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-
   const columns: ProDescriptionsItemProps<any>[] = [
     {
       title: '申请编号',
@@ -69,22 +55,47 @@ const ContractPage: React.FC = () => {
       dataIndex: 'contract_name',
     },
     {
+      title: '签订对象',
+      dataIndex: 'contractor',
+    },
+    {
       title: '类型',
       dataIndex: 'category',
       valueEnum: {
-        JJ: { text: '基建项目', status: 'JJ' },
-        YP: { text: '药品采购', status: 'YP' },
-        XX: { text: '信息采购', status: 'XX' },
-        XS: { text: '医疗协商', status: 'XS' },
-        HZ: { text: '医疗合作', status: 'HZ' },
-        ZW: { text: '物资采购', status: 'ZW' },
-        FW: { text: '服务项目', status: 'FW' },
-        QX: { text: '器械采购', status: 'QX' },
+        JJ: { text: '基建项目' },
+        YP: { text: '药品采购' },
+        XX: { text: '信息采购' },
+        XS: { text: '医疗协商' },
+        HZ: { text: '医疗合作' },
+        ZW: { text: '物资采购' },
+        FW: { text: '服务项目' },
+        QX: { text: '器械采购' },
+        JJXM: { text: '基建项目' },
+        YPCG: { text: '药品采购' },
+        XXCG: { text: '信息采购' },
+        QXCG: { text: '器械采购' },
+        QRHZ: { text: '金融合作' },
+        WZCG: { text: '物资采购' },
+        YLHZ: { text: '医疗合作' },
+        YLXS: { text: '医疗协商' },
+        DSFFW: { text: '第三方服务' },
+        QT: { text: '其他' },
       },
     },
     {
-      title: '签订对象',
-      dataIndex: 'contractor',
+      title: '采购方式',
+      dataIndex: 'purchase_type',
+      valueEnum: {
+        GKZB: { text: '公开招标' },
+        DYLYCG: { text: '单一来源采购' },
+        JZXCS: { text: '竞争性磋商' },
+        YQZB: { text: '邀请招标' },
+        XQ: { text: '续签' },
+        JZXTP: { text: '竞争性谈判' },
+        ZFZB: { text: '政府招标采购目录内服务商' },
+        XJ: { text: '询价' },
+        QT: { text: '其他' },
+      },
     },
     {
       title: '资金来源',
@@ -110,7 +121,7 @@ const ContractPage: React.FC = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (text, record, _, action) => {
+      render: (text, record) => {
         let update;
         if (record.status === 'approve') {
           update = (
@@ -146,16 +157,6 @@ const ContractPage: React.FC = () => {
         return (
           <>
             {update}
-            <Divider type="vertical" />
-            <a
-              onClick={async () => {
-                const id = record.id;
-                await runDeleteContract(id);
-                action?.reload();
-              }}
-            >
-              删除
-            </a>
             <Divider type="vertical" />
             {record.equipment_apply_record_id ? (
               <a

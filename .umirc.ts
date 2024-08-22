@@ -12,7 +12,7 @@ export default defineConfig({
   history: { type: 'hash' },
   request: {},
   layout: {
-    title: '设备管理平台',
+    title: '合同管理',
   },
   routes: [
     {
@@ -126,7 +126,7 @@ export default defineConfig({
           name: '垫付款管理',
           path: '/purchase/advance',
           component: './Advance',
-          access: 'canSeePaymentProcess',
+          access: 'canInstallEquipment',
         },
         {
           name: '制单管理',
@@ -168,6 +168,56 @@ export default defineConfig({
           name: '制单管理-详情',
           hideInMenu: true,
           access: 'canSeePaymentDocument',
+        },
+      ],
+    },
+    {
+      name: '耗材管理',
+      path: '/consumable',
+      routes: [
+        {
+          name: '院内耗材目录',
+          path: '/consumable/list',
+          routes: [
+            {
+              name: '申请列表',
+              path: '/consumable/list/apply',
+              component: './ConsumableApply',
+            },
+            {
+              name: '目录列表',
+              path: '/consumable/list/index',
+              component: './ConsumableList',
+            },
+            {
+              path: '/consumable/list/apply/detail',
+              component: './ConsumableApply/Detail',
+              name: '申请列表-详情',
+              hideInMenu: true,
+            },
+            {
+              path: '/consumable/list/index/detail',
+              component: './ConsumableList/Detail',
+              name: '目录列表-详情',
+              hideInMenu: true,
+            },
+          ],
+        },
+        {
+          name: '临时耗材申请',
+          path: '/consumable/tempory/apply',
+          component: './TemporyConsumable',
+        },
+        // {
+        //   name: '耗材返利管理',
+        //   path: 'consumable/rebate',
+        //   component: './ConsumableRebate',
+        // },
+        {
+          path: '/consumable/tempory/apply/detail',
+          component: './TemporyConsumable/Detail',
+          name: '临时耗材申请-详情',
+          hideInMenu: true,
         },
       ],
     },

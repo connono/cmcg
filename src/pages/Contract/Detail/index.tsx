@@ -70,6 +70,10 @@ const getItem = async (id: string) => {
   return await axios.get(`${SERVER_HOST}/payment/contracts/getItem?id=${id}`);
 };
 
+const deleteItem = async (id: string) => {
+  return await axios.delete(`${SERVER_HOST}/payment/contracts/delete/${id}`);
+};
+
 const ContractDetailPage: React.FC = () => {
   const hashArray = history.location.hash.split('#')[1].split('&');
   const id = hashArray[0];
@@ -114,6 +118,17 @@ const ContractDetailPage: React.FC = () => {
           );
         });
       }
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runDeleteItem } = useRequest(deleteItem, {
+    manual: true,
+    onSuccess: () => {
+      message.success('审批成功，正在返回列表...');
+      history.push('/purchase/contract');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -244,7 +259,12 @@ const ContractDetailPage: React.FC = () => {
             if (!access.canApproveContracts) {
               message.error('你无权进行此操作');
             } else {
-              await runApprove(id, method);
+              const values = formRef.current?.getFieldsValue();
+              if (values.audit) {
+                await runApprove(id, method);
+              } else {
+                await runDeleteItem(id);
+              }
             }
           }}
         >
@@ -254,6 +274,10 @@ const ContractDetailPage: React.FC = () => {
               {
                 label: '审核通过',
                 value: true,
+              },
+              {
+                label: '审核驳回（直接删除合同）',
+                value: false,
               },
             ]}
           />
@@ -309,7 +333,9 @@ const ContractDetailPage: React.FC = () => {
         <StepsForm.StepForm name="finish" title="完成">
           <Access
             key="can_create_payment_process"
-            accessible={access.canCreatePaymentProcess}
+            accessible={
+              access.canCreatePaymentProcess && !access.canApproveContracts
+            }
           >
             <Divider>
               <span

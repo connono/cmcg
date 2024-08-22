@@ -10,15 +10,20 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
+import { history, useRequest } from '@umijs/max';
 import { Button, message } from 'antd';
 import axios from 'axios';
-import React, { useRef, useState } from 'react';
+import _ from 'lodash';
+import React, { useEffect, useRef, useState } from 'react';
 import CapitalSourceInput from './CapitalSourceInput';
 
 interface ContractModalProps {
   callback?: (formRef: any) => void;
 }
+
+const deleteNotification = async (id: string) => {
+  return await axios.delete(`${SERVER_HOST}/notifications/delete?id=${id}`);
+};
 
 const createContract = async (
   contract_name: string,
@@ -78,12 +83,18 @@ const storeDocx = async (id: number, contract_docx: string) => {
 const ContractModal: React.FC<ContractModalProps> = (props) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const formRef = useRef<ProFormInstance>();
-  console.log('formRef:', formRef);
-
+  const hashArray = history.location.hash
+    ? history.location.hash.split('#')[1].split('&')
+    : [];
+  console.log(hashArray);
   const { run: runStoreDocx } = useRequest(storeDocx, {
     manual: true,
     onSuccess: () => {
       message.success('存入备案文档成功');
+      if (hashArray[1]) {
+        console.log(hashArray[1]);
+        deleteNotification(hashArray[1]);
+      }
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -102,6 +113,34 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
       message.error(error.message);
     },
   });
+
+  const initialModal = () => {
+    const data = history.location.state;
+    _.mapKeys(data, (value: any, key: string) => {
+      if (key === 'complement_code') {
+        if (value && value !== 'undefined') {
+          formRef.current?.setFieldValue(key, value);
+        } else {
+          formRef.current?.setFieldValue(key, '');
+        }
+      } else if (key === 'source') {
+        formRef.current?.setFieldValue(key, {
+          type: value,
+        });
+      } else {
+        formRef.current?.setFieldValue(key, value);
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (hashArray[0] === 'create') {
+      setModalVisible(true);
+      setTimeout(() => {
+        initialModal();
+      }, 100);
+    }
+  }, []);
 
   return (
     <div key="contract">

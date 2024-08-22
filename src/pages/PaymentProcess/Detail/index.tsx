@@ -14,7 +14,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useAccess, useRequest } from '@umijs/max';
+import { history, useAccess, useModel, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, Table, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -103,6 +103,7 @@ const PaymentRecordDetailPage: React.FC = () => {
   const [current, setCurrent] = useState<number>(0);
   const [dataSource, setDataSource] = useState<any>();
   const access = useAccess();
+  const { initialState } = useModel('@@initialState');
 
   const { run: runGetDocument } = useRequest(getDocument, {
     manual: true,
@@ -426,7 +427,10 @@ const PaymentRecordDetailPage: React.FC = () => {
               }
             }}
             onFinish={async () => {
-              if (!access.canApplyPaymentRecord) {
+              if (
+                !access.canApplyPaymentRecord ||
+                initialState?.department !== history.location.state.department
+              ) {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();

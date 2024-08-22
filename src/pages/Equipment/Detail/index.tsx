@@ -462,8 +462,9 @@ const EquipmentDetailPage: React.FC = () => {
       content: `你这次创建的序列号为${equipmentItem.serial_number}。确认进入下一个创建页面，取消则进入设备列表。`,
       okText: '确认',
       cancelText: '取消',
-      onOk: () => {
-        runGetSerialNumber();
+      onOk: async () => {
+        formRef.current?.resetFields();
+        await runGetSerialNumber();
       },
       onCancel: () => {
         history.push('/apply/equipment');

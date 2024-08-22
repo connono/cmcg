@@ -6,6 +6,7 @@ import React from 'react';
 
 interface PurchaseNotificationCardProps {
   data?: any;
+  contentRender?: any;
 }
 
 interface Props {
@@ -24,36 +25,57 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
     ['audit', '待审核'],
     ['process', '待收款'],
     ['apply', '待申请'],
+    ['approve', '待院办审核'],
+    ['upload', '待上传'],
+    ['delete', '待重新创建'],
   ]);
   const procardlists = _.map(
     _.groupBy(props.data, 'type'),
     (value: any, key: any) => {
       const procardlist = _.map(value, (v: any, k: any) => {
-        console.log(v);
-        return (
-          <ProCard
-            key={k}
-            title={
-              <span>
-                {v.title}
-                <span>的{_.get(v, 'data.category')}</span>
-                {_.get(v, 'data.assessment') &&
-                _.get(v, 'data.assessment') !== 'undefined' ? (
-                  <span>{_.get(v, 'data.assessment')}元</span>
-                ) : null}
-              </span>
-            }
-            extra={
-              <Button
-                size="small"
-                type="primary"
-                onClick={() => history.push(v.link, v.data)}
-              >
-                去处理
-              </Button>
-            }
-          ></ProCard>
-        );
+        if (props.contentRender) {
+          const title = props.contentRender(v);
+          return (
+            <ProCard
+              key={k}
+              title={title}
+              extra={
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={() => history.push(v.link, v.data)}
+                >
+                  去处理
+                </Button>
+              }
+            ></ProCard>
+          );
+        } else {
+          return (
+            <ProCard
+              key={k}
+              title={
+                <span>
+                  {v.title}
+                  <span>的{_.get(v, 'data.category')}</span>
+                  {_.get(v, 'data.assessment') &&
+                  _.get(v, 'data.assessment') !== 'undefined' ? (
+                    <span>{_.get(v, 'data.assessment')}元</span>
+                  ) : null}
+                </span>
+              }
+              extra={
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={() => history.push(v.link, v.data)}
+                >
+                  去处理
+                </Button>
+              }
+            ></ProCard>
+          );
+        }
       });
       return (
         <ProCard
@@ -89,6 +111,7 @@ const PurchaseNotificationTab: React.FC<Props> = (props) => {
     'paymentProcess',
   ]);
   const advanceData = _.filter(props.data, ['n_category', 'advance']);
+  const contractData = _.filter(props.data, ['n_category', 'contract']);
   const items = [
     {
       label: <Badge count={paymentPlanData.length}>服务型合同</Badge>,
@@ -104,6 +127,16 @@ const PurchaseNotificationTab: React.FC<Props> = (props) => {
       label: <Badge count={advanceData.length}>垫付款管理</Badge>,
       key: '3',
       children: <PurchaseNotificationCard data={advanceData} />,
+    },
+    {
+      label: <Badge count={contractData.length}>合同管理</Badge>,
+      key: '4',
+      children: (
+        <PurchaseNotificationCard
+          data={contractData}
+          contentRender={(data: any) => <span>合同名称：{data.title}</span>}
+        />
+      ),
     },
   ];
 

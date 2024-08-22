@@ -290,7 +290,10 @@ const PaymentMonitorPage: React.FC = () => {
               <a
                 key="update"
                 onClick={() => {
-                  if (!access.canApplyPaymentRecord) {
+                  if (
+                    !access.canApplyPaymentRecord ||
+                    initialState?.department !== record.department
+                  ) {
                     message.error('你无权进行此操作');
                   } else {
                     setMode(MODE.UPDATE);
@@ -365,7 +368,10 @@ const PaymentMonitorPage: React.FC = () => {
             placement="topLeft"
             title="确定要中止吗？"
             onConfirm={async () => {
-              if (!access.canStopPaymentRecord) {
+              if (
+                !access.canStopPaymentRecord ||
+                initialState?.department !== record.department
+              ) {
                 message.error('你无权进行此操作');
               } else {
                 await runStopPlan(record.id);

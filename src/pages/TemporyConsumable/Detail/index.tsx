@@ -1,4 +1,4 @@
-import { PageContainer } from '@ant-design/pro-components';
+import { PageContainer, ProFormDigit } from '@ant-design/pro-components';
 //@ts-ignore
 import PreviewListModal from '@/components/PreviewListModal';
 import { SERVER_HOST } from '@/constants';
@@ -10,10 +10,11 @@ import {
   ProFormRadio,
   ProFormSelect,
   ProFormText,
+  ProFormTextArea,
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useAccess, useRequest } from '@umijs/max';
+import { history, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -31,82 +32,105 @@ const formatDate = (date: any) => {
 };
 
 const getItem = async (id: string) => {
-  return await axios.get(`${SERVER_HOST}/maintain/item?id=${id}`);
+  return await axios.get(`${SERVER_HOST}/comsumable/tempory/getItem?id=${id}`);
 };
 
 const getSerialNumber = async () => {
-  return await axios.get(`${SERVER_HOST}/maintain/serialNumber`);
+  return await axios.get(`${SERVER_HOST}/consumable/tempory/serialNumber`);
 };
 
 const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index?is_functional=0`);
 };
 
-const backMaintainItem = async (id: any) => {
-  return await axios.patch(`${SERVER_HOST}/maintain/back/${id}`);
+const backTemporyConsumableItem = async (id: any) => {
+  return await axios.post(`${SERVER_HOST}/consumable/tempory/back/${id}`);
 };
 
 const apply = async (
   serial_number: number,
-  name: string,
-  equipment: string,
+  consumable: string,
+  model: string,
   department: string,
   budget: number,
+  count: number,
+  manufacturer: string,
+  telephone: number,
+  registration_num: string,
   apply_date: string,
+  reason: string,
+  apply_type: string,
   apply_file: string,
 ) => {
   const form = new FormData();
   form.append('serial_number', serial_number.toString());
-  form.append('name', name);
-  form.append('equipment', equipment);
+  form.append('consumable', consumable);
+  form.append('model', model);
   form.append('department', department);
-  form.append('apply_date', formatDate(apply_date));
   form.append('budget', budget.toString());
+  form.append('count', count.toString());
+  form.append('manufacturer', manufacturer);
+  form.append('telephone', telephone.toString());
+  form.append('registration_num', registration_num);
+  form.append('apply_date', formatDate(apply_date));
+  form.append('reason', reason);
+  form.append('apply_type', apply_type);
   form.append('apply_file', fileListToString(apply_file));
 
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/maintain/store`,
+    url: `${SERVER_HOST}/consumable/tempory/store`,
   });
 };
 
-const install = async (id: string, price: number, install_file: string) => {
+const purchase = async (
+  id: string,
+  product_id: string,
+  arrive_date: string,
+  arrive_price: number,
+  company: string,
+  telephone2: number,
+  accept_file: string,
+) => {
   const form = new FormData();
-  form.append('price', price.toString());
-  form.append('install_file', fileListToString(install_file));
+  form.append('method', 'buy');
+  form.append('product_id', product_id);
+  form.append('arrive_date', formatDate(arrive_date));
+  form.append('arrive_price', arrive_price.toString());
+  form.append('company', company);
+  form.append('telephone2', telephone2.toString());
+  form.append('accept_file', fileListToString(accept_file));
 
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/maintain/update/install/${id}`,
+    url: `${SERVER_HOST}/consumable/tempory/update/${id}`,
   });
 };
 
-const engineerApprove = async (id: string, isAdvance: boolean) => {
+const approve = async (id: string) => {
   const form = new FormData();
-  form.append('isAdvance', isAdvance.toString());
-
+  form.append('method', 'vertify');
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/maintain/update/engineer_approve/${id}`,
+    url: `${SERVER_HOST}/consumable/tempory/update/${id}`,
   });
 };
 
-const MaintainDetailPage: React.FC = () => {
-  const [maintainItem, setMaintainItem] = useState<any>({});
+const TemporyConsumableDetailPage: React.FC = () => {
+  const [temporyConsumableItem, setTemporyConsumableItem] = useState<any>({});
   const hashArray = history.location.hash.split('#')[1].split('&');
   const method = hashArray[0];
   const id = hashArray[1];
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
-  const access = useAccess();
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
-      setMaintainItem({
+      setTemporyConsumableItem({
         ...result.data,
         status: parseInt(result.data.status),
       });
@@ -130,8 +154,8 @@ const MaintainDetailPage: React.FC = () => {
   const { run: runGetSerialNumber } = useRequest(getSerialNumber, {
     manual: true,
     onSuccess: (result: any) => {
-      setMaintainItem({
-        ...maintainItem,
+      setTemporyConsumableItem({
+        ...temporyConsumableItem,
         serial_number: result.serial_number,
         status: 0,
       });
@@ -157,40 +181,43 @@ const MaintainDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
-  const { run: runInstall } = useRequest(install, {
+  const { run: runPurchase } = useRequest(purchase, {
     manual: true,
     onSuccess: () => {
-      message.success('增加安装验收记录成功，正在返回设备列表...');
-      history.push('/apply/maintain');
+      message.success('增加采购记录成功，正在返回耗材列表...');
+      history.push('/consumable/tempory/apply');
     },
     onError: (error: any) => {
       message.error(error.message);
     },
   });
-  const { run: runEngineerApprove } = useRequest(engineerApprove, {
+  const { run: runApprove } = useRequest(approve, {
     manual: true,
     onSuccess: () => {
       message.success('审核成功，正在返回设备列表...');
-      history.push('/apply/maintain');
+      history.push('/consumable/tempory/apply');
     },
     onError: (error: any) => {
       message.error(error.message);
     },
   });
 
-  const { run: runBackMaintainItem } = useRequest(backMaintainItem, {
-    manual: true,
-    onSuccess: () => {
-      message.success('回退成功');
+  const { run: runBackTemporyConsumableItem } = useRequest(
+    backTemporyConsumableItem,
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('回退成功');
+      },
+      onError: (error: any) => {
+        message.error(error.message);
+      },
     },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
+  );
 
   const confirm = () => {
     modal.confirm({
-      content: `你这次创建的序列号为${maintainItem.serial_number}。确认进入下一个创建页面，取消则进入设备列表。`,
+      content: `你这次创建的序列号为${temporyConsumableItem.serial_number}。确认进入下一个创建页面，取消则进入临时耗材列表。`,
       okText: '确认',
       cancelText: '取消',
       onOk: async () => {
@@ -198,23 +225,24 @@ const MaintainDetailPage: React.FC = () => {
         await runGetSerialNumber();
       },
       onCancel: () => {
-        history.push('/apply/maintain');
+        history.push('/consumable/tempory/apply');
       },
     });
   };
 
   const onStepChange = (current: number) => {
-    if (!maintainItem.status) return;
-    if (maintainItem.status < current) return;
+    if (!temporyConsumableItem.status) return;
+    if (temporyConsumableItem.status < current) return;
     setCurrent(current);
-    if (current === 2 && maintainItem.status === 3) {
+    if (current === 2 && temporyConsumableItem.status === 3) {
       setTimeout(() => {
-        const isAdvance = maintainItem.isAdvance === 'true' ? true : false;
+        const isAdvance =
+          temporyConsumableItem.isAdvance === 'true' ? true : false;
         formRef.current?.setFieldValue('audit', true);
         formRef.current?.setFieldValue('isAdvance', isAdvance);
       }, 0);
     } else {
-      _.forEach(maintainItem, (key: any, value: any) => {
+      _.forEach(temporyConsumableItem, (key: any, value: any) => {
         const length = value.split('_').length;
         const extension = value.split('_')[length - 1];
         if (extension === 'picture' || extension === 'file') {
@@ -275,7 +303,7 @@ const MaintainDetailPage: React.FC = () => {
     const { data: departmentsData } = await runGetAllDepartments();
     const data = _.map(departmentsData, (value: any) => {
       return {
-        value: value.name,
+        value: value.label,
         label: value.label,
       };
     });
@@ -291,6 +319,7 @@ const MaintainDetailPage: React.FC = () => {
       history.push('/apply/maintain');
     }
   }, []);
+
   return (
     <PageContainer ghost>
       <ProCard>
@@ -307,7 +336,7 @@ const MaintainDetailPage: React.FC = () => {
           stepsRender={(steps) => {
             const items = _.map(steps, (value: any, key: any) => {
               const status =
-                maintainItem.status < key
+                temporyConsumableItem.status < key
                   ? 'wait'
                   : current === key
                   ? 'process'
@@ -330,7 +359,7 @@ const MaintainDetailPage: React.FC = () => {
             render: (props: any) => {
               return [
                 <Button
-                  disabled={maintainItem.status > current}
+                  disabled={temporyConsumableItem.status > current}
                   htmlType="button"
                   type="primary"
                   onClick={props.onSubmit}
@@ -354,12 +383,18 @@ const MaintainDetailPage: React.FC = () => {
                 'done'
               ) {
                 await runApply(
-                  maintainItem.serial_number,
-                  values.name,
-                  values.equipment,
+                  temporyConsumableItem.serial_number,
+                  values.consumable,
+                  values.model,
                   values.department,
                   values.budget,
+                  values.count,
+                  values.manufacturer,
+                  values.telephone,
+                  values.registration_num,
                   values.apply_date,
+                  values.reason,
+                  values.apply_type,
                   values.apply_file,
                 );
               } else if (
@@ -381,48 +416,98 @@ const MaintainDetailPage: React.FC = () => {
               rules={[{ required: true }]}
             />
             <ProFormText
-              name="equipment"
-              label="设备名称："
+              name="consumable"
+              label="耗材名称："
               width="md"
-              disabled={current < maintainItem.status}
+              disabled={current < temporyConsumableItem.status}
               rules={[{ required: true }]}
             />
             <ProFormText
-              name="name"
-              label="维修项目："
+              name="model"
+              label="规格型号："
               width="md"
-              disabled={current < maintainItem.status}
+              disabled={current < temporyConsumableItem.status}
               rules={[{ required: true }]}
             />
             <ProFormSelect
               label="申请科室"
               request={departments}
               name="department"
-              disabled={current < maintainItem.status}
+              disabled={current < temporyConsumableItem.status}
               rules={[{ required: true }]}
             />
             <ProFormMoney
               name="budget"
-              label="最高报价："
+              label="预估单价："
               width="md"
-              disabled={current < maintainItem.status}
+              disabled={current < temporyConsumableItem.status}
               rules={[{ required: true }]}
             />
+            <ProFormDigit
+              name="count"
+              label="数量："
+              width="sm"
+              disabled={current < temporyConsumableItem.status}
+              rules={[{ required: true }]}
+            />
+            <ProFormText
+              name="manufacturer"
+              label="生产厂家："
+              width="md"
+              disabled={current < temporyConsumableItem.status}
+            />
+            <ProFormDigit
+              name="telephone"
+              label="联系电话："
+              width="sm"
+              disabled={current < temporyConsumableItem.status}
+            />
+            <ProFormText
+              name="registration_num"
+              label="注册证号："
+              width="md"
+              disabled={current < temporyConsumableItem.status}
+              rules={[{ required: true }]}
+            />
+
             <ProFormDatePicker
               name="apply_date"
-              label="申请日期："
+              label="申请日期"
               width="sm"
-              disabled={current < maintainItem.status}
+              disabled={current < temporyConsumableItem.status}
+              rules={[{ required: true }]}
+            />
+            <ProFormTextArea
+              width="md"
+              name="reason"
+              label="申请理由"
+              disabled={current < temporyConsumableItem.status}
+              placeholder="请输申请理由"
+            />
+            <ProFormSelect
+              label="采购方式："
+              name="apply_type"
+              valueEnum={{
+                0: { text: '中标采购' },
+                1: { text: '阳光采购' },
+                2: { text: '自行采购' },
+                3: { text: '线下采购' },
+                4: { text: '带量采购' },
+              }}
+              disabled={current < temporyConsumableItem.status}
               rules={[{ required: true }]}
             />
             <ProFormUploadButton
-              label="报价单附件："
+              label="申请单附件："
               name="apply_file"
               extra={
-                maintainItem.status > current ? (
-                  <PreviewListModal fileListString={maintainItem.apply_file} />
+                temporyConsumableItem.status > current ? (
+                  <PreviewListModal
+                    fileListString={temporyConsumableItem.apply_file}
+                  />
                 ) : null
               }
+              rules={[{ required: true }]}
               fieldProps={{
                 customRequest: (options) => {
                   upload(options.file, (isSuccess: boolean, filename: string) =>
@@ -439,18 +524,26 @@ const MaintainDetailPage: React.FC = () => {
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="ys"
-            title="安装验收"
+            title="采购"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
               if (
-                values.install_file === undefined ||
-                (values.install_file && values.install_file.length) === 0 ||
-                formRef.current?.getFieldValue('install_file')[0].status ===
+                values.accept_file === undefined ||
+                (values.accept_file && values.accept_file.length) === 0 ||
+                formRef.current?.getFieldValue('accept_file')[0].status ===
                   'done'
               ) {
-                await runInstall(id, values.price, values.install_file);
+                await runPurchase(
+                  id,
+                  values.product_id,
+                  values.arrive_date,
+                  values.arrive_price,
+                  values.company,
+                  values.telephone2,
+                  values.accept_file,
+                );
               } else if (
-                formRef.current?.getFieldValue('install_file')[0].status ===
+                formRef.current?.getFieldValue('accept_file')[0].status ===
                 'error'
               ) {
                 message.error('文件上传失败！');
@@ -459,20 +552,48 @@ const MaintainDetailPage: React.FC = () => {
               }
             }}
           >
-            <ProFormMoney
-              name="price"
-              label="发票金额："
+            <ProFormText
+              name="product_id"
+              label="平台产品ID："
               width="md"
-              disabled={current < maintainItem.status}
+              disabled={current < temporyConsumableItem.status}
+              rules={[{ required: true }]}
+            />
+            <ProFormDatePicker
+              name="arrive_date"
+              label="采购日期"
+              width="sm"
+              disabled={current < temporyConsumableItem.status}
+              rules={[{ required: true }]}
+            />
+            <ProFormMoney
+              name="arrive_price"
+              label="采购价格："
+              width="md"
+              disabled={current < temporyConsumableItem.status}
+              rules={[{ required: true }]}
+            />
+            <ProFormText
+              name="company"
+              label="供应商："
+              width="md"
+              disabled={current < temporyConsumableItem.status}
+              rules={[{ required: true }]}
+            />
+            <ProFormDigit
+              name="telephone2"
+              label="联系电话："
+              width="sm"
+              disabled={current < temporyConsumableItem.status}
               rules={[{ required: true }]}
             />
             <ProFormUploadButton
-              label="验收资料："
-              name="install_file"
+              label="验收单附件："
+              name="accept_file"
               extra={
-                maintainItem.status > current ? (
+                temporyConsumableItem.status > current ? (
                   <PreviewListModal
-                    fileListString={maintainItem.install_file}
+                    fileListString={temporyConsumableItem.accept_file}
                   />
                 ) : null
               }
@@ -482,7 +603,7 @@ const MaintainDetailPage: React.FC = () => {
                     handleUpload(
                       isSuccess,
                       filename,
-                      'install_file',
+                      'accept_file',
                       options.file.uid,
                     ),
                   );
@@ -493,34 +614,13 @@ const MaintainDetailPage: React.FC = () => {
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="sh"
-            title="医工科审核"
+            title="审核"
             onFinish={async () => {
-              if (!access.canEnginnerApproveRepair) {
-                message.error('你无权进行此操作');
-              } else {
-                const values = formRef.current?.getFieldsValue();
-                if (values.audit)
-                  await runEngineerApprove(id, values.isAdvance);
-                else await runBackMaintainItem(id);
-              }
+              const values = formRef.current?.getFieldsValue();
+              if (values.audit) await runApprove(id);
+              else await runBackTemporyConsumableItem(id);
             }}
           >
-            <ProFormRadio.Group
-              name="isAdvance"
-              label="是否垫付："
-              rules={[{ required: true }]}
-              disabled={current < maintainItem.status}
-              options={[
-                {
-                  label: '是',
-                  value: true,
-                },
-                {
-                  label: '否',
-                  value: false,
-                },
-              ]}
-            />
             <ProFormRadio.Group
               name="audit"
               options={[
@@ -542,4 +642,4 @@ const MaintainDetailPage: React.FC = () => {
   );
 };
 
-export default MaintainDetailPage;
+export default TemporyConsumableDetailPage;

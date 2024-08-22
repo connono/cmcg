@@ -47,7 +47,7 @@ const LoginPage: React.FC = () => {
             <Col span={7}></Col>
             <Col span={10}>
               <div className="login-container">
-                <div className="login-title">医疗设备采购管理系统</div>
+                <div className="login-title">合同管理系统</div>
                 <div className="login-form">
                   <ProForm
                     name="login"
@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
           </Row>
         </div>
       </div>
-      <div className="version">版本：2.1.2beta</div>
+      <div className="version">版本：2.2.0beta</div>
     </PageContainer>
   );
 };
