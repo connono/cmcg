@@ -173,8 +173,10 @@ const TemporyConsumablePage: React.FC<unknown> = () => {
             title="确定要中止吗？"
             onConfirm={async () => {
               const id = record.id;
-              await runStopTemporyConsumableItem(id);
-              action?.reload();
+              if (access.canStopTemporyConsumableRecord) {
+                await runStopTemporyConsumableItem(id);
+                action?.reload();
+              }
             }}
             okText="确定"
             cancelText="取消"

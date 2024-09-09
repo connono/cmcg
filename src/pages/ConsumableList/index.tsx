@@ -10,16 +10,12 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { history, useAccess, useRequest } from '@umijs/max';
-import { Button, Divider, Popconfirm, message } from 'antd';
+import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 
 const deleteMaintainItem = async (id?: number) => {
   return await axios.delete(`${SERVER_HOST}/maintain/delete/${id}`);
-};
-
-const backMaintainItem = async (id?: number) => {
-  return await axios.patch(`${SERVER_HOST}/maintain/back/${id}`);
 };
 
 const getAllDepartments = async () => {
@@ -67,15 +63,6 @@ const ConsumableListPage: React.FC<unknown> = () => {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run: runBackMaintainItem } = useRequest(backMaintainItem, {
-    manual: true,
-    onSuccess: () => {
-      message.success('回退成功');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -155,7 +142,7 @@ const ConsumableListPage: React.FC<unknown> = () => {
     },
     {
       title: '一级目录',
-      dataIndex: 'category_zj',
+      dataIndex: 'parent_directory',
     },
     {
       title: '二级目录',
@@ -211,25 +198,6 @@ const ConsumableListPage: React.FC<unknown> = () => {
             录入
           </a>
           <Divider type="vertical" />
-          <Popconfirm
-            key="back"
-            placement="topLeft"
-            title="确定要回退吗？"
-            onConfirm={async () => {
-              if (!access.canBackRepair) {
-                message.error('你无权进行此操作');
-              } else {
-                const id = record.id;
-                await runBackMaintainItem(id);
-                action?.reload();
-              }
-            }}
-            okText="确定"
-            cancelText="取消"
-          >
-            <a key="back">回退</a>
-          </Popconfirm>
-          <Divider type="vertical" />
           <a
             onClick={async () => {
               if (!access.canDeleteEquipment) {
@@ -242,6 +210,17 @@ const ConsumableListPage: React.FC<unknown> = () => {
             }}
           >
             删除
+          </a>
+          <Divider type="vertical" />
+          <a
+            onClick={() => {
+              history.push(
+                `/consumable/list/index/history#${record.consumable_apply_id}`,
+                record,
+              );
+            }}
+          >
+            查看动态详情
           </a>
         </>
       ),

@@ -286,7 +286,7 @@ const ContractDetailPage: React.FC = () => {
           name="upload"
           title="上传附件"
           onFinish={async () => {
-            if (!access.canCreateContractProcess) {
+            if (access.canCreatePaymentProcess) {
               const values = formRef.current?.getFieldsValue();
               if (
                 formRef.current?.getFieldValue('contract_file')[0].status ===
@@ -301,6 +301,8 @@ const ContractDetailPage: React.FC = () => {
               } else {
                 message.error('文件上传中，请等待...');
               }
+            } else {
+              message.error('你没有此权限');
             }
           }}
         >

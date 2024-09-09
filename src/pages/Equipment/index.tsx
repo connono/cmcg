@@ -176,7 +176,7 @@ const EquipmentPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/apply/equipment/detail#update&${id}`);
+              window.open(`/#/apply/equipment/detail#update&${id}`, '_blank');
             }}
           >
             {record.is_stop === 'true' ? '已终止' : '录入'}

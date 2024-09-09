@@ -2,7 +2,6 @@ import AmountProgress from '@/components/AmountProgress';
 import PreviewListModal from '@/components/PreviewListModal';
 import PreviewListVisible from '@/components/PreviewListVisible';
 import { SERVER_HOST } from '@/constants';
-import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ActionType,
   LightFilter,
@@ -10,48 +9,15 @@ import {
   PageContainer,
   ProColumns,
   ProFormDatePicker,
-  ProFormDigit,
   ProFormSelect,
   ProFormText,
-  ProFormUploadButton,
   ProTable,
 } from '@ant-design/pro-components';
-import { Access, history, useAccess, useModel, useRequest } from '@umijs/max';
-import { Button, Popconfirm, message } from 'antd';
+import { history, useAccess, useModel, useRequest } from '@umijs/max';
+import { Popconfirm, message } from 'antd';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
-import { fileListToString, upload } from '../../utils/file-uploader';
 import styles from './index.less';
-
-enum MODE {
-  CREATE,
-  UPDATE,
-}
-
-const createProcess = async (
-  contract_name: string,
-  department: string,
-  company: string,
-  target_amount: number,
-  payment_file: string,
-  contract_date: string,
-) => {
-  const form = new FormData();
-  form.append('contract_name', contract_name);
-  form.append('department', department);
-  form.append('company', company);
-  form.append('category', '采购费用');
-  form.append('is_pay', 'true');
-  form.append('target_amount', target_amount.toString());
-  form.append('payment_file', fileListToString(payment_file));
-  form.append('contract_date', contract_date);
-
-  return await axios({
-    method: 'POST',
-    data: form,
-    url: `${SERVER_HOST}/payment/processes/store`,
-  });
-};
 
 const stopProcess = async (id: number) => {
   return await axios.get(`${SERVER_HOST}/payment/processes/stop/${id}`);
@@ -85,11 +51,9 @@ const createRecord = async (
 
 const PaymentProcessPage: React.FC = () => {
   const access = useAccess();
-  const formRef = useRef<ProFormInstance>();
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [mode, setMode] = useState<MODE>(MODE.CREATE);
   const [selectedRecord, setSelectedRecord] = useState<any>({});
   const { initialState } = useModel('@@initialState');
   const [filter, setFilter] = useState<any>({});
@@ -117,17 +81,6 @@ const PaymentProcessPage: React.FC = () => {
       });
     return data;
   };
-
-  const { run: runCreateProcess } = useRequest(createProcess, {
-    manual: true,
-    onSuccess: () => {
-      message.success('提交计划成功');
-      setModalVisible(false);
-    },
-    onError: (error) => {
-      message.error(error.message);
-    },
-  });
 
   const { run: runStopProcess } = useRequest(stopProcess, {
     manual: true,
@@ -159,42 +112,6 @@ const PaymentProcessPage: React.FC = () => {
       message.error(error.message);
     },
   });
-
-  const handleUpload = (
-    isSuccess: boolean,
-    filename: string,
-    field: string,
-    uid: string,
-  ) => {
-    const payment_file = formRef.current?.getFieldValue(field);
-    const current_payment_file = _.find(payment_file, (file) => {
-      return file.uid === uid;
-    });
-    const other_payment_files = _.filter(payment_file, (file) => {
-      return file.uid !== uid;
-    });
-    if (isSuccess) {
-      formRef.current?.setFieldValue(field, [
-        ...other_payment_files,
-        {
-          ...current_payment_file,
-          status: 'done',
-          percent: 100,
-          filename,
-        },
-      ]);
-    } else {
-      formRef.current?.setFieldValue(field, [
-        ...other_payment_files,
-        {
-          ...current_payment_file,
-          status: 'error',
-          percent: 100,
-          filename,
-        },
-      ]);
-    }
-  };
 
   const columns: ProColumns<any>[] = [
     {
@@ -238,10 +155,7 @@ const PaymentProcessPage: React.FC = () => {
         <a
           key="history"
           onClick={() => {
-            history.push(
-              `/purchase/paymentRecord#process&${record.id}`,
-              record,
-            );
+            history.push(`/purchase/paymentProcessRecord#${record.id}`, record);
           }}
         >
           {_}
@@ -273,8 +187,8 @@ const PaymentProcessPage: React.FC = () => {
       },
     },
     {
-      dataIndex: 'contract_date',
-      title: '合同签订时间',
+      dataIndex: 'warehousing_date',
+      title: '入库时间',
     },
     {
       title: '状态',
@@ -309,7 +223,6 @@ const PaymentProcessPage: React.FC = () => {
                   ) {
                     message.error('你无权进行此操作');
                   } else {
-                    setMode(MODE.UPDATE);
                     setModalVisible(true);
                     setSelectedRecord(record);
                   }
@@ -520,137 +433,38 @@ const PaymentProcessPage: React.FC = () => {
               },
             ],
           },
-          actions: [
-            <Access
-              key="can_create_payment_plan"
-              accessible={access.canCreatePaymentPlan}
-            >
-              <Button
-                key="button"
-                onClick={async () => {
-                  setModalVisible(true);
-                  setMode(MODE.CREATE);
-                }}
-                type="primary"
-              >
-                新建
-              </Button>
-            </Access>,
-          ],
         }}
       />
-      {mode === MODE.CREATE ? (
-        <ModalForm<{
-          name: string;
-          company: string;
-        }>
-          title="新建流程"
-          formRef={formRef}
-          modalProps={{
-            destroyOnClose: true,
-            onCancel: () => setModalVisible(false),
-          }}
-          open={modalVisible}
-          submitTimeout={2000}
-          onFinish={async (values: any) => {
-            if (
-              formRef.current?.getFieldValue('payment_file')[0].status ===
-              'done'
-            ) {
-              await runCreateProcess(
-                values.contract_name,
-                initialState.department,
-                values.company,
-                values.target_amount,
-                values.payment_file,
-                values.contract_date,
-              );
-              actionRef.current?.reload();
-            } else if (
-              formRef.current?.getFieldValue('payment_file')[0].status ===
-              'error'
-            ) {
-              message.error('文件上传失败');
-            } else {
-              message.error('文件上传中，请等待');
-            }
-          }}
-        >
-          <ProFormText
-            width="md"
-            name="contract_name"
-            label="合同名称"
-            rules={[{ required: true }]}
-          />
-
-          <ProFormText
-            width="md"
-            name="company"
-            label="合作商户"
-            rules={[{ required: true }]}
-          />
-          <ProFormDigit
-            width="md"
-            name="target_amount"
-            label="目标金额"
-            rules={[{ required: true }]}
-          />
-          <ProFormDatePicker
-            name="contract_date"
-            label="合同签订日期"
-            width="sm"
-            rules={[{ required: true }]}
-          />
-          <ProFormUploadButton
-            label="合同附件："
-            name="payment_file"
-            fieldProps={{
-              customRequest: (options) => {
-                upload(options.file, (isSuccess: boolean, filename: string) =>
-                  handleUpload(
-                    isSuccess,
-                    filename,
-                    'payment_file',
-                    options.file.uid,
-                  ),
-                );
-              },
-            }}
-            rules={[{ required: true }]}
-          />
-        </ModalForm>
-      ) : (
-        <ModalForm
-          title="更新计划"
-          modalProps={{
-            destroyOnClose: true,
-            onCancel: () => setModalVisible(false),
-          }}
-          open={modalVisible}
-          submitTimeout={2000}
-          onFinish={async (values: any) => {
-            await runCreateRecords(
-              selectedRecord.contract_name,
-              selectedRecord.department,
-              selectedRecord.company,
-              selectedRecord.id,
-              values.next_date,
-            );
-            actionRef.current?.reload();
-          }}
-        >
-          <ProFormDatePicker
-            name="next_date"
-            label={
-              selectedRecord.is_pay === 'true' ? '下次付款日期' : '下次收款日期'
-            }
-            width="sm"
-            rules={[{ required: true }]}
-          />
-          <span>入库日期： {selectedRecord.warehousing_date}</span>
-          <PreviewListVisible fileListString={selectedRecord.payment_file} />
-        </ModalForm>
-      )}
+      <ModalForm
+        title="更新计划"
+        modalProps={{
+          destroyOnClose: true,
+          onCancel: () => setModalVisible(false),
+        }}
+        open={modalVisible}
+        submitTimeout={2000}
+        onFinish={async (values: any) => {
+          await runCreateRecords(
+            selectedRecord.contract_name,
+            selectedRecord.department,
+            selectedRecord.company,
+            selectedRecord.id,
+            values.next_date,
+          );
+          actionRef.current?.reload();
+        }}
+      >
+        <ProFormDatePicker
+          name="next_date"
+          label={
+            selectedRecord.is_pay === 'true' ? '下次付款日期' : '下次收款日期'
+          }
+          width="sm"
+          rules={[{ required: true }]}
+        />
+        <span>入库日期： {selectedRecord.warehousing_date}</span>
+        <PreviewListVisible fileListString={selectedRecord.payment_file} />
+      </ModalForm>
     </PageContainer>
   );
 };

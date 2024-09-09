@@ -142,6 +142,13 @@ export default defineConfig({
           access: 'canSeePaymentMonitor',
         },
         {
+          path: '/purchase/paymentProcessRecord',
+          component: './PaymentProcessRecord',
+          name: '付款记录列表',
+          hideInMenu: true,
+          access: 'canSeePaymentMonitor',
+        },
+        {
           path: '/purchase/contract/detail',
           component: './Contract/Detail',
           name: '合同管理-详情',
@@ -199,6 +206,12 @@ export default defineConfig({
               path: '/consumable/list/index/detail',
               component: './ConsumableList/Detail',
               name: '目录列表-详情',
+              hideInMenu: true,
+            },
+            {
+              path: '/consumable/list/index/history',
+              component: './ConsumableList/History',
+              name: '目录列表-动态详情',
               hideInMenu: true,
             },
           ],

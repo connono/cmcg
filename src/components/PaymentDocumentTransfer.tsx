@@ -64,6 +64,7 @@ const createPaymentDocument = async (
       return null;
     })
     .value();
+  console.log('allItems', allItems);
   const allPrice = _.sumBy(allItems, 'assessment');
   if (!allPrice) {
     message.error('总金额为零无法创建');
@@ -104,12 +105,10 @@ const createPaymentDocument = async (
     .catch((err) => {
       console.log(err);
     });
-  console.log('result', data);
   const afterData = _.map(data.data, (object: any) => {
-    console.log('object', object);
-    return _.values(object);
+    return _.values(object ? object : '');
   });
-  await generateXlsx(afterData, data.signature)
+  await generateXlsx(afterData)
     .then((result) => {
       storeXlsx(result.data, data.id);
     })
@@ -169,7 +168,6 @@ const PaymentDocumentTransfer: React.FC<TreeTransferProps> = ({
 };
 
 const PaymentDocumentTransferModal: React.FC<Props> = (props) => {
-  console.log('treeData', props.treeData);
   const { initialState } = useModel('@@initialState');
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
 
@@ -197,7 +195,6 @@ const PaymentDocumentTransferModal: React.FC<Props> = (props) => {
       title="制单"
       open={props.open}
       onOk={() => {
-        console.log('treeData:', props.treeData, 'targetKeys:', targetKeys);
         runCreatePaymentDocumentRecord(
           props.treeData,
           targetKeys,

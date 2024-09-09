@@ -156,7 +156,7 @@ const InstrumentPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/apply/instrument/detail#update&${id}`);
+              window.open(`/#/apply/instrument/detail#update&${id}`, '_blank');
             }}
           >
             录入

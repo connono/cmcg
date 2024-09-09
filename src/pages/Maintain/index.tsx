@@ -145,7 +145,7 @@ const MaintainPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/apply/maintain/detail#update&${id}`);
+              window.open(`/#/apply/maintain/detail#update&${id}`, '_blank');
             }}
           >
             录入

@@ -9,7 +9,7 @@ import {
   ProFormSelect,
   ProTable,
 } from '@ant-design/pro-components';
-import { Access, history, useAccess, useRequest } from '@umijs/max';
+import { Access, useAccess, useRequest } from '@umijs/max';
 import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -101,6 +101,7 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
     {
       manual: true,
       onSuccess: (result: any) => {
+        if (!_.get(result, 'data')) return;
         const newPaymentProcessRecordData = _.chain(result.data)
           .filter((item: any) => !item.payment_document_id)
           .map((item: any) => {
@@ -173,10 +174,11 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
       title: '制单状态',
       dataIndex: 'status',
       valueEnum: {
-        finance_audit: { text: '待财务科审核', status: '0' },
-        dean_audit: { text: '待分管院长审核', status: '1' },
-        finance_dean_audit: { text: '待财务院长审核', status: '2' },
-        finish: { text: '通过', status: '3' },
+        finance_audit: { text: '待财务科审核', status: 'Processing' },
+        dean_audit: { text: '待分管院长审核', status: 'Processing' },
+        finance_dean_audit: { text: '待财务院长审核', status: 'Processing' },
+        upload: { text: '待上传', status: 'Processing' },
+        finish: { text: '通过', status: 'Success' },
       },
     },
     {
@@ -189,10 +191,9 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
           update = (
             <a
               onClick={() => {
-                console.log('record:', record);
-                history.push(
-                  `/purchase/paymentDocument/detail#finance_audit&${record.id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentDocument/detail#finance_audit&${record.id}`,
+                  '_blank',
                 );
               }}
             >
@@ -203,10 +204,9 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
           update = (
             <a
               onClick={() => {
-                console.log('record:', record);
-                history.push(
-                  `/purchase/paymentDocument/detail#finance_audit&${record.id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentDocument/detail#dean_audit&${record.id}`,
+                  '_blank',
                 );
               }}
             >
@@ -217,18 +217,41 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
           update = (
             <a
               onClick={() => {
-                console.log('record:', record);
-                history.push(
-                  `/purchase/paymentDocument/detail#finance_audit&${record.id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentDocument/detail#finance_dean_audit&${record.id}`,
+                  '_blank',
                 );
               }}
             >
               待财务院长审核
             </a>
           );
+        } else if (record.status === 'upload') {
+          update = (
+            <a
+              onClick={() => {
+                window.open(
+                  `/#/purchase/paymentDocument/detail#upload&${record.id}`,
+                  '_blank',
+                );
+              }}
+            >
+              待上传
+            </a>
+          );
         } else if (record.status === 'finish') {
-          update = <span>已通过</span>;
+          update = (
+            <a
+              onClick={() => {
+                window.open(
+                  `/#/purchase/paymentDocument/detail#finish&${record.id}`,
+                  '_blank',
+                );
+              }}
+            >
+              已通过
+            </a>
+          );
         }
         return (
           <>
@@ -236,10 +259,14 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
             <Divider type="vertical" />
             <a
               onClick={async () => {
-                const id = record.id;
-                await runDeletePaymentDocumentItem(id);
-                await runGetPaymentProcessRecordList(selectedDepartment);
-                action?.reload();
+                if (!access.canDeletePaymentDocument) {
+                  message.error('你没有权限进行此操作');
+                } else {
+                  const id = record.id;
+                  await runDeletePaymentDocumentItem(id);
+                  await runGetPaymentProcessRecordList(selectedDepartment);
+                  action?.reload();
+                }
               }}
             >
               删除
@@ -368,10 +395,10 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
         open={transferOpen}
         treeData={treeData}
         department={selectedDepartment}
-        finish={() => {
+        finish={async () => {
           setTransferOpen(false);
+          await runGetPaymentProcessRecordList(selectedDepartment);
           actionRef.current?.reload();
-          runGetPaymentProcessRecordList(selectedDepartment);
         }}
         cancel={() => setTransferOpen(false)}
       />

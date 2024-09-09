@@ -1,15 +1,20 @@
+import PreviewListModal from '@/components/PreviewListModal';
+import PreviewListVisible from '@/components/PreviewListVisible';
 import { SERVER_HOST } from '@/constants';
-import { branchXlsx } from '@/utils/xlsx';
+import { fileListToString, preview, upload } from '@/utils/file-uploader';
+import { DownloadOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   PageContainer,
   ProCard,
   ProFormRadio,
+  ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
 import { history, useAccess, useRequest } from '@umijs/max';
-import { Button, Steps, Table, message } from 'antd';
+import { Button, FloatButton, Steps, Table, message } from 'antd';
 import axios from 'axios';
+import { saveAs } from 'file-saver';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 
@@ -21,6 +26,10 @@ const int_status = (status: string) => {
       return 1;
     case 'finance_dean_audit':
       return 2;
+    case 'upload':
+      return 3;
+    case 'finish':
+      return 4;
     default:
       return -1;
   }
@@ -30,32 +39,66 @@ const getItem = async (id: string) => {
   return await axios.get(`${SERVER_HOST}/payment/document/records/item/${id}`);
 };
 
-const audit = async (record_id: string, position: number) => {
-  const result = await axios({
+const getDocumentItem = async (id: string) => {
+  return await axios.get(
+    `${SERVER_HOST}/payment/document/records/getItem/${id}`,
+  );
+};
+
+const audit = async (record_id: string) => {
+  return await axios({
     method: 'POST',
     url: `${SERVER_HOST}/payment/document/records/update/${record_id}`,
   });
-  branchXlsx(result.data.excel_url, result.data.signature, position);
+};
+
+const uploadDocument = async (
+  record_id: string,
+  payment_document_file: string,
+) => {
+  const form = new FormData();
+  form.append('payment_document_file', fileListToString(payment_document_file));
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/payment/document/records/update/${record_id}`,
+  });
 };
 
 const PaymentDocumentDetailPage: React.FC = () => {
   console.log(history.location.state);
   // const [paymentRecord, setPaymentRecord] = useState({});
   const hashArray = history.location.hash.split('#')[1].split('&');
-  const method = history.location.state.status;
   // const process_id = hashArray[1];
   const id = hashArray[1];
   // const [modal, contextHolder] = Modal.useModal(); // eslint-disable-line
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
   const [dataSource, setDataSource] = useState<any>();
+  const [paymentDocumentItem, setPaymentDocumentItem] = useState({});
   const access = useAccess();
+  const [xlsx, setXlsx] = useState();
 
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
-      console.log(result);
       setDataSource(result.data);
+      if (paymentDocumentItem.excel_url) {
+        preview(paymentDocumentItem.excel_url, (file: File) => {
+          setXlsx(file);
+        });
+      }
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runGetDocumentItem } = useRequest(getDocumentItem, {
+    manual: true,
+    onSuccess: (result: any) => {
+      setPaymentDocumentItem(result.data);
+      runGetItem(id);
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -73,10 +116,57 @@ const PaymentDocumentDetailPage: React.FC = () => {
     },
   });
 
+  const { run: runUploadDocument } = useRequest(uploadDocument, {
+    manual: true,
+    onSuccess: () => {
+      message.success('上传成功，正在返回列表...');
+      history.push('/purchase/paymentDocument');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
   const onStepChange = (current: number) => {
-    if (int_status(method) === -1) return;
-    if (int_status(method) < current) return;
+    if (int_status(paymentDocumentItem.status) === -1) return;
+    if (int_status(paymentDocumentItem.status) < current) return;
     setCurrent(current);
+  };
+
+  const handleUpload = (
+    isSuccess: boolean,
+    filename: string,
+    field: string,
+    uid: string,
+  ) => {
+    const payment_file = formRef.current?.getFieldValue(field);
+    const current_payment_file = _.find(payment_file, (file: any) => {
+      return file.uid === uid;
+    });
+    const other_payment_files = _.filter(payment_file, (file: any) => {
+      return file.uid !== uid;
+    });
+    if (isSuccess) {
+      formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
+        {
+          ...current_payment_file,
+          status: 'done',
+          percent: 100,
+          filename,
+        },
+      ]);
+    } else {
+      formRef.current?.setFieldValue(field, [
+        ...other_payment_files,
+        {
+          ...current_payment_file,
+          status: 'error',
+          percent: 100,
+          filename,
+        },
+      ]);
+    }
   };
 
   const columns = [
@@ -89,6 +179,20 @@ const PaymentDocumentDetailPage: React.FC = () => {
       title: '设备名称',
       dataIndex: 'equipment',
       key: 'equipment',
+    },
+    {
+      title: '合同附件',
+      key: 'contract_file',
+      render: (record: any) => {
+        return <PreviewListModal fileListString={record.contract_file} />;
+      },
+    },
+    {
+      title: '验收附件',
+      key: 'install_picture',
+      render: (record: any) => {
+        return <PreviewListModal fileListString={record.install_picture} />;
+      },
     },
     {
       title: '合同金额',
@@ -139,7 +243,7 @@ const PaymentDocumentDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      runGetItem(id);
+      runGetDocumentItem(id);
     } else {
       history.push('/purchase/paymentProcess');
     }
@@ -151,139 +255,215 @@ const PaymentDocumentDetailPage: React.FC = () => {
         title: '制单管理',
       }}
     >
-      <Table dataSource={dataSource} columns={columns} />
-      <ProCard>
-        <StepsForm<{
-          name: string;
-        }>
-          formRef={formRef}
-          formProps={{
-            validateMessages: {
-              required: '此项为必填项',
-            },
-          }}
-          current={current}
-          stepsRender={(steps) => {
-            const items = _.map(steps, (value: any, key: any) => {
-              const status =
-                int_status(method) < key
-                  ? 'wait'
-                  : current === key
-                  ? 'process'
-                  : 'finish';
-              return {
-                ...value,
-                status,
-              };
-            });
-            return (
-              <Steps
-                type="navigation"
-                current={current}
-                items={items}
-                onChange={onStepChange}
-              />
-            );
-          }}
-          submitter={{
-            render: (props: any) => {
-              return [
-                <Button
-                  disabled={int_status(method) > current}
-                  htmlType="button"
-                  type="primary"
-                  onClick={props.onSubmit}
-                  key="submit"
-                >
-                  提交
-                </Button>,
-              ];
-            },
-          }}
-        >
-          <StepsForm.StepForm<{
-            name: string;
-          }>
-            name="1"
-            title="财务科长审批"
-            onFinish={async () => {
-              if (!access.canFinanceAuditPaymentDocument) {
-                message.error('你无权进行此操作');
-              } else {
-                await runAudit(id, 2);
-              }
-            }}
-          >
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
+      {paymentDocumentItem.payment_document_file ? (
+        <PreviewListVisible
+          title="制单附件"
+          fileListString={paymentDocumentItem.payment_document_file}
+          open={true}
+        />
+      ) : (
+        <div>
+          <Table dataSource={dataSource} columns={columns} />
+          <ProCard>
+            <StepsForm<{
+              name: string;
+            }>
+              formRef={formRef}
+              formProps={{
+                validateMessages: {
+                  required: '此项为必填项',
                 },
-                {
-                  label: '审核驳回',
-                  value: false,
+              }}
+              current={current}
+              stepsRender={(steps) => {
+                const items = _.map(steps, (value: any, key: any) => {
+                  const status =
+                    int_status(paymentDocumentItem.status) < key
+                      ? 'wait'
+                      : current === key
+                      ? 'process'
+                      : 'finish';
+                  return {
+                    ...value,
+                    status,
+                  };
+                });
+                return (
+                  <Steps
+                    type="navigation"
+                    current={current}
+                    items={items}
+                    onChange={onStepChange}
+                  />
+                );
+              }}
+              submitter={{
+                render: (props: any) => {
+                  return [
+                    <Button
+                      disabled={
+                        int_status(paymentDocumentItem.status) > current
+                      }
+                      htmlType="button"
+                      type="primary"
+                      onClick={props.onSubmit}
+                      key="submit"
+                    >
+                      提交
+                    </Button>,
+                  ];
                 },
-              ]}
+              }}
+            >
+              <StepsForm.StepForm<{
+                name: string;
+              }>
+                name="1"
+                title="财务科长审批"
+                onFinish={async () => {
+                  if (!access.canFinanceAuditPaymentDocument) {
+                    message.error('你无权进行此操作');
+                  } else {
+                    await runAudit(id);
+                  }
+                }}
+              >
+                <ProFormRadio.Group
+                  name="audit"
+                  options={[
+                    {
+                      label: '审核通过',
+                      value: true,
+                    },
+                    {
+                      label: '审核驳回',
+                      value: false,
+                    },
+                  ]}
+                />
+              </StepsForm.StepForm>
+              <StepsForm.StepForm<{
+                name: string;
+              }>
+                name="2"
+                title="分管院长审批"
+                onFinish={async () => {
+                  if (!access.canDeanAuditPaymentDocument) {
+                    message.error('你无权进行此操作');
+                  } else {
+                    await runAudit(id);
+                  }
+                }}
+              >
+                <ProFormRadio.Group
+                  name="audit"
+                  options={[
+                    {
+                      label: '审核通过',
+                      value: true,
+                    },
+                    {
+                      label: '审核驳回',
+                      value: false,
+                    },
+                  ]}
+                />
+              </StepsForm.StepForm>
+              <StepsForm.StepForm<{
+                name: string;
+              }>
+                name="3"
+                title="财务院长审批"
+                onFinish={async () => {
+                  if (!access.canFinanceDeanAuditPaymentDocument) {
+                    message.error('你无权进行此操作');
+                  } else {
+                    await runAudit(id);
+                  }
+                }}
+              >
+                <ProFormRadio.Group
+                  name="audit"
+                  options={[
+                    {
+                      label: '审核通过',
+                      value: true,
+                    },
+                    {
+                      label: '审核驳回',
+                      value: false,
+                    },
+                  ]}
+                />
+              </StepsForm.StepForm>
+              <StepsForm.StepForm
+                name="upload"
+                title="上传制单表"
+                onFinish={async () => {
+                  if (!access.canUploadPaymentDocument) {
+                    message.error('你无权进行此操作');
+                    return;
+                  }
+                  // if (!access.canInstallEquipment) {
+                  //   message.error('你无权进行此操作');
+                  // } else {
+                  const values = formRef.current?.getFieldsValue();
+                  if (
+                    formRef.current?.getFieldValue('payment_document_file')[0]
+                      .status === 'done'
+                  ) {
+                    await runUploadDocument(id, values.payment_document_file);
+                  } else if (
+                    formRef.current?.getFieldValue('payment_document_file')[0]
+                      .status === 'error'
+                  ) {
+                    message.error('文件上传失败！');
+                  } else {
+                    message.error('文件上传中，请等待...');
+                  }
+                  // }
+                }}
+              >
+                <ProFormUploadButton
+                  label="制单表："
+                  name="payment_document_file"
+                  fieldProps={{
+                    customRequest: (options) => {
+                      upload(
+                        options.file,
+                        (isSuccess: boolean, filename: string) =>
+                          handleUpload(
+                            isSuccess,
+                            filename,
+                            'payment_document_file',
+                            options.file.uid,
+                          ),
+                      );
+                    },
+                  }}
+                  // extra={
+                  //   equipmentItem.status > current ? (
+                  //     <PreviewListModal
+                  //       fileListString={equipmentItem.install_picture}
+                  //     />
+                  //   ) : null
+                  // }
+                  rules={[{ required: true }]}
+                />
+              </StepsForm.StepForm>
+            </StepsForm>
+          </ProCard>
+          <FloatButton.Group shape="square" style={{ right: 50 }}>
+            <FloatButton
+              icon={<DownloadOutlined />}
+              tooltip={<span>下载备案表</span>}
+              onClick={() => {
+                saveAs(xlsx);
+              }}
             />
-          </StepsForm.StepForm>
-          <StepsForm.StepForm<{
-            name: string;
-          }>
-            name="2"
-            title="分管院长审批"
-            onFinish={async () => {
-              if (!access.canDeanAuditPaymentDocument) {
-                message.error('你无权进行此操作');
-              } else {
-                await runAudit(id, 3);
-              }
-            }}
-          >
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
-          </StepsForm.StepForm>
-          <StepsForm.StepForm<{
-            name: string;
-          }>
-            name="3"
-            title="财务院长审批"
-            onFinish={async () => {
-              if (!access.canFinanceDeanAuditPaymentDocument) {
-                message.error('你无权进行此操作');
-              } else {
-                await runAudit(id, 4);
-              }
-            }}
-          >
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
-          </StepsForm.StepForm>
-        </StepsForm>
-      </ProCard>
+          </FloatButton.Group>
+        </div>
+      )}
     </PageContainer>
   );
 };

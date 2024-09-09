@@ -117,6 +117,42 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_finance_dean_audit_payment_document');
   const canApproveContracts =
     permissions && permissions.has('can_approve_contracts');
+  const canApplyTemporyConsumableRecord =
+    permissions && permissions.has('can_apply_tempory_consumable_record');
+  const canPurchaseTemporyConsumableRecord =
+    permissions && permissions.has('can_purchase_tempory_consumable_record');
+  const canApproveTemporyConsumableRecord =
+    permissions && permissions.has('can_approve_tempory_consumable_record');
+  const canStopTemporyConsumableRecord =
+    permissions && permissions.has('can_stop_tempory_consumable_record');
+  const canApplyConsumableRecord =
+    permissions && permissions.has('can_apply_consumable_record');
+  const canPurchaseConsumableRecord =
+    permissions && permissions.has('can_purchase_consumable_record');
+  const canApproveConsumableRecord =
+    permissions && permissions.has('can_approve_consumable_record');
+  const canEngineerApproveConsumableRecord =
+    permissions && permissions.has('can_engineer_approve_consumable_record');
+  const canBackConsumableRecord =
+    permissions && permissions.has('can_back_consumable_record');
+  const canDeleteConsumableRecord =
+    permissions && permissions.has('can_delete_consumable_record');
+  const canPurchaseConsumableList =
+    permissions && permissions.has('can_purchase_consumable_list');
+  const canApproveConsumableList =
+    permissions && permissions.has('can_approve_consumable_list');
+  const canEngineerApproveConsumableList =
+    permissions && permissions.has('can_engineer_approve_consumable_list');
+  const canDeleteConsumableList =
+    permissions && permissions.has('can_delete_consumable_list');
+  const canDeanAuditPaymentRecord =
+    permissions && permissions.has('can_dean_audit_payment_record');
+  const canFinanceDeanAuditPaymentRecord =
+    permissions && permissions.has('can_finance_dean_audit_payment_record');
+  const canUploadPaymentDocument =
+    permissions && permissions.has('can_upload_payment_document');
+  const canDeletePaymentDocument =
+    permissions && permissions.has('can_delete_payment_document');
 
   return {
     canSeeHome,
@@ -176,5 +212,23 @@ export default (initialState: API.UserToken) => {
     canDeanAuditPaymentDocument,
     canFinanceDeanAuditPaymentDocument,
     canApproveContracts,
+    canApplyTemporyConsumableRecord,
+    canPurchaseTemporyConsumableRecord,
+    canApproveTemporyConsumableRecord,
+    canStopTemporyConsumableRecord,
+    canApplyConsumableRecord,
+    canPurchaseConsumableRecord,
+    canApproveConsumableRecord,
+    canEngineerApproveConsumableRecord,
+    canBackConsumableRecord,
+    canDeleteConsumableRecord,
+    canPurchaseConsumableList,
+    canApproveConsumableList,
+    canEngineerApproveConsumableList,
+    canDeleteConsumableList,
+    canDeanAuditPaymentRecord,
+    canFinanceDeanAuditPaymentRecord,
+    canUploadPaymentDocument,
+    canDeletePaymentDocument,
   };
 };

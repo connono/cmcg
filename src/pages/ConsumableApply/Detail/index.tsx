@@ -15,7 +15,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
+import { history, useAccess, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -226,10 +226,25 @@ const ConsumableApplyDetailPage: React.FC = () => {
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const access = useAccess();
+
+  const isPurchase = (data: any) => {
+    if (data.status === '0') return false;
+    if (data.final === '1') return false;
+    if (data.in_drugstore === '0') return false;
+    if (data.apply_type === '0' || data.apply_type === '4') return false;
+    return true;
+  };
 
   const onStepChange = (current: number) => {
     if (_.isNull(consumableApplyItem.status)) return;
     if (consumableApplyItem.status < current - 1) return;
+    if (
+      !isPurchase(consumableApplyItem) &&
+      consumableApplyItem.status !== '0' &&
+      current === 1
+    )
+      message.info('本次申请不经过询价');
     setCurrent(current);
     if (current === 0) {
       _.forEach(consumableApplyItem, (key: any, value: any) => {
@@ -319,7 +334,7 @@ const ConsumableApplyDetailPage: React.FC = () => {
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
-      if (result.data.status > 0) {
+      if (isPurchase(result.data)) {
         runGetTrendItem(result.data.serial_number);
       }
       setConsumableApplyItem({
@@ -524,40 +539,32 @@ const ConsumableApplyDetailPage: React.FC = () => {
             name="base"
             title="申请"
             onFinish={async () => {
-              const values = formRef.current?.getFieldsValue();
-              if (
-                formRef.current?.getFieldValue('apply_file')[0].status ===
-                'done'
-              ) {
-                await runApply(
-                  consumableApplyItem.serial_number,
-                  values.platform_id,
-                  values.consumable,
-                  values.department,
-                  values.model,
-                  values.price,
-                  values.apply_date,
-                  values.count_year,
-                  values.registration_num,
-                  values.company,
-                  values.manufacturer,
-                  values.category_zj,
-                  values.parent_directory,
-                  values.child_directory,
-                  values.apply_type,
-                  values.pre_assessment,
-                  values.final,
-                  values.in_drugstore,
-                  values.apply_file,
-                );
-              } else if (
-                formRef.current?.getFieldValue('apply_file')[0].status ===
-                'error'
-              ) {
-                message.error('文件上传失败！');
-              } else {
-                message.error('文件上传中，请等待...');
+              if (!access.canApplyConsumableRecord) {
+                message.error('你无权进行此操作');
+                return;
               }
+              const values = formRef.current?.getFieldsValue();
+              await runApply(
+                consumableApplyItem.serial_number,
+                values.platform_id,
+                values.consumable,
+                values.department,
+                values.model,
+                values.price,
+                values.apply_date,
+                values.count_year,
+                values.registration_num,
+                values.company,
+                values.manufacturer,
+                values.category_zj,
+                values.parent_directory,
+                values.child_directory,
+                values.apply_type,
+                values.pre_assessment,
+                values.final,
+                values.in_drugstore,
+                values.apply_file,
+              );
               confirm();
             }}
           >
@@ -764,6 +771,10 @@ const ConsumableApplyDetailPage: React.FC = () => {
             name="ys"
             title="询价"
             onFinish={async () => {
+              if (!access.canPurchaseConsumableRecord) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               if (
                 values.contract_file === undefined ||
@@ -943,6 +954,10 @@ const ConsumableApplyDetailPage: React.FC = () => {
             name="sh"
             title="分管院长审核"
             onFinish={async () => {
+              if (!access.canApproveConsumableRecord) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               await runApprove(consumableApplyItem.id, values.approve);
             }}
@@ -968,6 +983,10 @@ const ConsumableApplyDetailPage: React.FC = () => {
             name="yg"
             title="医工科审核"
             onFinish={async () => {
+              if (!access.canEngineerApproveConsumableRecord) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               await runEngineerApprove(
                 id,

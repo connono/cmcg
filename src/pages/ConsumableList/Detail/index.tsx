@@ -13,7 +13,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
+import { history, useAccess, useRequest } from '@umijs/max';
 import { Button, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -139,6 +139,7 @@ const ConsumableDetailPage: React.FC = () => {
   const id = hashArray[1];
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const access = useAccess();
 
   const onStepChange = (current: number) => {
     if (_.isNull(consumableList.status)) return;
@@ -389,6 +390,10 @@ const ConsumableDetailPage: React.FC = () => {
             name="cg"
             title="重新采购"
             onFinish={async () => {
+              if (!access.canPurchaseConsumableList) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               if (
                 values.contract_file === undefined ||
@@ -573,6 +578,10 @@ const ConsumableDetailPage: React.FC = () => {
             name="sh"
             title="分管院长审核"
             onFinish={async () => {
+              if (!access.canApproveConsumableList) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               await runApprove(consumableList.id, id, values.approve);
             }}
@@ -598,6 +607,10 @@ const ConsumableDetailPage: React.FC = () => {
             name="yg"
             title="医工科审核"
             onFinish={async () => {
+              if (!access.canEngineerApproveConsumableList) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               await runEngineerApprove(consumableList.id, id, values.vertify);
             }}

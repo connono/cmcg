@@ -1,4 +1,5 @@
 import PreviewListModal from '@/components/PreviewListModal';
+import PreviewListVisible from '@/components/PreviewListVisible';
 import { SERVER_HOST } from '@/constants';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
@@ -65,6 +66,12 @@ const getDocument = async (id: string) => {
   return await axios.get(`${SERVER_HOST}/payment/document/records/item/${id}`);
 };
 
+const getDocumentItem = async (id: string) => {
+  return await axios.get(
+    `${SERVER_HOST}/payment/document/records/getItem/${id}`,
+  );
+};
+
 const process = async (
   process_id: string,
   record_id: string,
@@ -104,12 +111,24 @@ const PaymentRecordDetailPage: React.FC = () => {
   const [dataSource, setDataSource] = useState<any>();
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
+  const [paymentDocumentItem, setPaymentDocumentItem] = useState({});
 
   const { run: runGetDocument } = useRequest(getDocument, {
     manual: true,
     onSuccess: (result: any) => {
       console.log(result);
       setDataSource(result.data);
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runGetDocumentItem } = useRequest(getDocumentItem, {
+    manual: true,
+    onSuccess: (result: any) => {
+      setPaymentDocumentItem(result.data);
+      runGetDocument(paymentRecord.payment_document_id);
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -137,6 +156,9 @@ const PaymentRecordDetailPage: React.FC = () => {
           formRef.current?.setFieldValue(value, key);
         }
       });
+      if (result.data.payment_document_id) {
+        runGetDocumentItem(result.data.payment_document_id);
+      }
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -238,6 +260,20 @@ const PaymentRecordDetailPage: React.FC = () => {
       key: 'equipment',
     },
     {
+      title: '合同附件',
+      key: 'contract_file',
+      render: (record: any) => {
+        return <PreviewListModal fileListString={record.contract_file} />;
+      },
+    },
+    {
+      title: '验收附件',
+      key: 'install_picture',
+      render: (record: any) => {
+        return <PreviewListModal fileListString={record.install_picture} />;
+      },
+    },
+    {
       title: '合同金额',
       dataIndex: 'price',
       key: 'price',
@@ -289,9 +325,6 @@ const PaymentRecordDetailPage: React.FC = () => {
       runGetItem(id);
     } else {
       history.push('/purchase/paymentProcess');
-    }
-    if (paymentRecord.payment_document_id) {
-      runGetDocument(paymentRecord.payment_document_id);
     }
   }, []);
   return (
@@ -519,7 +552,15 @@ const PaymentRecordDetailPage: React.FC = () => {
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm name="audit" title="审核">
-            <Table dataSource={dataSource} columns={columns} />{' '}
+            {paymentDocumentItem.payment_document_file ? (
+              <PreviewListVisible
+                title="制单附件"
+                fileListString={paymentDocumentItem.payment_document_file}
+                open={true}
+              />
+            ) : (
+              <Table dataSource={dataSource} columns={columns} />
+            )}
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
             checkbox: string;

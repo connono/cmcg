@@ -27,10 +27,14 @@ const int_status = (status: string) => {
   switch (status) {
     case 'apply':
       return 0;
-    case 'audit':
+    case 'dean_audit':
       return 1;
-    case 'process':
+    case 'audit':
       return 2;
+    case 'finance_dean_audit':
+      return 3;
+    case 'process':
+      return 4;
     default:
       return -1;
   }
@@ -60,9 +64,33 @@ const apply = async (
   });
 };
 
+const dean_audit = async (plan_id: string, record_id: string) => {
+  const form = new FormData();
+  form.append('method', 'dean_audit');
+  form.append('plan_id', plan_id);
+  form.append('type', 'plan');
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/payment/records/update/${record_id}`,
+  });
+};
+
 const audit = async (plan_id: string, record_id: string) => {
   const form = new FormData();
   form.append('method', 'audit');
+  form.append('plan_id', plan_id);
+  form.append('type', 'plan');
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/payment/records/update/${record_id}`,
+  });
+};
+
+const finance_dean_audit = async (plan_id: string, record_id: string) => {
+  const form = new FormData();
+  form.append('method', 'finance_dean_audit');
   form.append('plan_id', plan_id);
   form.append('type', 'plan');
   return await axios({
@@ -148,7 +176,27 @@ const PaymentRecordDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
+  const { run: runDeanAudit } = useRequest(dean_audit, {
+    manual: true,
+    onSuccess: () => {
+      message.success('审核成功，正在返回计划列表...');
+      history.push('/purchase/paymentMonitor');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
   const { run: runAudit } = useRequest(audit, {
+    manual: true,
+    onSuccess: () => {
+      message.success('审核成功，正在返回计划列表...');
+      history.push('/purchase/paymentMonitor');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+  const { run: runFinanceDeanAudit } = useRequest(finance_dean_audit, {
     manual: true,
     onSuccess: () => {
       message.success('审核成功，正在返回计划列表...');
@@ -232,11 +280,7 @@ const PaymentRecordDetailPage: React.FC = () => {
     }
   };
 
-  console.log(
-    'department',
-    initialState?.department,
-    history.location.state.department,
-  );
+  console.log('state', history.location.state);
 
   useEffect(() => {
     if (id) {
@@ -335,6 +379,30 @@ const PaymentRecordDetailPage: React.FC = () => {
               }
             }}
           >
+            <ProFormItem label="合同附件：">
+              <PreviewListModal
+                fileListString={history.location.state.payment_file}
+              />
+            </ProFormItem>
+            <ProFormItem
+              label={
+                history.location.state.is_pay === 'true'
+                  ? '付款记录：'
+                  : '收款记录：'
+              }
+            >
+              <a
+                key="history"
+                onClick={() => {
+                  window.open(
+                    `/#/purchase/paymentRecord#plan&${plan_id}`,
+                    '_blank',
+                  );
+                }}
+              >
+                点此查看
+              </a>
+            </ProFormItem>
             <ProFormText
               name="contract_name"
               label="合同名称"
@@ -378,11 +446,46 @@ const PaymentRecordDetailPage: React.FC = () => {
                   );
                 },
               }}
+              extra={
+                paymentRecord.payment_voucher_file ? (
+                  <PreviewListModal
+                    fileListString={paymentRecord.payment_voucher_file}
+                  />
+                ) : null
+              }
+            />
+          </StepsForm.StepForm>
+          <StepsForm.StepForm
+            name="dean_audit"
+            title="分管院长审核"
+            onFinish={async () => {
+              if (!access.canDeanAuditPaymentRecord) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (values.audit) await runDeanAudit(plan_id, id);
+                else await runBack(plan_id, id);
+                return true;
+              }
+            }}
+          >
+            <ProFormRadio.Group
+              name="audit"
+              options={[
+                {
+                  label: '审核通过',
+                  value: true,
+                },
+                {
+                  label: '审核驳回',
+                  value: false,
+                },
+              ]}
             />
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="audit"
-            title="审核"
+            title="财务科审核"
             onFinish={async () => {
               if (!access.canAuditPaymentRecord) {
                 message.error('你无权进行此操作');
@@ -394,29 +497,34 @@ const PaymentRecordDetailPage: React.FC = () => {
               }
             }}
           >
-            <ProFormItem label="合同附件：">
-              <PreviewListModal
-                fileListString={history.location.state.payment_file}
-              />
-            </ProFormItem>
-            <ProFormItem
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款凭证：'
-                  : '收款凭证：'
+            <ProFormRadio.Group
+              name="audit"
+              options={[
+                {
+                  label: '审核通过',
+                  value: true,
+                },
+                {
+                  label: '审核驳回',
+                  value: false,
+                },
+              ]}
+            />
+          </StepsForm.StepForm>
+          <StepsForm.StepForm
+            name="finance_dean_audit"
+            title="财务院长审核"
+            onFinish={async () => {
+              if (!access.canFinanceDeanAuditPaymentRecord) {
+                message.error('你无权进行此操作');
+              } else {
+                const values = formRef.current?.getFieldsValue();
+                if (values.audit) await runFinanceDeanAudit(plan_id, id);
+                else await runBack(plan_id, id);
+                return true;
               }
-            >
-              {
-                // @ts-ignore
-                paymentRecord?.payment_voucher_file ? (
-                  <PreviewListModal
-                    fileListString={paymentRecord.payment_voucher_file}
-                  />
-                ) : (
-                  <span>找不到该文件</span>
-                )
-              }
-            </ProFormItem>
+            }}
+          >
             <ProFormRadio.Group
               name="audit"
               options={[
@@ -491,7 +599,13 @@ const PaymentRecordDetailPage: React.FC = () => {
                   );
                 },
               }}
-              rules={[{ required: true }]}
+              extra={
+                paymentRecord.payment_file ? (
+                  <PreviewListModal
+                    fileListString={paymentRecord.payment_file}
+                  />
+                ) : null
+              }
             />
           </StepsForm.StepForm>
         </StepsForm>

@@ -28,11 +28,13 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
     ['approve', '待院办审核'],
     ['upload', '待上传'],
     ['delete', '待重新创建'],
+    ['finance_dean_audit', '待财务院长审核'],
   ]);
   const procardlists = _.map(
     _.groupBy(props.data, 'type'),
     (value: any, key: any) => {
       const procardlist = _.map(value, (v: any, k: any) => {
+        console.log('data', v);
         if (props.contentRender) {
           const title = props.contentRender(v);
           return (
@@ -110,6 +112,10 @@ const PurchaseNotificationTab: React.FC<Props> = (props) => {
     'n_category',
     'paymentProcess',
   ]);
+  const paymentDocumentData = _.filter(props.data, [
+    'n_category',
+    'paymentDocument',
+  ]);
   const advanceData = _.filter(props.data, ['n_category', 'advance']);
   const contractData = _.filter(props.data, ['n_category', 'contract']);
   const items = [
@@ -124,13 +130,18 @@ const PurchaseNotificationTab: React.FC<Props> = (props) => {
       children: <PurchaseNotificationCard data={paymentProcessData} />,
     },
     {
-      label: <Badge count={advanceData.length}>垫付款管理</Badge>,
+      label: <Badge count={paymentDocumentData.length}>制单管理</Badge>,
       key: '3',
+      children: <PurchaseNotificationCard data={paymentDocumentData} />,
+    },
+    {
+      label: <Badge count={advanceData.length}>垫付款管理</Badge>,
+      key: '4',
       children: <PurchaseNotificationCard data={advanceData} />,
     },
     {
       label: <Badge count={contractData.length}>合同管理</Badge>,
-      key: '4',
+      key: '5',
       children: (
         <PurchaseNotificationCard
           data={contractData}

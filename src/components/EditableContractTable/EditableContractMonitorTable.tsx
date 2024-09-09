@@ -149,6 +149,7 @@ const EditableContractMonitorTable: React.FC = () => {
       valueEnum: {
         wait: { text: '待设置下次时间', status: 'Default' },
         apply: { text: '待申请', status: 'Processing' },
+        dean_audit: { text: '待审核', status: 'Processing' },
         audit: { text: '待审核', status: 'Processing' },
         process: { text: '待收付款', status: 'Processing' },
         stop: { text: '已停止', status: 'Error' },

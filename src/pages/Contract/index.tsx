@@ -243,6 +243,11 @@ const ContractPage: React.FC = () => {
                       ? null
                       : value.source
                     : filter.source,
+                  department_source: value.department_source
+                    ? value.department_source === 'all'
+                      ? null
+                      : value.department_source
+                    : filter.department_source,
                   isImportant: !_.isUndefined(value.isImportant)
                     ? value.isImportant
                       ? 'true'
@@ -269,15 +274,39 @@ const ContractPage: React.FC = () => {
                 name="category"
                 width="md"
                 valueEnum={{
-                  JJ: { text: '基建项目', status: 'JJ' },
-                  YP: { text: '药品采购', status: 'YP' },
-                  XX: { text: '信息采购', status: 'XX' },
-                  XS: { text: '医疗协商', status: 'XS' },
-                  HZ: { text: '医疗合作', status: 'HZ' },
-                  ZW: { text: '物资采购', status: 'ZW' },
-                  FW: { text: '服务项目', status: 'FW' },
-                  QX: { text: '器械采购', status: 'QX' },
-                  all: { text: '全部', status: 'all' },
+                  JJXM: { text: '基建项目' },
+                  YPCG: { text: '药品采购' },
+                  XXCG: { text: '信息采购' },
+                  QXCG: { text: '器械采购' },
+                  QRHZ: { text: '金融合作' },
+                  WZCG: { text: '物资采购' },
+                  YLHZ: { text: '医疗合作' },
+                  YLXS: { text: '医疗协商' },
+                  DSFFW: { text: '第三方服务' },
+                  QT: { text: '其他' },
+                  all: { text: '全部' },
+                }}
+              />
+              <ProFormSelect
+                label="归口选择"
+                name="department_source"
+                width="md"
+                valueEnum={{
+                  ZW: { text: '总务归口' },
+                  YJ: { text: '药剂归口' },
+                  XX: { text: '信息归口' },
+                  YH: { text: '医患协商' },
+                  CW: { text: '财务归口' },
+                  YW: { text: '医务归口' },
+                  CG: { text: '采购归口' },
+                  YG: { text: '医工归口' },
+                  DZ: { text: '党政归口' },
+                  RS: { text: '人事归口' },
+                  KJ: { text: '科教归口' },
+                  HL: { text: '护理归口' },
+                  BW: { text: '保卫归口' },
+                  GW: { text: '公卫归口' },
+                  all: { text: '全部' },
                 }}
               />
               <ProFormSelect

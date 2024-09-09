@@ -10,17 +10,9 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Access, history, useAccess, useRequest } from '@umijs/max';
-import { Button, Divider, Popconfirm, message } from 'antd';
+import { Button, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
-
-const deleteConsumableApplyItem = async (id?: number) => {
-  return await axios.delete(`${SERVER_HOST}/maintain/delete/${id}`);
-};
-
-const backConsumableApplyItem = async (id?: number) => {
-  return await axios.patch(`${SERVER_HOST}/maintain/back/${id}`);
-};
 
 const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
@@ -62,31 +54,6 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
       message.error(error.message);
     },
   });
-
-  const { run: runDeleteConsumableApplyItem } = useRequest(
-    deleteConsumableApplyItem,
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('删除成功');
-      },
-      onError: (error: any) => {
-        message.error(error.message);
-      },
-    },
-  );
-  const { run: runBackConsumableApplyItem } = useRequest(
-    backConsumableApplyItem,
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('回退成功');
-      },
-      onError: (error: any) => {
-        message.error(error.message);
-      },
-    },
-  );
 
   const departments = async () => {
     const { data: departmentsData } = await runGetAllDepartments();
@@ -201,7 +168,7 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (text, record, _, action) => (
+      render: (text, record) => (
         <>
           <a
             onClick={() => {
@@ -211,39 +178,6 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
             }}
           >
             录入
-          </a>
-          <Divider type="vertical" />
-          <Popconfirm
-            key="back"
-            placement="topLeft"
-            title="确定要回退吗？"
-            onConfirm={async () => {
-              if (!access.canBackRepair) {
-                message.error('你无权进行此操作');
-              } else {
-                const id = record.id;
-                await runBackConsumableApplyItem(id);
-                action?.reload();
-              }
-            }}
-            okText="确定"
-            cancelText="取消"
-          >
-            <a key="back">回退</a>
-          </Popconfirm>
-          <Divider type="vertical" />
-          <a
-            onClick={async () => {
-              if (!access.canDeleteEquipment) {
-                message.error('你无权进行此操作');
-              } else {
-                const id = record.id;
-                await runDeleteConsumableApplyItem(id);
-                action?.reload();
-              }
-            }}
-          >
-            删除
           </a>
         </>
       ),

@@ -1124,7 +1124,7 @@ const EquipmentDetailPage: React.FC = () => {
                   values.isImportant,
                   values.comment ? values.comment : '',
                   values.isComplement,
-                  values.payment_terms,
+                  values.payment_terms ? values.payment_terms : '',
                 );
               }
             }}
@@ -1187,6 +1187,9 @@ const EquipmentDetailPage: React.FC = () => {
                     DZ: { text: '党政归口' },
                     RS: { text: '人事归口' },
                     KJ: { text: '科教归口' },
+                    HL: { text: '护理归口' },
+                    BW: { text: '保卫归口' },
+                    GW: { text: '公卫归口' },
                   }}
                   rules={[{ required: true }]}
                 />

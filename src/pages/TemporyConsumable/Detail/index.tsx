@@ -14,7 +14,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { history, useRequest } from '@umijs/max';
+import { history, useAccess, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -127,6 +127,7 @@ const TemporyConsumableDetailPage: React.FC = () => {
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const access = useAccess();
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
@@ -316,7 +317,7 @@ const TemporyConsumableDetailPage: React.FC = () => {
     } else if (method === 'update' && id) {
       runGetItem(id);
     } else {
-      history.push('/apply/maintain');
+      history.push('/consumable/tempory/apply');
     }
   }, []);
 
@@ -377,6 +378,10 @@ const TemporyConsumableDetailPage: React.FC = () => {
             name="base"
             title="申请"
             onFinish={async () => {
+              if (!access.canApplyTemporyConsumableRecord) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               if (
                 formRef.current?.getFieldValue('apply_file')[0].status ===
@@ -526,6 +531,10 @@ const TemporyConsumableDetailPage: React.FC = () => {
             name="ys"
             title="采购"
             onFinish={async () => {
+              if (!access.canPurchaseTemporyConsumableRecord) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               if (
                 values.accept_file === undefined ||
@@ -616,6 +625,10 @@ const TemporyConsumableDetailPage: React.FC = () => {
             name="sh"
             title="审核"
             onFinish={async () => {
+              if (!access.canApproveTemporyConsumableRecord) {
+                message.error('你无权进行此操作');
+                return;
+              }
               const values = formRef.current?.getFieldsValue();
               if (values.audit) await runApprove(id);
               else await runBackTemporyConsumableItem(id);

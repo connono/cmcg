@@ -5,10 +5,13 @@ import PreviewList from './PreviewList';
 interface Props {
   title?: string;
   fileListString: string;
+  open?: boolean;
 }
 
 const PreviewListVisible: React.FC<Props> = (props) => {
-  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(
+    props.open ? true : false,
+  );
 
   return (
     <div>

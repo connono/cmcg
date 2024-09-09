@@ -5,6 +5,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import ApplyNotificationTab from './ApplyNotificationTab';
+import ConsumableNotificationTab from './ConsumableNotificationTab';
 import PurchaseNotificationTab from './PurchaseNotificationTab';
 
 const getNotificationsList = async (id?: string) => {
@@ -55,6 +56,8 @@ const NotificationTab: React.FC = () => {
     'purchaseMonitor',
   ]);
 
+  const consumableData = _.filter(notificationData, ['category', 'consumable']);
+
   const items = [
     {
       label: <Badge count={applyRecordData.length}>设备申请列表</Badge>,
@@ -65,6 +68,11 @@ const NotificationTab: React.FC = () => {
       label: <Badge count={paymentMonitorData.length}>付款流程监控</Badge>,
       key: '2',
       children: <PurchaseNotificationTab data={paymentMonitorData} />,
+    },
+    {
+      label: <Badge count={consumableData.length}>耗材管理</Badge>,
+      key: '3',
+      children: <ConsumableNotificationTab data={consumableData} />,
     },
   ];
 
