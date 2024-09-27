@@ -595,6 +595,11 @@ const ConsumableApplyDetailPage: React.FC = () => {
             />
             <ProFormSelect
               label="申请科室"
+              fieldProps={{
+                showSearch: true,
+                filterOption: (input: any, option: any) =>
+                  (option?.label ?? '').includes(input),
+              }}
               request={departments}
               name="department"
               disabled={
@@ -929,9 +934,9 @@ const ConsumableApplyDetailPage: React.FC = () => {
               label="合同附件："
               name="contract_file"
               extra={
-                consumableApplyItem.status > current ? (
+                consumableTrendItem.contract_file ? (
                   <PreviewListModal
-                    fileListString={consumableApplyItem.contract_file}
+                    fileListString={consumableTrendItem.contract_file}
                   />
                 ) : null
               }
@@ -990,21 +995,21 @@ const ConsumableApplyDetailPage: React.FC = () => {
               const values = formRef.current?.getFieldsValue();
               await runEngineerApprove(
                 id,
-                consumableApplyItem.platform_id,
-                consumableApplyItem.department,
-                consumableApplyItem.consumable,
-                consumableApplyItem.model,
-                consumableApplyItem.price,
+                consumableTrendItem.platform_id,
+                consumableTrendItem.department,
+                consumableTrendItem.consumable,
+                consumableTrendItem.model,
+                consumableTrendItem.price,
                 consumableTrendItem.start_date,
                 values.exp_date,
-                consumableApplyItem.registration_num,
-                consumableApplyItem.company,
-                consumableApplyItem.manufacturer,
-                consumableApplyItem.category_zj,
-                consumableApplyItem.parent_directory,
-                consumableApplyItem.child_directory,
-                consumableApplyItem.apply_type,
-                consumableApplyItem.in_drugstore,
+                consumableTrendItem.registration_num,
+                consumableTrendItem.company,
+                consumableTrendItem.manufacturer,
+                consumableTrendItem.category_zj,
+                consumableTrendItem.parent_directory,
+                consumableTrendItem.child_directory,
+                consumableTrendItem.apply_type,
+                consumableTrendItem.in_drugstore,
                 values.vertify,
               );
             }}

@@ -297,6 +297,11 @@ const EngineerListPage: React.FC = () => {
             request={departments}
             name="department_id"
             label="选择科室"
+            fieldProps={{
+              showSearch: true,
+              filterOption: (input: any, option: any) =>
+                (option?.label ?? '').includes(input),
+            }}
           />
         </ModalForm>
       ) : null}

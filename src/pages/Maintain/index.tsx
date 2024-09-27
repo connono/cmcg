@@ -9,9 +9,10 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { Access, history, useAccess, useRequest } from '@umijs/max';
+import { Access, useAccess, useRequest } from '@umijs/max';
 import { Button, Divider, Popconfirm, message } from 'antd';
 import axios from 'axios';
+import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 
 const deleteMaintainItem = async (id?: number) => {
@@ -30,18 +31,21 @@ const MaintainPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const [isChange, setIsChange] = useState<boolean>(false);
   const access = useAccess();
 
   const getMaintainList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         isPaginate: true,
       },
-      url: `${SERVER_HOST}/maintain/index?page=${params.current}`,
+      url: `${SERVER_HOST}/maintain/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -234,6 +238,9 @@ const MaintainPage: React.FC<unknown> = () => {
               }}
               onValuesChange={(value) => {
                 setFilter({
+                  serial_number: _.isUndefined(value.serial_number)
+                    ? filter.serial_number
+                    : value.serial_number,
                   name: _.isUndefined(value.name) ? filter.name : value.name,
                   equipment: _.isUndefined(value.equipment)
                     ? filter.equipment
@@ -254,14 +261,21 @@ const MaintainPage: React.FC<unknown> = () => {
                       : 'false'
                     : filter.isAdvance,
                 });
+                setIsChange(true);
               }}
             >
+              <ProFormText name="serial_number" label="申请编号" />
               <ProFormText name="name" label="维修项目" />
               <ProFormText name="equipment" label="设备名称" />
               <ProFormSelect
                 name="department"
                 label="申请科室"
                 request={departments}
+                fieldProps={{
+                  showSearch: true,
+                  filterOption: (input: any, option: any) =>
+                    (option?.label ?? '').includes(input),
+                }}
               />
               <ProFormSelect
                 name="status"
@@ -291,7 +305,7 @@ const MaintainPage: React.FC<unknown> = () => {
               <Button
                 key="button"
                 onClick={async () => {
-                  history.push('/apply/maintain/detail#create');
+                  window.open('/#/apply/maintain/detail#create', '_blank');
                 }}
                 type="primary"
               >

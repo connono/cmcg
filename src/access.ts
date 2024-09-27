@@ -123,8 +123,8 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_purchase_tempory_consumable_record');
   const canApproveTemporyConsumableRecord =
     permissions && permissions.has('can_approve_tempory_consumable_record');
-  const canStopTemporyConsumableRecord =
-    permissions && permissions.has('can_stop_tempory_consumable_record');
+  const canStopConsumableList =
+    permissions && permissions.has('can_stop_consumable_list');
   const canApplyConsumableRecord =
     permissions && permissions.has('can_apply_consumable_record');
   const canPurchaseConsumableRecord =
@@ -153,6 +153,11 @@ export default (initialState: API.UserToken) => {
     permissions && permissions.has('can_upload_payment_document');
   const canDeletePaymentDocument =
     permissions && permissions.has('can_delete_payment_document');
+  const canSeeConsumableView =
+    canApplyConsumableRecord ||
+    canPurchaseConsumableRecord ||
+    canApproveConsumableRecord ||
+    canEngineerApproveConsumableRecord;
 
   return {
     canSeeHome,
@@ -215,7 +220,7 @@ export default (initialState: API.UserToken) => {
     canApplyTemporyConsumableRecord,
     canPurchaseTemporyConsumableRecord,
     canApproveTemporyConsumableRecord,
-    canStopTemporyConsumableRecord,
+    canStopConsumableList,
     canApplyConsumableRecord,
     canPurchaseConsumableRecord,
     canApproveConsumableRecord,
@@ -230,5 +235,6 @@ export default (initialState: API.UserToken) => {
     canFinanceDeanAuditPaymentRecord,
     canUploadPaymentDocument,
     canDeletePaymentDocument,
+    canSeeConsumableView,
   };
 };

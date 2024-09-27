@@ -44,6 +44,10 @@ const getItem = async (id: string) => {
   return await axios.get(`${SERVER_HOST}/payment/records/getItem?id=${id}`);
 };
 
+const getPlan = async (plan_id: string) => {
+  return await axios.get(`${SERVER_HOST}/payment/plans/getItem/${plan_id}`);
+};
+
 const apply = async (
   plan_id: string,
   record_id: string,
@@ -131,7 +135,6 @@ const back = async (plan_id: string, record_id: string) => {
 const PaymentRecordDetailPage: React.FC = () => {
   const [paymentRecord, setPaymentRecord] = useState({});
   const hashArray = history.location.hash.split('#')[1].split('&');
-  const method = history.location.state.status;
   const plan_id = hashArray[1];
   const id = hashArray[2];
   const [modal, contextHolder] = Modal.useModal(); // eslint-disable-line
@@ -139,16 +142,11 @@ const PaymentRecordDetailPage: React.FC = () => {
   const [current, setCurrent] = useState<number>(0);
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
+  const [plan, setPlan] = useState<any>({});
 
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
-      if (int_status(method) !== -1) {
-        setCurrent(int_status(method));
-      } else {
-        history.push('/purchase/paymentMonitor');
-        message.info('该计划正处于等待或关闭阶段，无法编辑，跳转到计划界面');
-      }
       setPaymentRecord(result.data);
       _.forEach(result.data, (key: any, value: any) => {
         const length = value.split('_').length;
@@ -166,6 +164,23 @@ const PaymentRecordDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
+
+  const { run: runGetPlan } = useRequest(getPlan, {
+    manual: true,
+    onSuccess: (result: any) => {
+      if (int_status(result.data.status) !== -1) {
+        setCurrent(int_status(result.data.status));
+      } else {
+        history.push('/purchase/paymentMonitor');
+        message.info('该计划正处于等待或关闭阶段，无法编辑，跳转到计划界面');
+      }
+      setPlan(result.data);
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
   const { run: runApply } = useRequest(apply, {
     manual: true,
     onSuccess: () => {
@@ -176,6 +191,7 @@ const PaymentRecordDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
+
   const { run: runDeanAudit } = useRequest(dean_audit, {
     manual: true,
     onSuccess: () => {
@@ -228,8 +244,8 @@ const PaymentRecordDetailPage: React.FC = () => {
   });
 
   const onStepChange = (current: number) => {
-    if (int_status(method) === -1) return;
-    if (int_status(method) < current) return;
+    if (int_status(plan.status) === -1) return;
+    if (int_status(plan.status) < current) return;
     _.forEach(paymentRecord, (key: any, value: any) => {
       const length = value.split('_').length;
       const extension = value.split('_')[length - 1];
@@ -280,10 +296,9 @@ const PaymentRecordDetailPage: React.FC = () => {
     }
   };
 
-  console.log('state', history.location.state);
-
   useEffect(() => {
     if (id) {
+      runGetPlan(plan_id);
       runGetItem(id);
     } else {
       history.push('/purchase/paymentMonitor');
@@ -310,7 +325,7 @@ const PaymentRecordDetailPage: React.FC = () => {
           stepsRender={(steps) => {
             const items = _.map(steps, (value: any, key: any) => {
               const status =
-                int_status(method) < key
+                int_status(plan.status) < key
                   ? 'wait'
                   : current === key
                   ? 'process'
@@ -333,7 +348,7 @@ const PaymentRecordDetailPage: React.FC = () => {
             render: (props: any) => {
               return [
                 <Button
-                  disabled={int_status(method) > current}
+                  disabled={int_status(plan.status) > current}
                   htmlType="button"
                   type="primary"
                   onClick={props.onSubmit}
@@ -353,7 +368,7 @@ const PaymentRecordDetailPage: React.FC = () => {
             onFinish={async () => {
               if (
                 !access.canApplyPaymentRecord ||
-                initialState?.department !== history.location.state.department
+                initialState?.department !== plan.department
               ) {
                 message.error('你无权进行此操作');
               } else {
@@ -380,16 +395,10 @@ const PaymentRecordDetailPage: React.FC = () => {
             }}
           >
             <ProFormItem label="合同附件：">
-              <PreviewListModal
-                fileListString={history.location.state.payment_file}
-              />
+              <PreviewListModal fileListString={plan.payment_file} />
             </ProFormItem>
             <ProFormItem
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款记录：'
-                  : '收款记录：'
-              }
+              label={plan.is_pay === 'true' ? '付款记录：' : '收款记录：'}
             >
               <a
                 key="history"
@@ -418,21 +427,13 @@ const PaymentRecordDetailPage: React.FC = () => {
             <ProFormText name="company" label="合作商" width="md" disabled />
             <ProFormDigit
               name="assessment"
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '应付款金额'
-                  : '应收款金额'
-              }
+              label={plan.is_pay === 'true' ? '应付款金额' : '应收款金额'}
               width="md"
               rules={[{ required: true }]}
             />
             <ProFormUploadButton
               name="payment_voucher_file"
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款凭证'
-                  : '收款凭证'
-              }
+              label={plan.is_pay === 'true' ? '付款凭证' : '收款凭证'}
               rules={[{ required: true }]}
               fieldProps={{
                 customRequest: (options) => {
@@ -543,7 +544,7 @@ const PaymentRecordDetailPage: React.FC = () => {
             checkbox: string;
           }>
             name="process"
-            title={history.location.state.is_pay === 'true' ? '付款' : '收款'}
+            title={plan.is_pay === 'true' ? '付款' : '收款'}
             onFinish={async () => {
               if (!access.canProcessPaymentRecord) {
                 message.error('你无权进行此操作');
@@ -572,20 +573,12 @@ const PaymentRecordDetailPage: React.FC = () => {
           >
             <ProFormDatePicker
               name="assessment_date"
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款日期：'
-                  : '收款日期：'
-              }
+              label={plan.is_pay === 'true' ? '付款日期：' : '收款日期：'}
               width="sm"
               rules={[{ required: true }]}
             />
             <ProFormUploadButton
-              label={
-                history.location.state.is_pay === 'true'
-                  ? '付款收据：'
-                  : '收款收据：'
-              }
+              label={plan.is_pay === 'true' ? '付款收据：' : '收款收据：'}
               name="payment_file"
               fieldProps={{
                 customRequest: (options) => {

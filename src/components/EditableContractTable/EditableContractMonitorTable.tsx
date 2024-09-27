@@ -1,10 +1,10 @@
 import { SERVER_HOST } from '@/constants';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ActionType, EditableProTable } from '@ant-design/pro-components';
-import { history, useModel, useRequest } from '@umijs/max';
+import { useModel, useRequest } from '@umijs/max';
 import { Popconfirm, message } from 'antd';
 import axios from 'axios';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const getPlans = async (contract_id: string) => {
   return await axios({
@@ -51,7 +51,13 @@ const stopPlan = async (id: number) => {
   return await axios.get(`${SERVER_HOST}/payment/plans/stop/${id}`);
 };
 
-const EditableContractMonitorTable: React.FC = () => {
+interface EditableContractMonitorTableProps {
+  contract: any;
+}
+
+const EditableContractMonitorTable: React.FC<
+  EditableContractMonitorTableProps
+> = (props) => {
   const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
   const [dataSource, setDataSource] = useState([]);
   const { initialState } = useModel('@@initialState');
@@ -80,12 +86,11 @@ const EditableContractMonitorTable: React.FC = () => {
 
   const { run: runGetPlans } = useRequest(getPlans, {
     manual: true,
-    onSuccess: (res) => {
+    onSuccess: () => {
       setLoading(false);
-      console.log('res:', res);
     },
-    onError: (error) => {
-      message.error(error.message);
+    onError: () => {
+      //message.error(error.message);
     },
   });
 
@@ -164,7 +169,7 @@ const EditableContractMonitorTable: React.FC = () => {
         <a
           key="delete"
           onClick={async () => {
-            await runDeletePlan(history.location.state.id, record.id);
+            await runDeletePlan(props.contract.id, record.id);
             setDataSource(dataSource.filter((item) => item.id !== record.id));
           }}
         >
@@ -187,6 +192,10 @@ const EditableContractMonitorTable: React.FC = () => {
     },
   ];
 
+  useEffect(() => {
+    runGetPlans(props.contract.id);
+  }, [props.contract]);
+
   return (
     <>
       <EditableProTable
@@ -199,20 +208,20 @@ const EditableContractMonitorTable: React.FC = () => {
           position: 'bottom',
           record: () => {
             const id = (Math.random() * 1000000).toFixed(0);
-            const contract_name = `${history.location.state.contract_name}${history.location.state.series_number}-${id}`;
+            const contract_name = `${props.contract.contract_name}${props.contract.series_number}-${id}`;
             return {
               id,
               contract_name,
               department: initialState?.department,
-              company: history.location.state.contractor,
+              company: props.contract.contractor,
             };
           },
         }}
         loading={loading}
         columns={columns}
-        request={async () => {
-          return await runGetPlans(history.location.state.id);
-        }}
+        // request={() => {
+        //   return runGetPlans(props.contract.id);
+        // }}
         value={dataSource}
         actionRef={actionRef}
         onChange={setDataSource}
@@ -223,13 +232,13 @@ const EditableContractMonitorTable: React.FC = () => {
             console.log(rowKey, data, row);
             await runCreatePlan(
               initialState?.department,
-              history.location.state.contractor,
+              props.contract.contractor,
               data.category,
               data.is_pay,
-              history.location.state.contract_file,
+              props.contract.contract_file,
               data.contract_date,
               data.finish_date,
-              history.location.state.id,
+              props.contract.id,
             ).then(() => {
               actionRef.current?.reload();
             });

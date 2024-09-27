@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
           </Row>
         </div>
       </div>
-      <div className="version">版本：2.3.4beta</div>
+      <div className="version">版本：2.4.4beta</div>
     </PageContainer>
   );
 };

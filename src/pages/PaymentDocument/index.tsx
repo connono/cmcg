@@ -5,8 +5,8 @@ import {
   LightFilter,
   PageContainer,
   ProDescriptionsItemProps,
-  ProFormDigit,
   ProFormSelect,
+  ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
 import { Access, useAccess, useRequest } from '@umijs/max';
@@ -47,6 +47,7 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const [isChange, setIsChange] = useState<boolean>(false);
   const [transferOpen, setTransferOpen] = useState<boolean>(false);
   const [treeData, setTreeData] = useState<any>(initialTreeData);
   const [selectedDepartment, setSelectedDepartment] = useState<any>();
@@ -61,15 +62,17 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
   });
 
   const getPaymentDocumentList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         isPaginate: true,
       },
-      url: `${SERVER_HOST}/payment/document/records/index?page=${params.current}`,
+      url: `${SERVER_HOST}/payment/document/records/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -116,7 +119,6 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
             };
           })
           .value();
-        console.log('data:', newPaymentProcessRecordData);
         setTreeData(
           _.map(initialTreeData, (item: any) => {
             if (item.key === 'payment_process') {
@@ -334,16 +336,22 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
                       : value.status
                     : filter.status,
                 });
+                setIsChange(true);
               }}
             >
-              <ProFormDigit name="id" label="制单编号" />
+              <ProFormText name="id" label="制单编号" />
               <ProFormSelect
                 name="status"
                 label="状态"
                 valueEnum={{
-                  1: { text: '待审核', status: '1' },
-                  2: { text: '待回款', status: '2' },
-                  3: { text: '已回款', status: '3' },
+                  finance_audit: { text: '待财务科审核', status: 'Processing' },
+                  dean_audit: { text: '待分管院长审核', status: 'Processing' },
+                  finance_dean_audit: {
+                    text: '待财务院长审核',
+                    status: 'Processing',
+                  },
+                  upload: { text: '待上传', status: 'Processing' },
+                  finish: { text: '通过', status: 'Success' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
@@ -370,6 +378,11 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
                   setSelectedDepartment(value);
                 }}
                 request={departments}
+                fieldProps={{
+                  showSearch: true,
+                  filterOption: (input: any, option: any) =>
+                    (option?.label ?? '').includes(input),
+                }}
                 name="department_id"
                 label="选择科室"
               />

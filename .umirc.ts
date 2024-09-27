@@ -42,6 +42,12 @@ export default defineConfig({
           access: 'canSeeUserList',
         },
         {
+          name: '动态权限管理',
+          path: '/userManager/roleList',
+          component: './RoleList',
+          access: 'canSeeUserList',
+        },
+        {
           name: '工程师管理',
           path: '/userManager/engineerList',
           component: './EngineerList',
@@ -180,6 +186,7 @@ export default defineConfig({
     },
     {
       name: '耗材管理',
+      access: 'canSeeConsumableView',
       path: '/consumable',
       routes: [
         {
@@ -190,28 +197,33 @@ export default defineConfig({
               name: '申请列表',
               path: '/consumable/list/apply',
               component: './ConsumableApply',
+              access: 'canSeeConsumableView',
             },
             {
               name: '目录列表',
               path: '/consumable/list/index',
               component: './ConsumableList',
+              access: 'canSeeConsumableView',
             },
             {
               path: '/consumable/list/apply/detail',
               component: './ConsumableApply/Detail',
               name: '申请列表-详情',
+              access: 'canSeeConsumableView',
               hideInMenu: true,
             },
             {
               path: '/consumable/list/index/detail',
               component: './ConsumableList/Detail',
               name: '目录列表-详情',
+              access: 'canSeeConsumableView',
               hideInMenu: true,
             },
             {
               path: '/consumable/list/index/history',
               component: './ConsumableList/History',
               name: '目录列表-动态详情',
+              access: 'canSeeConsumableView',
               hideInMenu: true,
             },
           ],
@@ -219,13 +231,9 @@ export default defineConfig({
         {
           name: '临时耗材申请',
           path: '/consumable/tempory/apply',
+          access: 'canSeeConsumableView',
           component: './TemporyConsumable',
         },
-        // {
-        //   name: '耗材返利管理',
-        //   path: 'consumable/rebate',
-        //   component: './ConsumableRebate',
-        // },
         {
           path: '/consumable/tempory/apply/detail',
           component: './TemporyConsumable/Detail',

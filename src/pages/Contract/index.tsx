@@ -10,9 +10,10 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useModel } from '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Button, Divider, message } from 'antd';
 import axios from 'axios';
+import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 
 const ContractPage: React.FC = () => {
@@ -20,8 +21,10 @@ const ContractPage: React.FC = () => {
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
   const { initialState } = useModel('@@initialState');
+  const [isChange, setIsChange] = useState<boolean>(false);
 
   const getContractList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
@@ -29,9 +32,10 @@ const ContractPage: React.FC = () => {
         isPaginate: true,
         user_id: initialState.id,
       },
-      url: `${SERVER_HOST}/payment/contracts/index?page=${params.current}`,
+      url: `${SERVER_HOST}/payment/contracts/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -127,7 +131,10 @@ const ContractPage: React.FC = () => {
           update = (
             <a
               onClick={() => {
-                history.push(`/purchase/contract/detail#${record.id}`, record);
+                window.open(
+                  `/#/purchase/contract/detail#${record.id}`,
+                  '_blank',
+                );
               }}
             >
               待审核
@@ -137,7 +144,10 @@ const ContractPage: React.FC = () => {
           update = (
             <a
               onClick={() => {
-                history.push(`/purchase/contract/detail#${record.id}`, record);
+                window.open(
+                  `/#/purchase/contract/detail#${record.id}`,
+                  '_blank',
+                );
               }}
             >
               待上传
@@ -147,7 +157,10 @@ const ContractPage: React.FC = () => {
           update = (
             <a
               onClick={() => {
-                history.push(`/purchase/contract/detail#${record.id}`, record);
+                window.open(
+                  `/#/purchase/contract/detail#${record.id}`,
+                  '_blank',
+                );
               }}
             >
               查看详情
@@ -161,9 +174,9 @@ const ContractPage: React.FC = () => {
             {record.equipment_apply_record_id ? (
               <a
                 onClick={async () => {
-                  history.push(
-                    `/apply/equipment/detail#update&${record.equipment_apply_record_id}`,
-                    record,
+                  window.open(
+                    `/#/apply/equipment/detail#update&${record.equipment_apply_record_id}`,
+                    '_blank',
                   );
                 }}
               >
@@ -254,6 +267,7 @@ const ContractPage: React.FC = () => {
                       : 'false'
                     : filter.isImportant,
                 });
+                setIsChange(true);
               }}
             >
               <ProFormText name="contract_name" label="合同名称" />

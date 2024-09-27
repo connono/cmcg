@@ -1,23 +1,26 @@
 import { ProCard } from '@ant-design/pro-components';
-import { history } from '@umijs/max';
-import { Badge, Button, Tabs } from 'antd';
+import { Badge, Button, Space, Tabs } from 'antd';
 import _ from 'lodash';
 import React from 'react';
 
 interface EquipmentApplyNotificationCardProps {
   data?: any;
+  ignore: any;
 }
 
 interface InstrumentApplyNotificationCardProps {
   data?: any;
+  ignore: any;
 }
 
 interface RepairApplyNotificationCardProps {
   data?: any;
+  ignore: any;
 }
 
 interface Props {
   data?: any;
+  ignore: any;
 }
 
 const EquipmentApplyNotificationCard: React.FC<
@@ -34,6 +37,7 @@ const EquipmentApplyNotificationCard: React.FC<
     ['warehouse', '待入库'],
     ['finish', '入库结束'],
   ]);
+
   const procardlists = _.map(
     _.groupBy(props.data, 'type'),
     (value: any, key: any) => {
@@ -61,17 +65,27 @@ const EquipmentApplyNotificationCard: React.FC<
               </div>
             }
             extra={
-              <Button
-                size="small"
-                type="primary"
-                onClick={() => history.push(v.link, v.data)}
-              >
-                去处理
-              </Button>
+              <Space>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={() => window.open(v.link, '_blank')}
+                >
+                  去处理
+                </Button>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={async () => await props.ignore(v.notification_id)}
+                >
+                  忽略该通知
+                </Button>
+              </Space>
             }
           ></ProCard>
         );
       });
+
       return (
         <ProCard
           layout="center"
@@ -136,13 +150,22 @@ const InstrumentApplyNotificationCard: React.FC<
               </div>
             }
             extra={
-              <Button
-                size="small"
-                type="primary"
-                onClick={() => history.push(v.link, v.data)}
-              >
-                去处理
-              </Button>
+              <Space>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={() => window.open(v.link, '_blank')}
+                >
+                  去处理
+                </Button>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={async () => await props.ignore(v.notification_id)}
+                >
+                  忽略该通知
+                </Button>
+              </Space>
             }
           ></ProCard>
         );
@@ -209,13 +232,22 @@ const RepairApplyNotificationCard: React.FC<
               </div>
             }
             extra={
-              <Button
-                size="small"
-                type="primary"
-                onClick={() => history.push(v.link, v.data)}
-              >
-                去处理
-              </Button>
+              <Space>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={() => window.open(v.link, '_blank')}
+                >
+                  去处理
+                </Button>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={async () => await props.ignore(v.notification_id)}
+                >
+                  忽略该通知
+                </Button>
+              </Space>
             }
           ></ProCard>
         );
@@ -260,12 +292,16 @@ const ApplyNotificationTab: React.FC<Props> = (props) => {
     'n_category',
     'repairApplyRecord',
   ]);
+
   const items = [
     {
       label: <Badge count={equipmentApplyRecordData.length}>设备采购</Badge>,
       key: '1',
       children: (
-        <EquipmentApplyNotificationCard data={equipmentApplyRecordData} />
+        <EquipmentApplyNotificationCard
+          data={equipmentApplyRecordData}
+          ignore={props.ignore}
+        />
       ),
     },
     {
@@ -274,13 +310,21 @@ const ApplyNotificationTab: React.FC<Props> = (props) => {
       ),
       key: '2',
       children: (
-        <InstrumentApplyNotificationCard data={instrumentApplyRecordData} />
+        <InstrumentApplyNotificationCard
+          data={instrumentApplyRecordData}
+          ignore={props.ignore}
+        />
       ),
     },
     {
       label: <Badge count={repairApplyRecordData.length}>设备维修</Badge>,
       key: '3',
-      children: <RepairApplyNotificationCard data={repairApplyRecordData} />,
+      children: (
+        <RepairApplyNotificationCard
+          data={repairApplyRecordData}
+          ignore={props.ignore}
+        />
+      ),
     },
   ];
 

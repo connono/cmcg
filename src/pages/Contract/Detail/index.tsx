@@ -77,10 +77,10 @@ const deleteItem = async (id: string) => {
 const ContractDetailPage: React.FC = () => {
   const hashArray = history.location.hash.split('#')[1].split('&');
   const id = hashArray[0];
-  const method = history.location.state.status;
   const [doc, setDoc] = useState();
   const access = useAccess();
   const [current, setCurrent] = useState<number>(0);
+  const [contract, setContract] = useState<any>({});
   const formRef = useRef<ProFormInstance>();
 
   const { run: runApprove } = useRequest(approve, {
@@ -108,6 +108,7 @@ const ContractDetailPage: React.FC = () => {
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
+      setContract(result.data);
       if (result.data.contract_docx) {
         preview(result.data.contract_docx, (file: File) => {
           setDoc(file);
@@ -139,18 +140,18 @@ const ContractDetailPage: React.FC = () => {
     {
       key: '1',
       label: '服务型合同',
-      children: <EditableContractMonitorTable />,
+      children: <EditableContractMonitorTable contract={contract} />,
     },
     {
       key: '2',
       label: '固定资产',
-      children: <EditableContractProcessTable />,
+      children: <EditableContractProcessTable contract={contract} />,
     },
   ];
 
   const onStepChange = (current: number) => {
-    if (int_status(method) === -1) return;
-    if (int_status(method) < current) return;
+    if (int_status(contract.status) === -1) return;
+    if (int_status(contract.status) < current) return;
     setCurrent(current);
   };
 
@@ -200,12 +201,6 @@ const ContractDetailPage: React.FC = () => {
         id="preview"
         style={{ height: '1200px', margin: '0 40px', overflowY: 'visible' }}
       ></div>
-      {/* <div style={{ margin: '0 40px' }}>
-        <PreviewListVisible
-          title="合同附件"
-          fileListString={history.location.state.contract_file}
-        />
-      </div> */}
       <StepsForm
         formRef={formRef}
         formProps={{
@@ -217,7 +212,7 @@ const ContractDetailPage: React.FC = () => {
         stepsRender={(steps) => {
           const items = _.map(steps, (value: any, key: any) => {
             const status =
-              int_status(method) < key
+              int_status(contract.status) < key
                 ? 'wait'
                 : current === key
                 ? 'process'
@@ -240,7 +235,7 @@ const ContractDetailPage: React.FC = () => {
           render: (props: any) => {
             return [
               <Button
-                disabled={int_status(method) > current}
+                disabled={int_status(contract.status) > current}
                 htmlType="button"
                 type="primary"
                 onClick={props.onSubmit}
@@ -261,7 +256,7 @@ const ContractDetailPage: React.FC = () => {
             } else {
               const values = formRef.current?.getFieldsValue();
               if (values.audit) {
-                await runApprove(id, method);
+                await runApprove(id, contract.status);
               } else {
                 await runDeleteItem(id);
               }
@@ -292,7 +287,7 @@ const ContractDetailPage: React.FC = () => {
                 formRef.current?.getFieldValue('contract_file')[0].status ===
                 'done'
               ) {
-                await runUploadFile(id, values.contract_file, method);
+                await runUploadFile(id, values.contract_file, contract.status);
               } else if (
                 formRef.current?.getFieldValue('contract_file')[0].status ===
                 'error'
@@ -310,10 +305,10 @@ const ContractDetailPage: React.FC = () => {
             label="合同附件："
             name="contract_file"
             extra={
-              int_status(history.location.state.status) > current ? (
+              int_status(contract.status) > current ? (
                 <PreviewListVisible
                   title="已上传合同附件"
-                  fileListString={history.location.state.contract_file}
+                  fileListString={contract.contract_file}
                 />
               ) : null
             }
@@ -349,7 +344,7 @@ const ContractDetailPage: React.FC = () => {
                 执行列表
               </span>
             </Divider>
-            <Tabs defaultActiveKey="1" items={items} />
+            {contract ? <Tabs defaultActiveKey="1" items={items} /> : null}
           </Access>
         </StepsForm.StepForm>
       </StepsForm>

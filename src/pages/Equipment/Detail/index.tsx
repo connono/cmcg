@@ -680,6 +680,11 @@ const EquipmentDetailPage: React.FC = () => {
               />
               <ProFormSelect
                 label="申请科室"
+                fieldProps={{
+                  showSearch: true,
+                  filterOption: (input: any, option: any) =>
+                    (option?.label ?? '').includes(input),
+                }}
                 request={departments}
                 name="department"
                 mode="multiple"

@@ -11,9 +11,10 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useAccess, useModel, useRequest } from '@umijs/max';
+import { useAccess, useModel, useRequest } from '@umijs/max';
 import { Popconfirm, message } from 'antd';
 import axios from 'axios';
+import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import styles from './index.less';
 
@@ -47,6 +48,10 @@ const createRecord = async (
   });
 };
 
+const getAllDepartments = async () => {
+  return await axios.get(`${SERVER_HOST}/department/index?is_functional=1`);
+};
+
 const PaymentMonitorPage: React.FC = () => {
   const access = useAccess();
   const actionRef = useRef<ActionType>();
@@ -54,9 +59,11 @@ const PaymentMonitorPage: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<any>({});
   const { initialState } = useModel('@@initialState');
   const [data, setData] = useState<any>([]);
+  const [isChange, setIsChange] = useState<boolean>(false);
   const [filter, setFilter] = useState<any>({});
 
   const getPlansList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
@@ -64,9 +71,10 @@ const PaymentMonitorPage: React.FC = () => {
         isPaginate: true,
         department: initialState?.department,
       },
-      url: `${SERVER_HOST}/payment/plans/index?page=${params.current}`,
+      url: `${SERVER_HOST}/payment/plans/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -106,6 +114,14 @@ const PaymentMonitorPage: React.FC = () => {
       message.success('添加成功!');
       setModalVisible(false);
     },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
+    manual: true,
+    onSuccess: () => {},
     onError: (error: any) => {
       message.error(error.message);
     },
@@ -222,9 +238,9 @@ const PaymentMonitorPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                history.push(
-                  `/purchase/paymentMonitor/detail#apply&${record.id}&${record.current_payment_record_id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentMonitor/detail#apply&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
                 );
               }}
             >
@@ -236,9 +252,9 @@ const PaymentMonitorPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                history.push(
-                  `/purchase/paymentMonitor/detail#dean_audit&${record.id}&${record.current_payment_record_id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentMonitor/detail#dean_audit&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
                 );
               }}
             >
@@ -250,9 +266,9 @@ const PaymentMonitorPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                history.push(
-                  `/purchase/paymentMonitor/detail#audit&${record.id}&${record.current_payment_record_id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentMonitor/detail#audit&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
                 );
               }}
             >
@@ -264,9 +280,9 @@ const PaymentMonitorPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                history.push(
-                  `/purchase/paymentMonitor/detail#finance_dean_audit&${record.id}&${record.current_payment_record_id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentMonitor/detail#finance_dean_audit&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
                 );
               }}
             >
@@ -278,9 +294,9 @@ const PaymentMonitorPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                history.push(
-                  `/purchase/paymentMonitor/detail#process&${record.id}&${record.current_payment_record_id}`,
-                  record,
+                window.open(
+                  `/#/purchase/paymentMonitor/detail#process&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
                 );
               }}
             >
@@ -328,6 +344,17 @@ const PaymentMonitorPage: React.FC = () => {
     },
   ];
 
+  const departments = async () => {
+    const { data: departmentsData } = await runGetAllDepartments();
+    const data = _.map(departmentsData, (value: any) => {
+      return {
+        value: value.name,
+        label: value.label,
+      };
+    });
+    return data;
+  };
+
   useEffect(() => {
     actionRef.current?.reload();
   }, [filter]);
@@ -366,15 +393,31 @@ const PaymentMonitorPage: React.FC = () => {
                   contract_name: _.isUndefined(value.name)
                     ? filter.contract_name
                     : value.name,
+                  selected_department: value.selected_department
+                    ? value.selected_department === 'all'
+                      ? null
+                      : value.selected_department
+                    : filter.selected_department,
                   status: value.status
                     ? value.status === 'all'
                       ? null
                       : value.status
                     : filter.status,
                 });
+                setIsChange(true);
               }}
             >
               <ProFormText name="name" label="合同名称" />
+              <ProFormSelect
+                name="selected_department"
+                label="申请科室"
+                request={departments}
+                fieldProps={{
+                  showSearch: true,
+                  filterOption: (input: any, option: any) =>
+                    (option?.label ?? '').includes(input),
+                }}
+              />
               <ProFormSelect
                 name="status"
                 label="状态"

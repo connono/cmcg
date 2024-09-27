@@ -4,40 +4,50 @@ import {
   LightFilter,
   PageContainer,
   ProDescriptionsItemProps,
-  ProFormCheckbox,
   ProFormSelect,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
 import { history, useAccess, useRequest } from '@umijs/max';
-import { Button, Divider, message } from 'antd';
+import { Button, Divider, Input, Popconfirm, message } from 'antd';
 import axios from 'axios';
+import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
-
-const deleteMaintainItem = async (id?: number) => {
-  return await axios.delete(`${SERVER_HOST}/maintain/delete/${id}`);
-};
 
 const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
+};
+
+const stopConsumableItem = async (id: any, stop_reason: string) => {
+  const form = new FormData();
+  form.append('stop_reason', stop_reason);
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/consumable/directory/stop/${id}`,
+  });
 };
 
 const ConsumableListPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const [stopReason, setStopReason] = useState<string>('');
+  const [isChange, setIsChange] = useState<boolean>(false);
   const access = useAccess();
 
   const getConsumableList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         isPaginate: true,
       },
-      url: `${SERVER_HOST}/consumable/directory/index?page=${params.current}`,
+      url: `${SERVER_HOST}/consumable/directory/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -59,10 +69,10 @@ const ConsumableListPage: React.FC<unknown> = () => {
     },
   });
 
-  const { run: runDeleteMaintainItem } = useRequest(deleteMaintainItem, {
+  const { run: runStopConsumableItem } = useRequest(stopConsumableItem, {
     manual: true,
     onSuccess: () => {
-      message.success('删除成功');
+      message.success('中止成功');
     },
     onError: (error: any) => {
       message.error(error.message);
@@ -179,7 +189,7 @@ const ConsumableListPage: React.FC<unknown> = () => {
         1: { text: '待重新采购' },
         2: { text: '待审批' },
         3: { text: '待医工科审核' },
-        4: { text: '终止' },
+        4: { text: '中止' },
       },
     },
     {
@@ -188,29 +198,18 @@ const ConsumableListPage: React.FC<unknown> = () => {
       valueType: 'option',
       render: (text, record, _, action) => (
         <>
-          <a
-            onClick={() => {
-              history.push(
-                `/consumable/list/index/detail#update&${record.consumable_apply_id}`,
-              );
-            }}
-          >
-            录入
-          </a>
-          <Divider type="vertical" />
-          <a
-            onClick={async () => {
-              if (!access.canDeleteEquipment) {
-                message.error('你无权进行此操作');
-              } else {
-                const id = record.id;
-                await runDeleteMaintainItem(id);
-                action?.reload();
-              }
-            }}
-          >
-            删除
-          </a>
+          {record.status === '0' ? null : (
+            <a
+              onClick={() => {
+                window.open(
+                  `/consumable/list/index/detail#update&${record.consumable_apply_id}`,
+                  '_blank',
+                );
+              }}
+            >
+              录入
+            </a>
+          )}
           <Divider type="vertical" />
           <a
             onClick={() => {
@@ -222,6 +221,36 @@ const ConsumableListPage: React.FC<unknown> = () => {
           >
             查看动态详情
           </a>
+          <Divider type="vertical" />
+          {record.status === '4' ? null : (
+            <Popconfirm
+              key="back"
+              placement="topLeft"
+              title={
+                <div>
+                  <p>确定要中止吗？</p>
+                  <Input
+                    value={stopReason}
+                    onChange={(e: any) => {
+                      setStopReason(e.target.value);
+                    }}
+                    placeholder="请输入中止原因"
+                  />
+                </div>
+              }
+              onConfirm={async () => {
+                const id = record.id;
+                if (access.canStopConsumableList) {
+                  await runStopConsumableItem(id, stopReason);
+                  action?.reload();
+                }
+              }}
+              okText="确定"
+              cancelText="取消"
+            >
+              <a key="back">中止</a>
+            </Popconfirm>
+          )}
         </>
       ),
     },
@@ -273,10 +302,23 @@ const ConsumableListPage: React.FC<unknown> = () => {
               }}
               onValuesChange={(value) => {
                 setFilter({
-                  name: _.isUndefined(value.name) ? filter.name : value.name,
-                  equipment: _.isUndefined(value.equipment)
-                    ? filter.equipment
-                    : value.equipment,
+                  serial_number: _.isUndefined(value.serial_number)
+                    ? filter.serial_number
+                    : value.serial_number,
+                  platform_id: _.isUndefined(value.platform_id)
+                    ? filter.platform_id
+                    : value.platform_id,
+                  consumable: _.isUndefined(value.consumable)
+                    ? filter.consumable
+                    : value.consumable,
+                  company: _.isUndefined(value.company)
+                    ? filter.company
+                    : value.company,
+                  apply_type: value.apply_type
+                    ? value.apply_type === 'all'
+                      ? null
+                      : value.apply_type
+                    : filter.apply_type,
                   status: value.status
                     ? value.status === 'all'
                       ? null
@@ -287,33 +329,47 @@ const ConsumableListPage: React.FC<unknown> = () => {
                       ? null
                       : value.department
                     : filter.department,
-                  isAdvance: !_.isUndefined(value.isAdvance)
-                    ? value.isAdvance
-                      ? 'true'
-                      : 'false'
-                    : filter.isAdvance,
                 });
+                setIsChange(true);
               }}
             >
-              <ProFormText name="name" label="维修项目" />
-              <ProFormText name="equipment" label="设备名称" />
+              <ProFormText name="serial_number" label="申请编号" />
+              <ProFormText name="platform_id" label="平台id" />
+              <ProFormText name="consumable" label="耗材名称" />
               <ProFormSelect
                 name="department"
                 label="申请科室"
+                fieldProps={{
+                  showSearch: true,
+                  filterOption: (input: any, option: any) =>
+                    (option?.label ?? '').includes(input),
+                }}
                 request={departments}
+              />
+              <ProFormText name="company" label="供应商" />
+              <ProFormSelect
+                name="apply_type"
+                label="采购类型"
+                valueEnum={{
+                  0: { text: '中标产品' },
+                  1: { text: '阳光采购' },
+                  2: { text: '自行采购' },
+                  3: { text: '线下采购' },
+                  4: { text: '带量采购' },
+                  all: { text: '全部', status: 'all' },
+                }}
               />
               <ProFormSelect
                 name="status"
                 label="状态"
                 valueEnum={{
-                  0: { text: '申请', status: '0' },
-                  1: { text: '安装验收', status: '1' },
-                  2: { text: '医工科审核', status: '2' },
-                  3: { text: '完成', status: '3' },
+                  0: { text: '待询价' },
+                  1: { text: '待分管院长审批' },
+                  2: { text: '待医工科审核' },
+                  3: { text: '完成' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
-              <ProFormCheckbox label="是否垫付" name="isAdvance" />
             </LightFilter>
           ),
           menu: {

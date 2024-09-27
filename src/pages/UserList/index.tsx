@@ -174,8 +174,8 @@ const UserListPage: React.FC = () => {
     const rolesData = await runGetAllRoles();
     const data = _.map(rolesData, (value: any) => {
       return {
-        value: value,
-        label: value,
+        value: value.role,
+        label: value.role,
       };
     });
     return data;
@@ -269,14 +269,12 @@ const UserListPage: React.FC = () => {
       }}
     >
       <ProTable<UserInfo>
+        search={false}
         columns={columns}
         cardBordered
         actionRef={actionRef}
         request={getUserList}
         rowKey="id"
-        search={{
-          labelWidth: 'auto',
-        }}
         options={{
           setting: {
             listsHeight: 400,
@@ -353,6 +351,11 @@ const UserListPage: React.FC = () => {
           name="department"
           request={departments}
           rules={[{ required: true }]}
+          fieldProps={{
+            showSearch: true,
+            filterOption: (input: any, option: any) =>
+              (option?.label ?? '').includes(input),
+          }}
         />
         <ProFormSelect
           request={roles}

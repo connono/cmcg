@@ -9,13 +9,10 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Access, history, useAccess, useRequest } from '@umijs/max';
-import { Button, Divider, Popconfirm, message } from 'antd';
+import { Button, message } from 'antd';
 import axios from 'axios';
+import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
-
-const stopTemporyConsumableItem = async (id: any) => {
-  return await axios.post(`${SERVER_HOST}/consumable/tempory/stop/${id}`);
-};
 
 const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
@@ -25,18 +22,21 @@ const TemporyConsumablePage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const [isChange, setIsChange] = useState<boolean>(false);
   const access = useAccess();
 
   const getTemporyConsumableList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         isPaginate: true,
       },
-      url: `${SERVER_HOST}/consumable/tempory/index?page=${params.current}`,
+      url: `${SERVER_HOST}/consumable/tempory/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -57,19 +57,6 @@ const TemporyConsumablePage: React.FC<unknown> = () => {
       message.error(error.message);
     },
   });
-
-  const { run: runStopTemporyConsumableItem } = useRequest(
-    stopTemporyConsumableItem,
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('中止成功');
-      },
-      onError: (error: any) => {
-        message.error(error.message);
-      },
-    },
-  );
 
   const departments = async () => {
     const { data: departmentsData } = await runGetAllDepartments();
@@ -156,33 +143,19 @@ const TemporyConsumablePage: React.FC<unknown> = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (text, record, _, action) => (
+      render: (text, record) => (
         <>
           <a
             onClick={() => {
               const id = record.id;
-              history.push(`/consumable/tempory/apply/detail#update&${id}`);
+              window.open(
+                `/consumable/tempory/apply/detail#update&${id}`,
+                '_blank',
+              );
             }}
           >
             录入
           </a>
-          <Divider type="vertical" />
-          <Popconfirm
-            key="back"
-            placement="topLeft"
-            title="确定要中止吗？"
-            onConfirm={async () => {
-              const id = record.id;
-              if (access.canStopTemporyConsumableRecord) {
-                await runStopTemporyConsumableItem(id);
-                action?.reload();
-              }
-            }}
-            okText="确定"
-            cancelText="取消"
-          >
-            <a key="back">中止</a>
-          </Popconfirm>
         </>
       ),
     },
@@ -215,7 +188,7 @@ const TemporyConsumablePage: React.FC<unknown> = () => {
           pageSize: 15,
         }}
         dateFormatter="string"
-        headerTitle="设备维修保养管理"
+        headerTitle="临时耗材申请"
         toolbar={{
           filter: (
             <LightFilter
@@ -291,6 +264,11 @@ const TemporyConsumablePage: React.FC<unknown> = () => {
                 name="department"
                 label="申请科室"
                 request={departments}
+                fieldProps={{
+                  showSearch: true,
+                  filterOption: (input: any, option: any) =>
+                    (option?.label ?? '').includes(input),
+                }}
               />
             </LightFilter>
           ),

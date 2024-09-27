@@ -8,7 +8,6 @@ import React, { useEffect } from 'react';
 const HomePage: React.FC = () => {
   const [api, contextHolder] = notification.useNotification();
   const openNotification = () => {
-    console.log('info');
     api.info({
       message: '请修改账号',
       description: (

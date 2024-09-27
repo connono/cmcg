@@ -438,6 +438,11 @@ const TemporyConsumableDetailPage: React.FC = () => {
               label="申请科室"
               request={departments}
               name="department"
+              fieldProps={{
+                showSearch: true,
+                filterOption: (input: any, option: any) =>
+                  (option?.label ?? '').includes(input),
+              }}
               disabled={current < temporyConsumableItem.status}
               rules={[{ required: true }]}
             />

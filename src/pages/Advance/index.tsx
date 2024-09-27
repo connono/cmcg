@@ -94,7 +94,7 @@ const initialTreeData = [
   { key: 'maintain', title: '维修', disableCheckbox: true },
 ];
 
-const AdvancePage: React.FC<unknown> = () => {
+const AdvancePage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
@@ -103,18 +103,21 @@ const AdvancePage: React.FC<unknown> = () => {
   const [transferOpen, setTransferOpen] = useState<boolean>(false);
   const [budget, setBudget] = useState<number>(0);
   const [serverBudget, setServerBudget] = useState<any>({});
+  const [isChange, setIsChange] = useState<boolean>(false);
   const [treeData, setTreeData] = useState<any>(initialTreeData);
 
   const getAdvanceList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         isPaginate: true,
       },
-      url: `${SERVER_HOST}/advance/records/index?page=${params.current}`,
+      url: `${SERVER_HOST}/advance/records/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -165,8 +168,8 @@ const AdvancePage: React.FC<unknown> = () => {
       manual: true,
       onSuccess: (result: any) => {
         const newEquipmentTreeData = _.chain(result.data)
-          .filter((item) => item.advance_status === '0')
-          .map((item) => {
+          .filter((item: any) => item.advance_status === '0')
+          .map((item: any) => {
             return {
               key: item.serial_number + 'E',
               id: item.id,
@@ -176,7 +179,7 @@ const AdvancePage: React.FC<unknown> = () => {
           })
           .value();
         setTreeData(
-          _.map(treeData, (item) => {
+          _.map(treeData, (item: any) => {
             if (item.key === 'equipment') {
               return {
                 key: 'equipment',
@@ -239,8 +242,8 @@ const AdvancePage: React.FC<unknown> = () => {
       manual: true,
       onSuccess: (result: any) => {
         const newMaintainTreeData = _.chain(result.data)
-          .filter((item) => item.advance_status === '0')
-          .map((item) => {
+          .filter((item: any) => item.advance_status === '0')
+          .map((item: any) => {
             return {
               id: item.id,
               key: item.serial_number + 'M',
@@ -250,7 +253,7 @@ const AdvancePage: React.FC<unknown> = () => {
           })
           .value();
         setTreeData(
-          _.map(treeData, (item) => {
+          _.map(treeData, (item: any) => {
             if (item.key === 'maintain') {
               return {
                 key: 'maintain',
@@ -471,6 +474,7 @@ const AdvancePage: React.FC<unknown> = () => {
                       : value.status
                     : filter.status,
                 });
+                setIsChange(true);
               }}
             >
               <ProFormDigit name="id" label="制单编号" />

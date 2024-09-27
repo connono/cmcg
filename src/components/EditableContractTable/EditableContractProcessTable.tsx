@@ -1,7 +1,7 @@
 import { SERVER_HOST } from '@/constants';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ActionType, EditableProTable } from '@ant-design/pro-components';
-import { history, useModel, useRequest } from '@umijs/max';
+import { useModel, useRequest } from '@umijs/max';
 import { Popconfirm, message } from 'antd';
 import axios from 'axios';
 import React, { useRef, useState } from 'react';
@@ -49,7 +49,13 @@ const stopProcess = async (id: number) => {
   return await axios.get(`${SERVER_HOST}/payment/processes/stop/${id}`);
 };
 
-const EditableContractProcessTable: React.FC = () => {
+interface EditableContractProcessTableProps {
+  contract: any;
+}
+
+const EditableContractProcessTable: React.FC<
+  EditableContractProcessTableProps
+> = (props) => {
   const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
   const [dataSource, setDataSource] = useState<readonly DataSourceType[]>([]);
   const { initialState } = useModel('@@initialState');
@@ -150,7 +156,7 @@ const EditableContractProcessTable: React.FC = () => {
         <a
           key="delete"
           onClick={async () => {
-            await runDeleteProcess(history.location.state.id, record.id);
+            await runDeleteProcess(props.contract.id, record.id);
             setDataSource(dataSource.filter((item) => item.id !== record.id));
           }}
         >
@@ -185,19 +191,19 @@ const EditableContractProcessTable: React.FC = () => {
           position: 'bottom',
           record: () => {
             const id = (Math.random() * 1000000).toFixed(0);
-            const contract_name = `${history.location.state.contract_name}${history.location.state.series_number}-${id}`;
+            const contract_name = `${props.contract.contract_name}${props.contract.series_number}-${id}`;
             return {
               id,
               contract_name,
               department: initialState?.department,
-              company: history.location.state.contractor,
+              company: props.contract.contractor,
             };
           },
         }}
         loading={loading}
         columns={columns}
         request={async () => {
-          return await runGetProcesses(history.location.state.id);
+          return await runGetProcesses(props.contract.id);
         }}
         value={dataSource}
         actionRef={actionRef}
@@ -209,11 +215,11 @@ const EditableContractProcessTable: React.FC = () => {
             console.log(rowKey, data, row);
             await runCreateProcess(
               initialState?.department,
-              history.location.state.contractor,
+              props.contract.contractor,
               data.target_amount,
-              history.location.state.contract_file,
+              props.contract.contract_file,
               data.contract_date,
-              history.location.state.id,
+              props.contract.id,
             ).then(() => {
               actionRef.current?.reload();
             });

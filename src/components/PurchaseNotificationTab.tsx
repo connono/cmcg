@@ -1,17 +1,29 @@
 import { ProCard } from '@ant-design/pro-components';
-import { history } from '@umijs/max';
-import { Badge, Button, Tabs } from 'antd';
+import { Badge, Button, Col, Row, Space, Tabs } from 'antd';
 import _ from 'lodash';
 import React from 'react';
 
 interface PurchaseNotificationCardProps {
   data?: any;
   contentRender?: any;
+  ignore: any;
 }
 
 interface Props {
   data?: any;
+  ignore: any;
 }
+
+const PurchaseNotificationListItem: React.FC = (props: any) => {
+  return (
+    <Col span={props.col}>
+      <div style={{ marginBottom: '5px' }}>
+        <span>{props.label}</span>
+        <span>{props.value}</span>
+      </div>
+    </Col>
+  );
+};
 
 const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
   props,
@@ -34,7 +46,6 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
     _.groupBy(props.data, 'type'),
     (value: any, key: any) => {
       const procardlist = _.map(value, (v: any, k: any) => {
-        console.log('data', v);
         if (props.contentRender) {
           const title = props.contentRender(v);
           return (
@@ -42,13 +53,22 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
               key={k}
               title={title}
               extra={
-                <Button
-                  size="small"
-                  type="primary"
-                  onClick={() => history.push(v.link, v.data)}
-                >
-                  去处理
-                </Button>
+                <Space>
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => window.open(v.link, '_blank')}
+                  >
+                    去处理
+                  </Button>
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={async () => await props.ignore(v.notification_id)}
+                  >
+                    忽略该通知
+                  </Button>
+                </Space>
               }
             ></ProCard>
           );
@@ -67,13 +87,22 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
                 </span>
               }
               extra={
-                <Button
-                  size="small"
-                  type="primary"
-                  onClick={() => history.push(v.link, v.data)}
-                >
-                  去处理
-                </Button>
+                <Space>
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => window.open(v.link, '_blank')}
+                  >
+                    去处理
+                  </Button>
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={async () => await props.ignore(v.notification_id)}
+                  >
+                    忽略该通知
+                  </Button>
+                </Space>
               }
             ></ProCard>
           );
@@ -122,22 +151,68 @@ const PurchaseNotificationTab: React.FC<Props> = (props) => {
     {
       label: <Badge count={paymentPlanData.length}>服务型合同</Badge>,
       key: '1',
-      children: <PurchaseNotificationCard data={paymentPlanData} />,
+      children: (
+        <PurchaseNotificationCard
+          data={paymentPlanData}
+          ignore={props.ignore}
+          contentRender={(data: any) => (
+            <Row>
+              <PurchaseNotificationListItem
+                col={14}
+                label="名称："
+                value={data.data.contract_name}
+              />
+              <PurchaseNotificationListItem
+                col={4}
+                label="科室："
+                value={data.data.department}
+              />
+              <PurchaseNotificationListItem
+                col={6}
+                label="类型："
+                value={data.data.category}
+              />
+              <PurchaseNotificationListItem
+                col={4}
+                label="金额："
+                value={data.data.assessment}
+              />
+              <PurchaseNotificationListItem
+                col={8}
+                label="公司："
+                value={data.data.company}
+              />
+            </Row>
+          )}
+        />
+      ),
     },
     {
       label: <Badge count={paymentProcessData.length}>物资型合同</Badge>,
       key: '2',
-      children: <PurchaseNotificationCard data={paymentProcessData} />,
+      children: (
+        <PurchaseNotificationCard
+          data={paymentProcessData}
+          ignore={props.ignore}
+        />
+      ),
     },
     {
       label: <Badge count={paymentDocumentData.length}>制单管理</Badge>,
       key: '3',
-      children: <PurchaseNotificationCard data={paymentDocumentData} />,
+      children: (
+        <PurchaseNotificationCard
+          ignore={props.ignore}
+          data={paymentDocumentData}
+        />
+      ),
     },
     {
       label: <Badge count={advanceData.length}>垫付款管理</Badge>,
       key: '4',
-      children: <PurchaseNotificationCard data={advanceData} />,
+      children: (
+        <PurchaseNotificationCard data={advanceData} ignore={props.ignore} />
+      ),
     },
     {
       label: <Badge count={contractData.length}>合同管理</Badge>,
@@ -145,6 +220,7 @@ const PurchaseNotificationTab: React.FC<Props> = (props) => {
       children: (
         <PurchaseNotificationCard
           data={contractData}
+          ignore={props.ignore}
           contentRender={(data: any) => <span>合同名称：{data.title}</span>}
         />
       ),

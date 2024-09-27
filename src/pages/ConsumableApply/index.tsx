@@ -4,7 +4,6 @@ import {
   LightFilter,
   PageContainer,
   ProDescriptionsItemProps,
-  ProFormCheckbox,
   ProFormSelect,
   ProFormText,
   ProTable,
@@ -12,6 +11,7 @@ import {
 import { Access, history, useAccess, useRequest } from '@umijs/max';
 import { Button, message } from 'antd';
 import axios from 'axios';
+import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 
 const getAllDepartments = async () => {
@@ -22,18 +22,21 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
   const actionRef = useRef<ActionType>();
   const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
+  const [isChange, setIsChange] = useState<boolean>(false);
   const access = useAccess();
 
   const getConsumableApplyList = async (params: any) => {
+    const pageCurrent = isChange ? 1 : params.current;
     const data = await axios({
       method: 'GET',
       params: {
         ...filter,
         isPaginate: true,
       },
-      url: `${SERVER_HOST}/consumable/apply/index?page=${params.current}`,
+      url: `${SERVER_HOST}/consumable/apply/index?page=${pageCurrent}`,
     })
       .then((result) => {
+        setIsChange(false);
         setData(result.data.data);
         return {
           data: result.data.data,
@@ -172,8 +175,9 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
         <>
           <a
             onClick={() => {
-              history.push(
+              window.open(
                 `/consumable/list/apply/detail#update&${record.serial_number}`,
+                '_blank',
               );
             }}
           >
@@ -230,10 +234,23 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
               }}
               onValuesChange={(value) => {
                 setFilter({
-                  name: _.isUndefined(value.name) ? filter.name : value.name,
-                  equipment: _.isUndefined(value.equipment)
-                    ? filter.equipment
-                    : value.equipment,
+                  serial_number: _.isUndefined(value.serial_number)
+                    ? filter.serial_number
+                    : value.serial_number,
+                  platform_id: _.isUndefined(value.platform_id)
+                    ? filter.platform_id
+                    : value.platform_id,
+                  consumable: _.isUndefined(value.consumable)
+                    ? filter.consumable
+                    : value.consumable,
+                  company: _.isUndefined(value.company)
+                    ? filter.company
+                    : value.company,
+                  apply_type: value.apply_type
+                    ? value.apply_type === 'all'
+                      ? null
+                      : value.apply_type
+                    : filter.apply_type,
                   status: value.status
                     ? value.status === 'all'
                       ? null
@@ -244,33 +261,47 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
                       ? null
                       : value.department
                     : filter.department,
-                  isAdvance: !_.isUndefined(value.isAdvance)
-                    ? value.isAdvance
-                      ? 'true'
-                      : 'false'
-                    : filter.isAdvance,
                 });
+                setIsChange(true);
               }}
             >
-              <ProFormText name="name" label="维修项目" />
-              <ProFormText name="equipment" label="设备名称" />
+              <ProFormText name="serial_number" label="申请编号" />
+              <ProFormText name="platform_id" label="平台id" />
+              <ProFormText name="consumable" label="耗材名称" />
               <ProFormSelect
                 name="department"
                 label="申请科室"
+                fieldProps={{
+                  showSearch: true,
+                  filterOption: (input: any, option: any) =>
+                    (option?.label ?? '').includes(input),
+                }}
                 request={departments}
+              />
+              <ProFormText name="company" label="供应商" />
+              <ProFormSelect
+                name="apply_type"
+                label="采购类型"
+                valueEnum={{
+                  0: { text: '中标产品' },
+                  1: { text: '阳光采购' },
+                  2: { text: '自行采购' },
+                  3: { text: '线下采购' },
+                  4: { text: '带量采购' },
+                  all: { text: '全部', status: 'all' },
+                }}
               />
               <ProFormSelect
                 name="status"
                 label="状态"
                 valueEnum={{
-                  0: { text: '申请', status: '0' },
-                  1: { text: '安装验收', status: '1' },
-                  2: { text: '医工科审核', status: '2' },
-                  3: { text: '完成', status: '3' },
+                  0: { text: '待询价' },
+                  1: { text: '待分管院长审批' },
+                  2: { text: '待医工科审核' },
+                  3: { text: '完成' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
-              <ProFormCheckbox label="是否垫付" name="isAdvance" />
             </LightFilter>
           ),
           menu: {

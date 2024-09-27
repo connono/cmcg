@@ -314,6 +314,11 @@ const LeaderListPage: React.FC = () => {
             mode="tags"
             request={departments}
             name="department_id"
+            fieldProps={{
+              showSearch: true,
+              filterOption: (input: any, option: any) =>
+                (option?.label ?? '').includes(input),
+            }}
             label="选择科室"
           />
         </ModalForm>

@@ -143,33 +143,9 @@ const ConsumableDetailPage: React.FC = () => {
 
   const onStepChange = (current: number) => {
     if (_.isNull(consumableList.status)) return;
-    if (consumableList.status < current - 1) return;
+    if (consumableList.status - 1 < current) return;
     setCurrent(current);
     if (current === 0) {
-      setTimeout(
-        () =>
-          formRef.current?.setFieldValue(
-            'serial_number',
-            consumableList.serial_number,
-          ),
-        0,
-      );
-      setTimeout(
-        () =>
-          formRef.current?.setFieldValue(
-            'platform_id',
-            consumableList.platform_id,
-          ),
-        0,
-      );
-      setTimeout(
-        () =>
-          formRef.current?.setFieldValue(
-            'department',
-            consumableList.department,
-          ),
-        0,
-      );
       _.forEach(consumableTrendItem, (key: any, value: any) => {
         const length = value.split('_').length;
         const extension = value.split('_')[length - 1];
@@ -215,7 +191,27 @@ const ConsumableDetailPage: React.FC = () => {
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
-      runGetTrendItem(result.data.consumable_apply_id);
+      setTimeout(
+        () =>
+          formRef.current?.setFieldValue(
+            'consumable_apply_id',
+            result.data.consumable_apply_id,
+          ),
+        0,
+      );
+      setTimeout(
+        () =>
+          formRef.current?.setFieldValue('department', result.data.department),
+        0,
+      );
+      if (parseInt(result.data.status) > 0) {
+        runGetTrendItem(result.data.consumable_apply_id);
+      } else {
+        formRef.current?.setFieldValue(
+          'consumable_apply_id',
+          result.data.consumable_apply_id,
+        );
+      }
       setConsumableItem({
         ...result.data,
         status: parseInt(result.data.status),
@@ -374,7 +370,7 @@ const ConsumableDetailPage: React.FC = () => {
             render: (props: any) => {
               return [
                 <Button
-                  disabled={consumableList.status - 1 > current}
+                  disabled={current < consumableList.status - 2}
                   htmlType="button"
                   type="primary"
                   onClick={props.onSubmit}
@@ -440,33 +436,38 @@ const ConsumableDetailPage: React.FC = () => {
               name="platform_id"
               label="平台ID"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="consumable"
               label="耗材名称"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="model"
               label="规格型号"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormMoney
               name="price"
               label="单价"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormSelect
               label="申请科室"
               request={departments}
+              fieldProps={{
+                showSearch: true,
+                filterOption: (input: any, option: any) =>
+                  (option?.label ?? '').includes(input),
+              }}
               name="department"
               disabled
             />
@@ -474,42 +475,42 @@ const ConsumableDetailPage: React.FC = () => {
               name="registration_num"
               label="注册证号"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="category_zj"
               label="浙江分类"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="parent_directory"
               label="一级目录"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="child_directory"
               label="二级目录"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="company"
               label="供应商"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormText
               name="manufacturer"
               label="生产厂家"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormSelect
@@ -522,14 +523,14 @@ const ConsumableDetailPage: React.FC = () => {
                 3: { text: '线下采购' },
                 4: { text: '带量采购' },
               }}
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormRadio.Group
               name="is_need"
               label="是否询价"
               width="sm"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               valueEnum={{
                 0: { text: '不执行采购' },
                 1: { text: '执行采购' },
@@ -540,20 +541,20 @@ const ConsumableDetailPage: React.FC = () => {
               name="reason"
               label="不询价理由"
               width="md"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
             />
             <ProFormDatePicker
               name="start_date"
               label="合同日期："
               width="sm"
-              disabled={current < consumableList.status}
+              disabled={current < consumableList.status - 1}
               rules={[{ required: true }]}
             />
             <ProFormUploadButton
               label="合同附件："
               name="contract_file"
               extra={
-                consumableList.status > current ? (
+                consumableList.status - 1 > current ? (
                   <PreviewListModal
                     fileListString={consumableList.contract_file}
                   />
@@ -590,7 +591,7 @@ const ConsumableDetailPage: React.FC = () => {
               name="approve"
               label="审核结果："
               rules={[{ required: true }]}
-              disabled={current < consumableList.status - 1}
+              disabled={current < consumableList.status - 2}
               options={[
                 {
                   label: '审核通过',
@@ -619,14 +620,14 @@ const ConsumableDetailPage: React.FC = () => {
               name="exp_date"
               label="失效日期："
               width="sm"
-              disabled={current < consumableList.status - 1}
+              disabled={current < consumableList.status - 2}
               rules={[{ required: true }]}
             />
             <ProFormRadio.Group
               name="vertify"
               label="审核结果："
               rules={[{ required: true }]}
-              disabled={current < consumableList.status - 1}
+              disabled={current < consumableList.status - 2}
               options={[
                 {
                   label: '审核通过',

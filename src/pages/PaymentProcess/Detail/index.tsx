@@ -27,6 +27,7 @@ import {
 } from '../../../utils/file-uploader';
 
 const int_status = (status: string) => {
+  if (!status) return -1;
   switch (status) {
     case 'apply':
       return 0;
@@ -35,6 +36,10 @@ const int_status = (status: string) => {
     default:
       return 1;
   }
+};
+
+const getProcess = async (id: string) => {
+  return await axios.get(`${SERVER_HOST}/payment/processes/getItem/${id}`);
 };
 
 const getItem = async (id: string) => {
@@ -102,7 +107,6 @@ const process = async (
 const PaymentRecordDetailPage: React.FC = () => {
   const [paymentRecord, setPaymentRecord] = useState({});
   const hashArray = history.location.hash.split('#')[1].split('&');
-  const method = history.location.state.status;
   const process_id = hashArray[1];
   const id = hashArray[2];
   const [modal, contextHolder] = Modal.useModal(); // eslint-disable-line
@@ -112,11 +116,11 @@ const PaymentRecordDetailPage: React.FC = () => {
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
   const [paymentDocumentItem, setPaymentDocumentItem] = useState({});
+  const [selectedProcess, setSelectedProcess] = useState<any>({});
 
   const { run: runGetDocument } = useRequest(getDocument, {
     manual: true,
     onSuccess: (result: any) => {
-      console.log(result);
       setDataSource(result.data);
     },
     onError: (error: any) => {
@@ -138,12 +142,6 @@ const PaymentRecordDetailPage: React.FC = () => {
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
     onSuccess: (result: any) => {
-      if (int_status(method) !== -1) {
-        setCurrent(int_status(method));
-      } else {
-        history.push('/purchase/paymentProcess');
-        message.info('该计划正处于等待或关闭阶段，无法编辑，跳转到计划界面');
-      }
       setPaymentRecord(result.data);
       _.forEach(result.data, (key: any, value: any) => {
         const length = value.split('_').length;
@@ -164,6 +162,24 @@ const PaymentRecordDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
+
+  const { run: runGetProcess } = useRequest(getProcess, {
+    manual: true,
+    onSuccess: (result: any) => {
+      //@ts-ignore
+      if (int_status(result.data.status) !== -1) {
+        setCurrent(int_status(result.data.status));
+      } else {
+        history.push('/purchase/paymentProcess');
+        message.info('该计划正处于等待或关闭阶段，无法编辑，跳转到计划界面');
+      }
+      setSelectedProcess(result.data);
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
   const { run: runApply } = useRequest(apply, {
     manual: true,
     onSuccess: () => {
@@ -187,8 +203,9 @@ const PaymentRecordDetailPage: React.FC = () => {
   });
 
   const onStepChange = (current: number) => {
-    if (int_status(method) === -1) return;
-    if (int_status(method) < current) return;
+    //@ts-ignore
+    if (int_status(selectedProcess.status) === -1) return;
+    if (int_status(selectedProcess.status) < current) return;
     _.forEach(paymentRecord, (key: any, value: any) => {
       const length = value.split('_').length;
       const extension = value.split('_')[length - 1];
@@ -198,7 +215,7 @@ const PaymentRecordDetailPage: React.FC = () => {
         formRef.current?.setFieldValue(value, key);
       } else if (value === 'assessment') {
         const percent = _.floor(
-          _.divide(key, history.location.state.target_amount) * 100,
+          _.divide(key, selectedProcess.target_amount) * 100,
           2,
         );
         formRef.current?.setFieldsValue({
@@ -322,6 +339,7 @@ const PaymentRecordDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
+      runGetProcess(process_id);
       runGetItem(id);
     } else {
       history.push('/purchase/paymentProcess');
@@ -348,7 +366,7 @@ const PaymentRecordDetailPage: React.FC = () => {
           stepsRender={(steps) => {
             const items = _.map(steps, (value: any, key: any) => {
               const status =
-                int_status(method) < key
+                int_status(selectedProcess.status) < key
                   ? 'wait'
                   : current === key
                   ? 'process'
@@ -371,7 +389,7 @@ const PaymentRecordDetailPage: React.FC = () => {
             render: (props: any) => {
               return [
                 <Button
-                  disabled={int_status(method) > current}
+                  disabled={int_status(selectedProcess.status) > current}
                   htmlType="button"
                   type="primary"
                   onClick={props.onSubmit}
@@ -390,21 +408,17 @@ const PaymentRecordDetailPage: React.FC = () => {
             title="申请"
             onValuesChange={(value) => {
               const global_assessment =
-                history.location.state.target_amount -
-                history.location.state.assessments_count;
+                selectedProcess.target_amount -
+                selectedProcess.assessments_count;
               const global_percent = _.floor(
-                _.divide(
-                  global_assessment,
-                  history.location.state.target_amount,
-                ) * 100,
+                _.divide(global_assessment, selectedProcess.target_amount) *
+                  100,
                 2,
               );
               if (value.assessment) {
                 const percent = _.floor(
-                  _.divide(
-                    value.assessment,
-                    history.location.state.target_amount,
-                  ) * 100,
+                  _.divide(value.assessment, selectedProcess.target_amount) *
+                    100,
                   2,
                 );
                 if (
@@ -423,7 +437,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                 const assessment = _.divide(
                   _.multiply(
                     value.assessment_percent,
-                    history.location.state.target_amount,
+                    selectedProcess.target_amount,
                   ),
                   100,
                 );
@@ -462,7 +476,7 @@ const PaymentRecordDetailPage: React.FC = () => {
             onFinish={async () => {
               if (
                 !access.canApplyPaymentRecord ||
-                initialState?.department !== history.location.state.department
+                initialState?.department !== selectedProcess.department
               ) {
                 message.error('你无权进行此操作');
               } else {
@@ -477,13 +491,11 @@ const PaymentRecordDetailPage: React.FC = () => {
             }}
           >
             <ProFormItem label="合同附件：">
-              <PreviewListModal
-                fileListString={history.location.state.payment_file}
-              />
+              <PreviewListModal fileListString={selectedProcess.payment_file} />
             </ProFormItem>
             <ProFormItem label="验收资料：">
               <PreviewListModal
-                fileListString={history.location.state.install_picture}
+                fileListString={selectedProcess.install_picture}
               />
             </ProFormItem>
             <ProFormText
@@ -503,40 +515,40 @@ const PaymentRecordDetailPage: React.FC = () => {
               <ProFormDigit
                 name="assessment"
                 label={`${
-                  history.location.state.is_pay === 'true'
+                  selectedProcess.is_pay === 'true'
                     ? '应付款金额'
                     : '应收款金额'
                 }(项目余款${
-                  history.location.state.target_amount -
-                  history.location.state.assessments_count
+                  selectedProcess.target_amount -
+                  selectedProcess.assessments_count
                 }元)`}
                 min={1}
                 max={
-                  history.location.state.target_amount -
-                  history.location.state.assessments_count
+                  selectedProcess.target_amount -
+                  selectedProcess.assessments_count
                 }
                 rules={[{ required: true }]}
               />
               <ProFormDigit
                 name="assessment_percent"
                 label={`${
-                  history.location.state.is_pay === 'true'
+                  selectedProcess.is_pay === 'true'
                     ? '应付款金额百分比'
                     : '应收款金额百分比'
                 }(项目余款百分比${_.floor(
                   _.divide(
-                    history.location.state.target_amount -
-                      history.location.state.assessments_count,
-                    history.location.state.target_amount,
+                    selectedProcess.target_amount -
+                      selectedProcess.assessments_count,
+                    selectedProcess.target_amount,
                   ) * 100,
                   2,
                 )}%)`}
                 min={0}
                 max={_.floor(
                   _.divide(
-                    history.location.state.target_amount -
-                      history.location.state.assessments_count,
-                    history.location.state.target_amount,
+                    selectedProcess.target_amount -
+                      selectedProcess.assessments_count,
+                    selectedProcess.target_amount,
                   ) * 100,
                   2,
                 )}
@@ -566,7 +578,7 @@ const PaymentRecordDetailPage: React.FC = () => {
             checkbox: string;
           }>
             name="process"
-            title={history.location.state.is_pay === 'true' ? '付款' : '收款'}
+            title={selectedProcess.is_pay === 'true' ? '付款' : '收款'}
             onFinish={async () => {
               if (!access.canProcessPaymentRecord) {
                 message.error('你无权进行此操作');
@@ -596,18 +608,14 @@ const PaymentRecordDetailPage: React.FC = () => {
             <ProFormDatePicker
               name="assessment_date"
               label={
-                history.location.state.is_pay === 'true'
-                  ? '付款日期：'
-                  : '收款日期：'
+                selectedProcess.is_pay === 'true' ? '付款日期：' : '收款日期：'
               }
               width="sm"
               rules={[{ required: true }]}
             />
             <ProFormUploadButton
               label={
-                history.location.state.is_pay === 'true'
-                  ? '付款收据：'
-                  : '收款收据：'
+                selectedProcess.is_pay === 'true' ? '付款收据：' : '收款收据：'
               }
               name="payment_file"
               fieldProps={{
