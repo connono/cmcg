@@ -216,6 +216,7 @@ const PaymentProcessPage: React.FC = () => {
         wait: { text: '待设置下次时间', status: 'Default' },
         apply: { text: '待申请', status: 'Processing' },
         document: { text: '待制单', status: 'Processing' },
+        upload: { text: '已制单', status: 'Processing' },
         finance_audit: { text: '待财务科审核', status: 'Processing' },
         dean_audit: { text: '待副院长审核', status: 'Processing' },
         process: { text: '待收付款', status: 'Processing' },
@@ -285,6 +286,24 @@ const PaymentProcessPage: React.FC = () => {
               }}
             >
               待制单
+            </a>
+          );
+        } else if (record.status === 'upload') {
+          update = (
+            <a
+              key="update"
+              onClick={() => {
+                if (!access.canDocumentPaymentProcessRecord) {
+                  message.error('你无权进行此操作');
+                } else {
+                  window.open(
+                    `/#/purchase/paymentProcess/detail#document&${record.id}&${record.current_payment_record_id}`,
+                    '_blank',
+                  );
+                }
+              }}
+            >
+              已制单
             </a>
           );
         } else if (record.status === 'finance_audit') {

@@ -17,9 +17,9 @@ import {
   Button,
   Divider,
   FloatButton,
+  Skeleton,
   Steps,
   Tabs,
-  TabsProps,
   message,
 } from 'antd';
 import axios from 'axios';
@@ -82,6 +82,7 @@ const ContractDetailPage: React.FC = () => {
   const [current, setCurrent] = useState<number>(0);
   const [contract, setContract] = useState<any>({});
   const formRef = useRef<ProFormInstance>();
+  const [show, setShow] = useState(false);
 
   const { run: runApprove } = useRequest(approve, {
     manual: true,
@@ -136,19 +137,6 @@ const ContractDetailPage: React.FC = () => {
     },
   });
 
-  const items: TabsProps['items'] = [
-    {
-      key: '1',
-      label: '服务型合同',
-      children: <EditableContractMonitorTable contract={contract} />,
-    },
-    {
-      key: '2',
-      label: '固定资产',
-      children: <EditableContractProcessTable contract={contract} />,
-    },
-  ];
-
   const onStepChange = (current: number) => {
     if (int_status(contract.status) === -1) return;
     if (int_status(contract.status) < current) return;
@@ -193,6 +181,7 @@ const ContractDetailPage: React.FC = () => {
 
   useEffect(() => {
     runGetItem(id);
+    setInterval(() => setShow(true), 1000);
   }, []);
 
   return (
@@ -344,7 +333,18 @@ const ContractDetailPage: React.FC = () => {
                 执行列表
               </span>
             </Divider>
-            {contract ? <Tabs defaultActiveKey="1" items={items} /> : null}
+            {show ? (
+              <Tabs>
+                <Tabs.TabPane tab="服务型合同" key="1">
+                  <EditableContractMonitorTable contract={contract} />
+                </Tabs.TabPane>
+                <Tabs.TabPane tab="固定资产" key="2">
+                  <EditableContractProcessTable contract={contract} />
+                </Tabs.TabPane>
+              </Tabs>
+            ) : (
+              <Skeleton avatar paragraph={{ rows: 4 }} />
+            )}
           </Access>
         </StepsForm.StepForm>
       </StepsForm>

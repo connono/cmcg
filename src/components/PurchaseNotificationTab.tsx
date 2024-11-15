@@ -57,7 +57,7 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
                   <Button
                     size="small"
                     type="primary"
-                    onClick={() => window.open(v.link, '_blank')}
+                    onClick={() => window.open('/#' + v.link, '_blank')}
                   >
                     去处理
                   </Button>
@@ -91,7 +91,7 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
                   <Button
                     size="small"
                     type="primary"
-                    onClick={() => window.open(v.link, '_blank')}
+                    onClick={() => window.open('/#' + v.link, '_blank')}
                   >
                     去处理
                   </Button>

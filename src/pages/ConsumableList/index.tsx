@@ -202,7 +202,7 @@ const ConsumableListPage: React.FC<unknown> = () => {
             <a
               onClick={() => {
                 window.open(
-                  `/consumable/list/index/detail#update&${record.consumable_apply_id}`,
+                  `/#/consumable/list/index/detail#update&${record.consumable_apply_id}`,
                   '_blank',
                 );
               }}
@@ -214,7 +214,7 @@ const ConsumableListPage: React.FC<unknown> = () => {
           <a
             onClick={() => {
               history.push(
-                `/consumable/list/index/history#${record.consumable_apply_id}`,
+                `/#/consumable/list/index/history#${record.consumable_apply_id}`,
                 record,
               );
             }}

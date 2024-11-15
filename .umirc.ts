@@ -235,6 +235,12 @@ export default defineConfig({
           component: './TemporyConsumable',
         },
         {
+          name: '耗材挂网目录查询',
+          path: '/consumable/net',
+          access: 'canSeeConsumableView',
+          component: './ConsumableNet',
+        },
+        {
           path: '/consumable/tempory/apply/detail',
           component: './TemporyConsumable/Detail',
           name: '临时耗材申请-详情',

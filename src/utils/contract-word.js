@@ -16,6 +16,7 @@ export const generateWord = async (contractInformation) => {
   data.append('dean_type', contractInformation.dean_type);
   data.append('law_advice', contractInformation.law_advice);
   data.append('comment', contractInformation.comment);
+  data.append('is_pay', contractInformation.is_pay);
 
   return await axios({
     method: 'POST',

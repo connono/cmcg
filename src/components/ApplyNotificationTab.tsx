@@ -69,7 +69,7 @@ const EquipmentApplyNotificationCard: React.FC<
                 <Button
                   size="small"
                   type="primary"
-                  onClick={() => window.open(v.link, '_blank')}
+                  onClick={() => window.open('/#' + v.link, '_blank')}
                 >
                   去处理
                 </Button>
@@ -154,7 +154,7 @@ const InstrumentApplyNotificationCard: React.FC<
                 <Button
                   size="small"
                   type="primary"
-                  onClick={() => window.open(v.link, '_blank')}
+                  onClick={() => window.open('/#' + v.link, '_blank')}
                 >
                   去处理
                 </Button>
@@ -236,7 +236,7 @@ const RepairApplyNotificationCard: React.FC<
                 <Button
                   size="small"
                   type="primary"
-                  onClick={() => window.open(v.link, '_blank')}
+                  onClick={() => window.open('/#' + v.link, '_blank')}
                 >
                   去处理
                 </Button>

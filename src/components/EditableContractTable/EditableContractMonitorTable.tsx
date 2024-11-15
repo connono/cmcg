@@ -86,8 +86,9 @@ const EditableContractMonitorTable: React.FC<
 
   const { run: runGetPlans } = useRequest(getPlans, {
     manual: true,
-    onSuccess: () => {
+    onSuccess: (res) => {
       setLoading(false);
+      setDataSource(res.data);
     },
     onError: () => {
       //message.error(error.message);
@@ -194,7 +195,7 @@ const EditableContractMonitorTable: React.FC<
 
   useEffect(() => {
     runGetPlans(props.contract.id);
-  }, [props.contract]);
+  }, []);
 
   return (
     <>
@@ -228,8 +229,7 @@ const EditableContractMonitorTable: React.FC<
         editable={{
           type: 'multiple',
           editableKeys,
-          onSave: async (rowKey, data, row) => {
-            console.log(rowKey, data, row);
+          onSave: async (rowKey, data) => {
             await runCreatePlan(
               initialState?.department,
               props.contract.contractor,

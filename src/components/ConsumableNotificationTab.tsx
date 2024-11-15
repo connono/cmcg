@@ -65,7 +65,7 @@ const TemporaryConsumableNotificationCard: React.FC<
                 <Button
                   size="small"
                   type="primary"
-                  onClick={() => window.open(v.link, '_blank')}
+                  onClick={() => window.open('/#' + v.link, '_blank')}
                 >
                   去处理
                 </Button>
@@ -152,7 +152,7 @@ const ConsumableApplyNotificationCard: React.FC<
                 <Button
                   size="small"
                   type="primary"
-                  onClick={() => window.open(v.link, '_blank')}
+                  onClick={() => window.open('/#' + v.link, '_blank')}
                 >
                   去处理
                 </Button>
@@ -235,7 +235,7 @@ const ConsumableListNotificationCard: React.FC<
                 <Button
                   size="small"
                   type="primary"
-                  onClick={() => window.open(v.link, '_blank')}
+                  onClick={() => window.open('/#' + v.link, '_blank')}
                 >
                   去处理
                 </Button>

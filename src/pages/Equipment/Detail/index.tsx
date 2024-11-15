@@ -78,7 +78,7 @@ const getSerialNumber = async () => {
 };
 
 const getAllDepartments = async () => {
-  return await axios.get(`${SERVER_HOST}/department/index?is_functional=0`);
+  return await axios.get(`${SERVER_HOST}/department/index`);
 };
 
 const getContract = async (id: string) => {
@@ -1276,6 +1276,16 @@ const EquipmentDetailPage: React.FC = () => {
                     rules={[{ required: true }]}
                   />
                 </ProForm.Group>
+                <ProFormRadio.Group
+                  name="is_pay"
+                  label="是否付款"
+                  width="sm"
+                  valueEnum={{
+                    true: { text: '付款' },
+                    false: { text: '收款' },
+                  }}
+                  rules={[{ required: true }]}
+                />
                 <ProFormRadio.Group
                   name="dean_type"
                   label="签署人"

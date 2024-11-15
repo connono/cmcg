@@ -85,7 +85,7 @@ const EditableContractProcessTable: React.FC<
   const { run: runGetProcesses } = useRequest(getProcesses, {
     manual: true,
     onSuccess: (res) => {
-      console.log('res:', res);
+      setDataSource(res.data);
       setLoading(false);
     },
     onError: (error) => {

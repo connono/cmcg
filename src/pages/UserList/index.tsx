@@ -11,7 +11,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Access, useAccess, useRequest } from '@umijs/max';
-import { Button, message } from 'antd';
+import { Button, Tag, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
@@ -208,6 +208,17 @@ const UserListPage: React.FC = () => {
     {
       dataIndex: 'phone_number',
       title: '手机号码',
+    },
+    {
+      dataIndex: 'role',
+      title: '当前角色',
+      render: (node: any, record: any) => {
+        //@ts-ignore
+        const roleTags = _.map(record.roles, (role: any) => {
+          return <Tag>{role}</Tag>;
+        });
+        return <div>{roleTags}</div>;
+      },
     },
     {
       title: '操作',

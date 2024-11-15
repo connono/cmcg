@@ -161,7 +161,6 @@ const AdvanceTransfer: React.FC<TreeTransferProps> = ({
 };
 
 const AdvanceTransferModal: React.FC<Props> = (props) => {
-  console.log('data:', props.treeData);
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
 
   const onChange = (keys: string[]) => {

@@ -41,6 +41,7 @@ const createContract = async (
   comment: string,
   isComplement: string,
   payment_terms: string,
+  is_pay: string,
 ) => {
   const form = new FormData();
   if (source.type === '更多') {
@@ -62,6 +63,7 @@ const createContract = async (
   form.append('comment', comment ? comment : '无');
   form.append('isComplement', isComplement);
   form.append('payment_terms', payment_terms);
+  form.append('is_pay', is_pay);
 
   return await axios({
     method: 'POST',
@@ -176,6 +178,7 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             values.comment ? values.comment : '',
             values.isComplement,
             values.payment_terms ? values.payment_terms : '',
+            values.is_pay,
           );
           setModalVisible(false);
           if (props.callback) props.callback(formRef);
@@ -290,6 +293,16 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             valueEnum={{
               true: { text: '是' },
               false: { text: '否' },
+            }}
+            rules={[{ required: true }]}
+          />
+          <ProFormRadio.Group
+            name="is_pay"
+            label="是否付款"
+            width="sm"
+            valueEnum={{
+              true: { text: '付款' },
+              false: { text: '收款' },
             }}
             rules={[{ required: true }]}
           />
