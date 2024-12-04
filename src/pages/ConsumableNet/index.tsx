@@ -8,30 +8,8 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Upload, message } from 'antd';
 import axios from 'axios';
-import { useRef } from 'react';
-
-const getConsumableNetList = async (params: any) => {
-  const data = await axios({
-    method: 'GET',
-    params: {
-      isPaginate: true,
-      ...params,
-    },
-    url: `${SERVER_HOST}/consumable/net/index?page=${params.current}`,
-  })
-    .then((result) => {
-      return {
-        data: result.data.data,
-        success: true,
-        total: result.data.meta.total,
-      };
-    })
-    .catch((err) => {
-      message.error(err);
-    });
-
-  return data;
-};
+import _ from 'lodash';
+import { useRef, useState } from 'react';
 
 const clearDatabase = async () => {
   return axios.delete('http://10.10.0.27:3300/clearDatabase');
@@ -49,6 +27,39 @@ const uploadXlsx = async (options: any) => {
 
 const ConsumableNetPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
+
+  const [isASC, setIsASC] = useState<any>();
+
+  const getConsumableNetList = async (params: any) => {
+    const data = await axios({
+      method: 'GET',
+      params: {
+        isPaginate: true,
+        isASC,
+        ...params,
+      },
+      url: `${SERVER_HOST}/consumable/net/index?page=${params.current}`,
+    })
+      .then((result) => {
+        return {
+          data: result.data.data,
+          success: true,
+          total: result.data.meta.total,
+        };
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+
+    return data;
+  };
+
+  const handleClick = () => {
+    if (_.isUndefined(isASC)) setIsASC(true);
+    else if (isASC === true) setIsASC(false);
+    else if (isASC === false) setIsASC(true);
+    actionRef.current?.reload();
+  };
 
   const columns: ProColumns[] = [
     {
@@ -176,7 +187,7 @@ const ConsumableNetPage: React.FC = () => {
     },
     {
       dataIndex: 'price',
-      title: '中选价',
+      title: <div onClick={handleClick}> 中选价 </div>,
       ellipsis: true,
       search: false,
       align: 'center',

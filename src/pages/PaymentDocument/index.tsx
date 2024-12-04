@@ -107,6 +107,7 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
         if (!_.get(result, 'data')) return;
         const newPaymentProcessRecordData = _.chain(result.data)
           .filter((item: any) => !item.payment_document_id)
+          .filter((item: any) => item.assessment && item.assessment !== 0)
           .map((item: any) => {
             return {
               id: item.id,

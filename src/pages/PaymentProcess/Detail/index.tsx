@@ -53,12 +53,15 @@ const apply = async (
   record_id: string,
   assessment: string,
   payment_terms: string,
+  install_picture?: string,
 ) => {
   const form = new FormData();
   form.append('method', 'apply');
   form.append('process_id', process_id);
   form.append('assessment', assessment);
   form.append('payment_terms', payment_terms);
+  if (install_picture)
+    form.append('install_picture', fileListToString(install_picture));
 
   return await axios({
     method: 'POST',
@@ -486,17 +489,13 @@ const PaymentRecordDetailPage: React.FC = () => {
                   id,
                   values.assessment,
                   values.payment_terms,
+                  values.install_picture,
                 );
               }
             }}
           >
             <ProFormItem label="合同附件：">
               <PreviewListModal fileListString={selectedProcess.payment_file} />
-            </ProFormItem>
-            <ProFormItem label="验收资料：">
-              <PreviewListModal
-                fileListString={selectedProcess.install_picture}
-              />
             </ProFormItem>
             <ProFormText
               name="contract_name"
@@ -552,7 +551,6 @@ const PaymentRecordDetailPage: React.FC = () => {
                   ) * 100,
                   2,
                 )}
-                rules={[{ required: true }]}
               />
               <ProFormCheckbox name="is_all_assessment" label="是否全额付款" />
             </ProForm.Group>
@@ -562,7 +560,35 @@ const PaymentRecordDetailPage: React.FC = () => {
               label="合同支付条件"
               placeholder="请输入合同支付条件"
             />
+            {selectedProcess.install_picture ? (
+              <ProFormItem label="验收材料：">
+                <PreviewListModal
+                  fileListString={selectedProcess.install_picture}
+                />
+              </ProFormItem>
+            ) : (
+              <ProFormUploadButton
+                label="验收资料："
+                name="install_picture"
+                fieldProps={{
+                  customRequest: (options) => {
+                    upload(
+                      options.file,
+                      (isSuccess: boolean, filename: string) =>
+                        handleUpload(
+                          isSuccess,
+                          filename,
+                          'install_picture',
+                          options.file.uid,
+                        ),
+                    );
+                  },
+                }}
+                rules={[{ required: true }]}
+              />
+            )}
           </StepsForm.StepForm>
+
           <StepsForm.StepForm name="audit" title="审核">
             {paymentDocumentItem.payment_document_file ? (
               <PreviewListVisible
