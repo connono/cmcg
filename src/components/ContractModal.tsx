@@ -226,6 +226,7 @@ const ContractModal: React.FC<ContractModalProps> = (props) => {
             HL: { text: '护理归口' },
             BW: { text: '保卫归口' },
             GW: { text: '公卫归口' },
+            TJ: { text: '体检归口' },
           }}
           rules={[{ required: true }]}
         />

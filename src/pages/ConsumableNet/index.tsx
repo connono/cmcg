@@ -8,6 +8,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Upload, message } from 'antd';
 import axios from 'axios';
+import { saveAs } from 'file-saver';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
 
@@ -15,14 +16,35 @@ const clearDatabase = async () => {
   return axios.delete('http://10.10.0.27:3300/clearDatabase');
 };
 
-const uploadXlsx = async (options: any) => {
+const uploadXlsx = async (options: any, mode: number) => {
   const form = new FormData();
   form.append('file', options.file);
   return await axios({
     method: 'POST',
     data: form,
-    url: 'http://10.10.0.27:3300/storeXlsx',
+    url: `http://10.10.0.27:3300/storeXlsx?mode=${mode}`,
   });
+};
+
+const downloadXlsx = async () => {
+  return await axios({
+    method: 'GET',
+    params: {
+      order_by: 'ASC',
+      child_directory: '神经介入球囊扩张导管',
+      is_download: 'true',
+    },
+    url: `${SERVER_HOST}/consumable/net/index`,
+  })
+    .then((res) => {
+      console.log('res:', res);
+      const blob = new Blob([res.data], { type: 'text/plain;charset=utf-8' });
+      console.log('blob:', blob);
+      saveAs(blob, 'test.xlsx');
+    })
+    .catch((err) => {
+      message.error(err);
+    });
 };
 
 const ConsumableNetPage: React.FC = () => {
@@ -293,7 +315,7 @@ const ConsumableNetPage: React.FC = () => {
           },
         }}
         pagination={{
-          pageSize: 50,
+          pageSize: 100,
         }}
         scroll={{ x: 'content' }}
         dateFormatter="string"
@@ -302,13 +324,25 @@ const ConsumableNetPage: React.FC = () => {
             name="file"
             key="1"
             customRequest={async (options) => {
-              await uploadXlsx(options);
+              await uploadXlsx(options, 0);
             }}
           >
-            <Button icon={<UploadOutlined />}>上传数据表</Button>
+            <Button icon={<UploadOutlined />}>上传数据表（旧）</Button>
+          </Upload>,
+          <Upload
+            name="file"
+            key="1"
+            customRequest={async (options) => {
+              await uploadXlsx(options, 1);
+            }}
+          >
+            <Button icon={<UploadOutlined />}>上传数据表（新）</Button>
           </Upload>,
           <Button onClick={clearDatabase} key="clear">
             数据表清空
+          </Button>,
+          <Button onClick={downloadXlsx} key="download">
+            导出筛选结果
           </Button>,
         ]}
       />

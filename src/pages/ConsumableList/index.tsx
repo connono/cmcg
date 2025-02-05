@@ -8,7 +8,7 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useAccess, useRequest } from '@umijs/max';
+import { useAccess, useRequest } from '@umijs/max';
 import { Button, Divider, Input, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -213,9 +213,10 @@ const ConsumableListPage: React.FC<unknown> = () => {
           <Divider type="vertical" />
           <a
             onClick={() => {
-              history.push(
+              // console.log(`/#/consumable/list/index/history#${record.consumable_apply_id}`)
+              window.open(
                 `/#/consumable/list/index/history#${record.consumable_apply_id}`,
-                record,
+                '_blank',
               );
             }}
           >

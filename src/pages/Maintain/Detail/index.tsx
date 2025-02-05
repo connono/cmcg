@@ -62,7 +62,7 @@ const apply = async (
   form.append('department', department);
   form.append('apply_date', formatDate(apply_date));
   form.append('budget', budget.toString());
-  form.append('apply_file', fileListToString(apply_file));
+  if (apply_file) form.append('apply_file', fileListToString(apply_file));
 
   return await axios({
     method: 'POST',
@@ -349,27 +349,15 @@ const MaintainDetailPage: React.FC = () => {
             title="申请"
             onFinish={async () => {
               const values = formRef.current?.getFieldsValue();
-              if (
-                formRef.current?.getFieldValue('apply_file')[0].status ===
-                'done'
-              ) {
-                await runApply(
-                  maintainItem.serial_number,
-                  values.name,
-                  values.equipment,
-                  values.department,
-                  values.budget,
-                  values.apply_date,
-                  values.apply_file,
-                );
-              } else if (
-                formRef.current?.getFieldValue('apply_file')[0].status ===
-                'error'
-              ) {
-                message.error('文件上传失败！');
-              } else {
-                message.error('文件上传中，请等待...');
-              }
+              await runApply(
+                maintainItem.serial_number,
+                values.name,
+                values.equipment,
+                values.department,
+                values.budget,
+                values.apply_date,
+                values.apply_file,
+              );
               confirm();
             }}
           >

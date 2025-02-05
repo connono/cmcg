@@ -276,10 +276,10 @@ const ConsumableRecordPage: React.FC = () => {
         />
       </Row>
       <Row style={{ marginBottom: '10px' }} gutter={16}>
-        <PreviewListVisible
+        {/* <PreviewListVisible
           title="申请单附件"
           fileListString={history.location.state.apply_file}
-        />
+        /> */}
       </Row>
       <Divider orientation="left">询价记录</Divider>
       <Collapse accordion items={items} />

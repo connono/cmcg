@@ -6,12 +6,13 @@ import {
   PageContainer,
   ProDescriptionsItemProps,
   ProFormCheckbox,
+  ProFormDateRangePicker,
   ProFormSelect,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
-import { Button, Divider, message } from 'antd';
+import { Button, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -22,6 +23,20 @@ const ContractPage: React.FC = () => {
   const [filter, setFilter] = useState<any>({});
   const { initialState } = useModel('@@initialState');
   const [isChange, setIsChange] = useState<boolean>(false);
+  const [equipmentApplyRecordData, setEquipmentApplyRecordData] = useState([]);
+
+  const getEquipmentList = async () => {
+    await axios({
+      method: 'GET',
+      url: `${SERVER_HOST}/equipment/index`,
+    })
+      .then((result) => {
+        setEquipmentApplyRecordData(result.data.data);
+      })
+      .catch((err) => {
+        message.error(err);
+      });
+  };
 
   const getContractList = async (params: any) => {
     const pageCurrent = isChange ? 1 : params.current;
@@ -48,6 +63,99 @@ const ContractPage: React.FC = () => {
       });
     return data;
   };
+
+  const equipmentApplyRecordcolumns: ProDescriptionsItemProps[] = [
+    {
+      title: '申请编号',
+      dataIndex: 'serial_number',
+    },
+    {
+      title: '申请设备名称',
+      dataIndex: 'equipment',
+      formItemProps: {
+        rules: [
+          {
+            required: true,
+            message: '名称为必填项',
+          },
+        ],
+      },
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      render: (text, record) => {
+        const statusArray = [
+          '申请',
+          '调研',
+          '政府审批',
+          '投标',
+          '合同',
+          '安装验收',
+          '医工科审核',
+          '入库',
+          '完成',
+        ];
+        if (record.is_stop === 'true') return '已终止';
+        else return statusArray[parseInt(record.status)];
+      },
+    },
+    {
+      title: '申请科室',
+      dataIndex: 'department',
+    },
+    {
+      title: '数量',
+      dataIndex: 'count',
+    },
+    {
+      title: '预算',
+      dataIndex: 'budget',
+    },
+    {
+      title: '申请方式',
+      dataIndex: 'apply_type',
+      valueEnum: {
+        0: { text: '年度采购', status: '0' },
+        1: { text: '经费采购', status: '1' },
+        2: { text: '临时采购', status: '2' },
+      },
+    },
+    {
+      title: '采购方式',
+      dataIndex: 'purchase_type',
+      valueEnum: {
+        0: { text: '展会采购', status: '0' },
+        1: { text: '招标', status: '1' },
+        2: { text: '自行采购', status: '2' },
+      },
+    },
+    {
+      title: '是否垫付',
+      dataIndex: 'isAdvance',
+      valueEnum: {
+        true: { text: '是' },
+        false: { text: '否' },
+      },
+    },
+    {
+      title: '操作',
+      dataIndex: 'option',
+      valueType: 'option',
+      render: (text, record) => (
+        <>
+          <a
+            onClick={() => {
+              const id = record.id;
+              window.open(`/#/apply/equipment/detail#update&${id}`, '_blank');
+            }}
+          >
+            {record.is_stop === 'true' ? '已终止' : '录入'}
+          </a>
+        </>
+      ),
+    },
+  ];
 
   const columns: ProDescriptionsItemProps<any>[] = [
     {
@@ -118,6 +226,18 @@ const ContractPage: React.FC = () => {
       },
     },
     {
+      title: '创建日期',
+      dataIndex: 'created_at',
+      render: (_, record) => {
+        const date = new Date(record.created_at);
+        return (
+          <span>{`${date.getFullYear()}-${
+            date.getMonth() + 1
+          }-${date.getDate()}`}</span>
+        );
+      },
+    },
+    {
       title: '备注',
       dataIndex: 'comment',
     },
@@ -167,31 +287,65 @@ const ContractPage: React.FC = () => {
             </a>
           );
         }
-        return (
-          <>
-            {update}
-            <Divider type="vertical" />
-            {record.equipment_apply_record_id ? (
-              <a
-                onClick={async () => {
-                  window.open(
-                    `/#/apply/equipment/detail#update&${record.equipment_apply_record_id}`,
-                    '_blank',
-                  );
-                }}
-              >
-                采购详情
-              </a>
-            ) : null}
-          </>
-        );
+        return <>{update}</>;
       },
     },
   ];
 
   useEffect(() => {
     actionRef.current?.reload();
+    getEquipmentList();
   }, [filter]);
+
+  const expandedRowRender = (record) => {
+    const filteredData = equipmentApplyRecordData.filter(
+      (value: any) => value.contract_id === record.id,
+    );
+    return (
+      <ProTable
+        columns={equipmentApplyRecordcolumns}
+        headerTitle={false}
+        search={false}
+        options={false}
+        dataSource={filteredData}
+        pagination={false}
+      />
+    );
+  };
+
+  // const expandedRowRender = () => {
+  //   const data = [];
+  //   for (let i = 0; i < 3; i += 1) {
+  //     data.push({
+  //       key: i,
+  //       date: '2014-12-24 23:12:00',
+  //       name: 'This is production name',
+  //       upgradeNum: 'Upgraded: 56',
+  //     });
+  //   }
+  //   return (
+  //     <ProTable
+  //       columns={[
+  //         { title: 'Date', dataIndex: 'date', key: 'date' },
+  //         { title: 'Name', dataIndex: 'name', key: 'name' },
+
+  //         { title: 'Upgrade Status', dataIndex: 'upgradeNum', key: 'upgradeNum' },
+  //         {
+  //           title: 'Action',
+  //           dataIndex: 'operation',
+  //           key: 'operation',
+  //           valueType: 'option',
+  //           render: () => [<a key="Pause">Pause</a>, <a key="Stop">Stop</a>],
+  //         },
+  //       ]}
+  //       headerTitle={false}
+  //       search={false}
+  //       options={false}
+  //       dataSource={data}
+  //       pagination={false}
+  //     />
+  //   );
+  // };
 
   return (
     <PageContainer
@@ -215,6 +369,7 @@ const ContractPage: React.FC = () => {
         pagination={{
           pageSize: 15,
         }}
+        expandable={{ expandedRowRender }}
         dateFormatter="string"
         headerTitle="合同管理列表"
         toolbar={{
@@ -266,6 +421,9 @@ const ContractPage: React.FC = () => {
                       ? 'true'
                       : 'false'
                     : filter.isImportant,
+                  created_at: _.isUndefined(value.created_at)
+                    ? filter.created_at
+                    : value.created_at,
                 });
                 setIsChange(true);
               }}
@@ -320,6 +478,7 @@ const ContractPage: React.FC = () => {
                   HL: { text: '护理归口' },
                   BW: { text: '保卫归口' },
                   GW: { text: '公卫归口' },
+                  TJ: { text: '体检归口' },
                   all: { text: '全部' },
                 }}
               />
@@ -338,6 +497,7 @@ const ContractPage: React.FC = () => {
                 }}
               />
               <ProFormCheckbox label="是否为重大项目" name="isImportant" />
+              <ProFormDateRangePicker label="合同创建日期" name="created_at" />
             </LightFilter>
           ),
           menu: {

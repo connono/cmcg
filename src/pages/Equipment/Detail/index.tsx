@@ -1,16 +1,12 @@
 import { PageContainer } from '@ant-design/pro-components';
 //@ts-ignore
-import CapitalSourceInput from '@/components/CapitalSourceInput';
 import PreviewListModal from '@/components/PreviewListModal';
 import PreviewListVisible from '@/components/PreviewListVisible';
 import { SERVER_HOST } from '@/constants';
-import { generateWord } from '@/utils/contract-word';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProCard,
-  ProForm,
   ProFormDatePicker,
-  ProFormDigit,
   ProFormMoney,
   ProFormRadio,
   ProFormSelect,
@@ -19,7 +15,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { Access, history, useAccess, useRequest } from '@umijs/max';
+import { Access, history, useAccess, useModel, useRequest } from '@umijs/max';
 import { Button, Modal, Steps, message } from 'antd';
 import axios from 'axios';
 import * as docx from 'docx-preview';
@@ -178,50 +174,17 @@ const tender = async (
   });
 };
 
-const createContract = async (
+const addContract = async (
+  contract_id: string,
   equipment_apply_record_id: string,
-  contract_name: string,
-  type: string,
-  complement_code: string,
-  department_source: string,
-  category: string,
-  purchase_type: string,
-  contractor: string,
-  source: any,
-  price: number,
-  dean_type: string,
-  law_advice: string,
-  isImportant: string,
-  comment: string,
-  isComplement: string,
-  payment_terms: string,
 ) => {
   const form = new FormData();
-  if (source.type === '更多') {
-    form.append('source', source.more);
-  } else {
-    form.append('source', source.type);
-  }
   form.append('equipment_apply_record_id', equipment_apply_record_id);
-  form.append('contract_name', contract_name);
-  form.append('type', type);
-  form.append('complement_code', complement_code);
-  form.append('department_source', department_source);
-  form.append('category', category);
-  form.append('contractor', contractor);
-  form.append('price', price.toString());
-  form.append('dean_type', dean_type);
-  form.append('law_advice', law_advice);
-  form.append('purchase_type', purchase_type);
-  form.append('isImportant', isImportant);
-  form.append('comment', comment ? comment : '无');
-  form.append('isComplement', isComplement);
-  form.append('payment_terms', payment_terms);
 
   return await axios({
     method: 'POST',
     data: form,
-    url: `${SERVER_HOST}/payment/contracts/store`,
+    url: `${SERVER_HOST}/payment/contracts/addEquipmentApplyRecord/${contract_id}`,
   });
 };
 
@@ -263,17 +226,6 @@ const warehouse = async (id: string, warehousing_date: Date) => {
   });
 };
 
-const storeDocx = async (id: number, contract_docx: string) => {
-  const form = new FormData();
-  form.append('contract_docx', contract_docx);
-
-  return await axios({
-    method: 'POST',
-    data: form,
-    url: `${SERVER_HOST}/payment/contracts/storeDocx/${id}`,
-  });
-};
-
 const backEquipmentItem = async (id: any) => {
   return await axios.patch(`${SERVER_HOST}/equipment/back/${id}`);
 };
@@ -286,7 +238,9 @@ const EquipmentDetailPage: React.FC = () => {
   const [modal, contextHolder] = Modal.useModal();
   const formRef = useRef<ProFormInstance>();
   const [current, setCurrent] = useState<number>(0);
+  const { initialState } = useModel('@@initialState');
   const [contractFile, setContractFile] = useState();
+  const [contractData, setContractData] = useState([]);
   const access = useAccess();
 
   const { run: runGetContract } = useRequest(getContract, {
@@ -309,6 +263,26 @@ const EquipmentDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
+
+  const getContractList = async () => {
+    const enumData = await axios
+      .get(`${SERVER_HOST}/payment/contracts/index?user_id=${initialState.id}`)
+      .then((result) => {
+        const selectData = result.data.data.map((item: any) => {
+          return {
+            label: `${item.contract_name}（${item.series_number}）`,
+            value: item.id.toString(),
+            contract_docx: item.contract_docx,
+          };
+        });
+        setContractData(selectData);
+        return selectData;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    return enumData;
+  };
 
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
@@ -394,21 +368,9 @@ const EquipmentDetailPage: React.FC = () => {
       message.error(error.message);
     },
   });
-  const { run: runStoreDocx } = useRequest(storeDocx, {
+  const { run: runAddContract } = useRequest(addContract, {
     manual: true,
     onSuccess: () => {
-      message.success('存入备案文档成功');
-    },
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-  const { run: runCreateContract } = useRequest(createContract, {
-    manual: true,
-    onSuccess: (res: any) => {
-      generateWord(res.data).then((response) => {
-        runStoreDocx(res.data.id, response.data);
-      });
       message.success('增加合同成功，正在返回设备列表...');
       history.push('/apply/equipment');
     },
@@ -1113,28 +1075,11 @@ const EquipmentDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                await runCreateContract(
-                  id,
-                  values.contract_name,
-                  values.type,
-                  values.complement_code,
-                  values.department_source,
-                  values.category,
-                  values.purchase_type,
-                  values.contractor,
-                  values.source,
-                  values.price,
-                  values.dean_type,
-                  values.law_advice,
-                  values.isImportant,
-                  values.comment ? values.comment : '',
-                  values.isComplement,
-                  values.payment_terms ? values.payment_terms : '',
-                );
+                await runAddContract(values.contract_id, id);
               }
             }}
           >
-            {current < equipmentItem.status ? (
+            {equipmentItem.status > current ? (
               <div>
                 <div
                   id="preview"
@@ -1153,172 +1098,33 @@ const EquipmentDetailPage: React.FC = () => {
               </div>
             ) : (
               <div>
-                <ProFormText
-                  width="md"
-                  name="contract_name"
-                  label="合同名称"
-                  placeholder="请输入合同名称"
-                  rules={[{ required: true }]}
-                />
-                <ProFormRadio.Group
-                  name="type"
-                  label="请选择"
-                  width="sm"
-                  valueEnum={{
-                    create: { text: '新签' },
-                    update: { text: '变更' },
-                  }}
-                  rules={[{ required: true }]}
-                />
-                <ProFormText
-                  label="变更合同编码"
-                  width="md"
-                  name="complement_code"
-                  placeholder="请输入合同编码"
-                />
                 <ProFormSelect
-                  label="归口码"
-                  name="department_source"
-                  width="md"
-                  valueEnum={{
-                    ZW: { text: '总务归口' },
-                    YJ: { text: '药剂归口' },
-                    XX: { text: '信息归口' },
-                    YH: { text: '医患协商' },
-                    CW: { text: '财务归口' },
-                    YW: { text: '医务归口' },
-                    CG: { text: '采购归口' },
-                    YG: { text: '医工归口' },
-                    DZ: { text: '党政归口' },
-                    RS: { text: '人事归口' },
-                    KJ: { text: '科教归口' },
-                    HL: { text: '护理归口' },
-                    BW: { text: '保卫归口' },
-                    GW: { text: '公卫归口' },
+                  request={getContractList}
+                  name="contract_id"
+                  label="选择合同"
+                  showSearch
+                  onChange={(props: string) => {
+                    const contract = contractData.find((value: any) => {
+                      return value.value === props;
+                    });
+                    preview(contract.contract_docx, (file: File) => {
+                      docx.renderAsync(
+                        file.arrayBuffer(),
+                        //@ts-ignore
+                        document.getElementById('preview'),
+                      );
+                    });
                   }}
                   rules={[{ required: true }]}
                 />
-                <ProFormSelect
-                  label="类型"
-                  name="category"
-                  width="md"
-                  valueEnum={{
-                    JJXM: { text: '基建项目' },
-                    YPCG: { text: '药品采购' },
-                    XXCG: { text: '信息采购' },
-                    QXCG: { text: '器械采购' },
-                    QRHZ: { text: '金融合作' },
-                    WZCG: { text: '物资采购' },
-                    YLHZ: { text: '医疗合作' },
-                    YLXS: { text: '医疗协商' },
-                    DSFFW: { text: '第三方服务' },
-                    QT: { text: '其他' },
+                <div
+                  id="preview"
+                  style={{
+                    height: '1200px',
+                    margin: '0 40px',
+                    overflowY: 'visible',
                   }}
-                  rules={[{ required: true }]}
-                />
-                <ProFormSelect
-                  label="采购类型"
-                  name="purchase_type"
-                  width="md"
-                  valueEnum={{
-                    GKZB: { text: '公开招标' },
-                    DYLYCG: { text: '单一来源采购' },
-                    JZXCS: { text: '竞争性磋商' },
-                    YQZB: { text: '邀请招标' },
-                    XQ: { text: '续签' },
-                    JZXTP: { text: '竞争性谈判' },
-                    ZFZB: { text: '政府招标采购目录内服务商' },
-                    XJ: { text: '询价' },
-                    QT: { text: '其他' },
-                  }}
-                  rules={[{ required: true }]}
-                />
-                <ProFormText
-                  width="md"
-                  name="contractor"
-                  label="签订对象"
-                  placeholder="请输入签订对象"
-                  rules={[{ required: true }]}
-                />
-                <ProForm.Item
-                  name="source"
-                  label="资金来源"
-                  rules={[{ required: true }]}
-                >
-                  <CapitalSourceInput />
-                </ProForm.Item>
-                <ProForm.Group labelLayout="inline">
-                  <ProFormDigit
-                    width="md"
-                    name="price"
-                    label="金额"
-                    placeholder="请输入金额"
-                    rules={[{ required: true }]}
-                  />
-                  <ProFormRadio.Group
-                    name="isImportant"
-                    label="是否为重大项目"
-                    width="sm"
-                    valueEnum={{
-                      true: { text: '是' },
-                      false: { text: '否' },
-                    }}
-                    rules={[{ required: true }]}
-                  />
-                  <ProFormRadio.Group
-                    name="isComplement"
-                    label="是否为补充协议"
-                    width="sm"
-                    valueEnum={{
-                      true: { text: '是' },
-                      false: { text: '否' },
-                    }}
-                    rules={[{ required: true }]}
-                  />
-                </ProForm.Group>
-                <ProFormRadio.Group
-                  name="is_pay"
-                  label="是否付款"
-                  width="sm"
-                  valueEnum={{
-                    true: { text: '付款' },
-                    false: { text: '收款' },
-                  }}
-                  rules={[{ required: true }]}
-                />
-                <ProFormRadio.Group
-                  name="dean_type"
-                  label="签署人"
-                  width="sm"
-                  valueEnum={{
-                    charge_dean: { text: '分管院长' },
-                    dean: { text: '院长' },
-                  }}
-                  rules={[{ required: true }]}
-                />
-                <ProFormRadio.Group
-                  name="law_advice"
-                  label="法律意见"
-                  width="sm"
-                  valueEnum={{
-                    written_request: { text: '书面征询' },
-                    oral_inquiry: { text: '口头征询' },
-                    none: { text: '无' },
-                  }}
-                  rules={[{ required: true }]}
-                />
-                <ProFormTextArea
-                  width="md"
-                  name="payment_terms"
-                  label="合同支付条件"
-                  placeholder="请输入合同支付条件"
-                />
-                <ProFormTextArea
-                  width="md"
-                  name="comment"
-                  label="备注"
-                  placeholder="请输入备注"
-                />
+                ></div>
               </div>
             )}
           </StepsForm.StepForm>

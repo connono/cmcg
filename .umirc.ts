@@ -200,6 +200,12 @@ export default defineConfig({
               access: 'canSeeConsumableView',
             },
             {
+              name: '遴选列表',
+              path: '/consumable/list/select',
+              component: './ConsumableTrend',
+              access: 'canSeeConsumableView',
+            },
+            {
               name: '目录列表',
               path: '/consumable/list/index',
               component: './ConsumableList',
@@ -245,6 +251,11 @@ export default defineConfig({
           component: './TemporyConsumable/Detail',
           name: '临时耗材申请-详情',
           hideInMenu: true,
+        },
+        {
+          path: '/consumable/net/select/detail',
+          component: './ConsumableSelect',
+          name: '耗材遴选',
         },
       ],
     },
