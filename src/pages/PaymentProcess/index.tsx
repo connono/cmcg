@@ -217,8 +217,10 @@ const PaymentProcessPage: React.FC = () => {
         apply: { text: '待申请', status: 'Processing' },
         document: { text: '待制单', status: 'Processing' },
         upload: { text: '已制单', status: 'Processing' },
+        dean_audit: { text: '待分管院长审核', status: 'Processing' },
+        audit: { text: '待财务会计复核', status: 'Processing' },
         finance_audit: { text: '待财务科审核', status: 'Processing' },
-        dean_audit: { text: '待副院长审核', status: 'Processing' },
+        finance_dean_audit: { text: '待财务院长审核', status: 'Processing' },
         process: { text: '待收付款', status: 'Processing' },
         stop: { text: '已停止', status: 'Error' },
       },
@@ -275,14 +277,10 @@ const PaymentProcessPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                if (!access.canDocumentPaymentProcessRecord) {
-                  message.error('你无权进行此操作');
-                } else {
-                  window.open(
-                    `/#/purchase/paymentProcess/detail#document&${record.id}&${record.current_payment_record_id}`,
-                    '_blank',
-                  );
-                }
+                window.open(
+                  `/#/purchase/paymentProcess/detail#document&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
+                );
               }}
             >
               待制单
@@ -293,35 +291,13 @@ const PaymentProcessPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                if (!access.canDocumentPaymentProcessRecord) {
-                  message.error('你无权进行此操作');
-                } else {
-                  window.open(
-                    `/#/purchase/paymentProcess/detail#document&${record.id}&${record.current_payment_record_id}`,
-                    '_blank',
-                  );
-                }
+                window.open(
+                  `/#/purchase/paymentProcess/detail#document&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
+                );
               }}
             >
               已制单
-            </a>
-          );
-        } else if (record.status === 'finance_audit') {
-          update = (
-            <a
-              key="update"
-              onClick={() => {
-                if (!access.canFinanceAuditPaymentProcessRecord) {
-                  message.error('你无权进行此操作');
-                } else {
-                  window.open(
-                    `/#/purchase/paymentProcess/detail#finance_audit&${record.id}&${record.current_payment_record_id}`,
-                    '_blank',
-                  );
-                }
-              }}
-            >
-              待财务科审核
             </a>
           );
         } else if (record.status === 'dean_audit') {
@@ -329,17 +305,55 @@ const PaymentProcessPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                if (!access.canDeanAuditPaymentProcessRecord) {
-                  message.error('你无权进行此操作');
-                } else {
-                  window.open(
-                    `/#/purchase/paymentProcess/dean_audit#finance_audit&${record.id}&${record.current_payment_record_id}`,
-                    '_blank',
-                  );
-                }
+                window.open(
+                  `/#/purchase/paymentProcess/detail#finance_audit&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
+                );
               }}
             >
-              待副院长审核
+              待分管院长审核
+            </a>
+          );
+        } else if (record.status === 'audit') {
+          update = (
+            <a
+              key="update"
+              onClick={() => {
+                window.open(
+                  `/#/purchase/paymentProcess/detail#finance_audit&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
+                );
+              }}
+            >
+              待财务会计复核
+            </a>
+          );
+        } else if (record.status === 'finance_audit') {
+          update = (
+            <a
+              key="update"
+              onClick={() => {
+                window.open(
+                  `/#/purchase/paymentProcess/detail#finance_audit&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
+                );
+              }}
+            >
+              待财务科审核
+            </a>
+          );
+        } else if (record.status === 'finance_dean_audit') {
+          update = (
+            <a
+              key="update"
+              onClick={() => {
+                window.open(
+                  `/#/purchase/paymentProcess/detail#finance_audit&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
+                );
+              }}
+            >
+              待财务院长审核
             </a>
           );
         } else if (record.status === 'process') {
@@ -347,14 +361,10 @@ const PaymentProcessPage: React.FC = () => {
             <a
               key="update"
               onClick={() => {
-                if (!access.canProcessPaymentRecord) {
-                  message.error('你无权进行此操作');
-                } else {
-                  window.open(
-                    `/#/purchase/paymentProcess/dean_audit#process&${record.id}&${record.current_payment_record_id}`,
-                    '_blank',
-                  );
-                }
+                window.open(
+                  `/#/purchase/paymentProcess/detail#process&${record.id}&${record.current_payment_record_id}`,
+                  '_blank',
+                );
               }}
             >
               {record.is_pay === 'true' ? '付款' : '收款'}

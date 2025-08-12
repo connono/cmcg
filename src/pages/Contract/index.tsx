@@ -479,6 +479,7 @@ const ContractPage: React.FC = () => {
                   BW: { text: '保卫归口' },
                   GW: { text: '公卫归口' },
                   TJ: { text: '体检归口' },
+                  ZK: { text: '质控归口' },
                   all: { text: '全部' },
                 }}
               />

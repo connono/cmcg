@@ -219,6 +219,13 @@ export default defineConfig({
               hideInMenu: true,
             },
             {
+              name: '遴选列表-详情',
+              path: '/consumable/list/select/detail',
+              component: './ConsumableTrend/Detail',
+              access: 'canSeeConsumableView',
+              hideInMenu: true,
+            },
+            {
               path: '/consumable/list/index/detail',
               component: './ConsumableList/Detail',
               name: '目录列表-详情',

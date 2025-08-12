@@ -79,7 +79,7 @@ const PurchaseNotificationCard: React.FC<PurchaseNotificationCardProps> = (
               title={
                 <span>
                   {v.title}
-                  <span>的{_.get(v, 'data.category')}</span>
+                  <span>{_.get(v, 'data.category')? "的" + _.get(v, 'data.category'):null}</span>
                   {_.get(v, 'data.assessment') &&
                   _.get(v, 'data.assessment') !== 'undefined' ? (
                     <span>{_.get(v, 'data.assessment')}元</span>

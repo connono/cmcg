@@ -158,7 +158,6 @@ const ConsumableNetPage: React.FC = () => {
       dataIndex: 'consumable_encoding',
       title: '国家27位编码',
       width: 100,
-      search: false,
       align: 'center',
       ellipsis: true,
     },

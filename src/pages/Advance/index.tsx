@@ -10,7 +10,7 @@ import {
   ProFormSelect,
   ProTable,
 } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
+import { useRequest, useModel, useAccess } from '@umijs/max';
 import { Button, Divider, InputNumber, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
@@ -105,6 +105,8 @@ const AdvancePage: React.FC = () => {
   const [serverBudget, setServerBudget] = useState<any>({});
   const [isChange, setIsChange] = useState<boolean>(false);
   const [treeData, setTreeData] = useState<any>(initialTreeData);
+  const { initialState } = useModel('@@initialState');
+  const access = useAccess();
 
   const getAdvanceList = async (params: any) => {
     const pageCurrent = isChange ? 1 : params.current;
@@ -294,19 +296,27 @@ const AdvancePage: React.FC = () => {
   });
 
   const approveOk = async (id: number) => {
-    await runApproveAdvanceRecord(id);
-    message.success('已通过审核');
+    if (access.canApproveAdvanceRecords) {
+      await runApproveAdvanceRecord(id);
+      message.success('已通过审核');
+    } else {
+      message.error('您没有权限审核');
+    }
     setPaybackOpen(false);
     actionRef.current?.reload();
   };
 
   const approveCancel = async (id: number) => {
-    await runDeleteAdvanceItem(id);
-    await runGetAdvanceBudget();
-    await runGetAdvanceEquipmentList();
-    await runGetAdvanceInstrumentList();
-    await runGetAdvanceMaintainList();
-    message.success('已驳回');
+    if (access.canApproveAdvanceRecords) {
+      await runDeleteAdvanceItem(id);
+      await runGetAdvanceBudget();
+      await runGetAdvanceEquipmentList();
+      await runGetAdvanceInstrumentList();
+      await runGetAdvanceMaintainList();
+      message.success('已驳回');
+    } else {
+      message.error('您没有权限驳回');
+    }
     setPaybackOpen(false);
     actionRef.current?.reload();
   };
@@ -335,8 +345,10 @@ const AdvancePage: React.FC = () => {
       optionText: '审核通过',
       onOk: approveOk,
       okText: '审核通过',
-      onCancel: approveCancel,
-      cancelText: '审核不通过',
+      onReject: approveCancel,
+      rejectText: '审核不通过',
+      onCancel: closeModal,
+      cancelText: '取消',
     },
     {
       optionText: '确认回款',
@@ -554,6 +566,9 @@ const AdvancePage: React.FC = () => {
           // @ts-ignore
           onCancel={STATUS[parseInt(selectedRecord.status)].onCancel}
           cancelText={STATUS[parseInt(selectedRecord.status)].cancelText}
+          // @ts-ignore
+          onReject={STATUS[parseInt(selectedRecord.status)].onReject}
+          rejectText={STATUS[parseInt(selectedRecord.status)].rejectText}
         />
       ) : null}
     </PageContainer>

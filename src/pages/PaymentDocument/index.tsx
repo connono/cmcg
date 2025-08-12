@@ -9,16 +9,11 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { Access, useAccess, useRequest } from '@umijs/max';
+import { Access, useAccess, useModel, useRequest } from '@umijs/max';
 import { Button, Divider, message } from 'antd';
 import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
-
-const getAllDepartments = async () => {
-  return await axios.get(`${SERVER_HOST}/department/index?is_functional=1`);
-};
-
 const deletePaymentDocumentItem = async (id?: number) => {
   return await axios.delete(
     `${SERVER_HOST}/payment/document/records/delete/${id}`,
@@ -27,7 +22,6 @@ const deletePaymentDocumentItem = async (id?: number) => {
 
 const getPaymentProcessRecordList = async (department: string) => {
   if (_.isUndefined(department)) return [];
-  console.log('department', department);
   return await axios({
     method: 'GET',
     params: {
@@ -50,16 +44,8 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
   const [isChange, setIsChange] = useState<boolean>(false);
   const [transferOpen, setTransferOpen] = useState<boolean>(false);
   const [treeData, setTreeData] = useState<any>(initialTreeData);
-  const [selectedDepartment, setSelectedDepartment] = useState<any>();
+  const {initialState} = useModel('@@initialState');
   const access = useAccess();
-
-  const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
-    manual: true,
-    onSuccess: () => {},
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
 
   const getPaymentDocumentList = async (params: any) => {
     const pageCurrent = isChange ? 1 : params.current;
@@ -67,6 +53,7 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
       method: 'GET',
       params: {
         ...filter,
+        department: initialState?.department,
         isPaginate: true,
       },
       url: `${SERVER_HOST}/payment/document/records/index?page=${pageCurrent}`,
@@ -105,8 +92,8 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
       manual: true,
       onSuccess: (result: any) => {
         if (!_.get(result, 'data')) return;
+        console.log(result.data)
         const newPaymentProcessRecordData = _.chain(result.data)
-          .filter((item: any) => !item.payment_document_id)
           .filter((item: any) => item.assessment && item.assessment !== 0)
           .map((item: any) => {
             return {
@@ -120,6 +107,7 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
             };
           })
           .value();
+        console.log(newPaymentProcessRecordData)
         setTreeData(
           _.map(initialTreeData, (item: any) => {
             if (item.key === 'payment_process') {
@@ -141,25 +129,6 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
     },
   );
 
-  // const approveCancel = async (id: number) => {
-  //   await runDeletePaymentDocumentItem(id);
-  //   await runGetPaymentProcessRecordList(selectedDepartment);
-  //   message.success('已驳回');
-  //   setPaybackOpen(false);
-  //   actionRef.current?.reload();
-  // };
-
-  const departments = async () => {
-    const { data: departmentsData } = await runGetAllDepartments();
-    const data = _.map(departmentsData, (value: any) => {
-      return {
-        value: value.name,
-        label: value.label,
-      };
-    });
-    return data;
-  };
-
   const columns: ProDescriptionsItemProps[] = [
     {
       title: '制单编号',
@@ -174,15 +143,29 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
       dataIndex: 'all_price',
     },
     {
+      title: '科室名称',
+      dataIndex: 'department',
+    },
+    {
+      title: '制单人',
+      dataIndex: 'user_name',
+    },
+    {
       title: '制单状态',
       dataIndex: 'status',
       valueEnum: {
-        finance_audit: { text: '待财务科审核', status: 'Processing' },
         dean_audit: { text: '待分管院长审核', status: 'Processing' },
+        audit: { text: '待财务会计复核', status: 'Processing' },
+        finance_audit: { text: '待财务科审核', status: 'Processing' },
         finance_dean_audit: { text: '待财务院长审核', status: 'Processing' },
         upload: { text: '待上传', status: 'Processing' },
         finish: { text: '通过', status: 'Success' },
+        reject: { text: '已驳回', status: 'Error' },
       },
+    },
+    {
+      title: '驳回原因',
+      dataIndex: 'reject_reason',
     },
     {
       title: '操作',
@@ -214,6 +197,19 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
               }}
             >
               待分管院长审核
+            </a>
+          );
+        } else if (record.status === 'audit') {
+          update = (
+            <a
+              onClick={() => {
+                window.open(
+                  `/#/purchase/paymentDocument/detail#audit&${record.id}`,
+                  '_blank',
+                );
+              }}
+            >
+              待财务会计复核
             </a>
           );
         } else if (record.status === 'finance_dean_audit') {
@@ -255,6 +251,12 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
               已通过
             </a>
           );
+        } else if (record.status === 'reject') {
+          update = (
+            <span>
+              已驳回
+            </span>
+          );
         }
         return (
           <>
@@ -262,14 +264,14 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
             <Divider type="vertical" />
             <a
               onClick={async () => {
-                if (!access.canDeletePaymentDocument) {
-                  message.error('你没有权限进行此操作');
-                } else {
+                // if (!access.canDeletePaymentDocument) {
+                //   message.error('你没有权限进行此操作');
+                // } else {
                   const id = record.id;
                   await runDeletePaymentDocumentItem(id);
-                  await runGetPaymentProcessRecordList(selectedDepartment);
+                  await runGetPaymentProcessRecordList(initialState?.department);
                   action?.reload();
-                }
+                // }
               }}
             >
               删除
@@ -285,8 +287,8 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
   }, [filter]);
 
   useEffect(() => {
-    runGetPaymentProcessRecordList(selectedDepartment);
-  }, [selectedDepartment]);
+    runGetPaymentProcessRecordList(initialState?.department);
+  }, []);
 
   return (
     <PageContainer
@@ -345,15 +347,13 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
                 name="status"
                 label="状态"
                 valueEnum={{
-                  finance_audit: { text: '待财务科审核', status: 'Processing' },
                   dean_audit: { text: '待分管院长审核', status: 'Processing' },
-                  finance_dean_audit: {
-                    text: '待财务院长审核',
-                    status: 'Processing',
-                  },
+                  audit: { text: '待财务会计复核', status: 'Processing' },
+                  finance_audit: { text: '待财务科审核', status: 'Processing' },
+                  finance_dean_audit: { text: '待财务院长审核', status: 'Processing' },
                   upload: { text: '待上传', status: 'Processing' },
                   finish: { text: '通过', status: 'Success' },
-                  all: { text: '全部', status: 'all' },
+                  reject: { text: '已驳回', status: 'Error' },
                 }}
               />
             </LightFilter>
@@ -372,30 +372,15 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
             ],
           },
           actions: [
-            <div key="select" style={{ marginBottom: '-25px' }}>
-              <ProFormSelect
-                key="select"
-                onChange={(value) => {
-                  setSelectedDepartment(value);
-                }}
-                request={departments}
-                fieldProps={{
-                  showSearch: true,
-                  filterOption: (input: any, option: any) =>
-                    (option?.label ?? '').includes(input),
-                }}
-                name="department_id"
-                label="选择科室"
-              />
-            </div>,
             <Access
               key="canCreatePaymentDocument"
               accessible={access.canCreatePaymentDocument}
             >
               <Button
                 key="button"
-                onClick={() => {
+                onClick={async () => {
                   setTransferOpen(true);
+                  await runGetPaymentProcessRecordList(initialState?.department);
                 }}
                 type="primary"
               >
@@ -408,10 +393,10 @@ const PaymentDocumentPage: React.FC<unknown> = () => {
       <PaymentDocumentTransferModal
         open={transferOpen}
         treeData={treeData}
-        department={selectedDepartment}
+        department={initialState?.department}
         finish={async () => {
           setTransferOpen(false);
-          await runGetPaymentProcessRecordList(selectedDepartment);
+          await runGetPaymentProcessRecordList(initialState?.department);
           actionRef.current?.reload();
         }}
         cancel={() => setTransferOpen(false)}

@@ -22,6 +22,7 @@ import {
   fileStringToAntdFileList,
   upload,
 } from '../../../utils/file-uploader';
+import ApprovalCard from '@/components/ApprovalCard';
 
 const int_status = (status: string) => {
   switch (status) {
@@ -53,6 +54,7 @@ const apply = async (
   record_id: string,
   assessment: string,
   payment_voucher_file: string,
+  user_id: number,
 ) => {
   const form = new FormData();
   form.append('method', 'apply');
@@ -60,6 +62,7 @@ const apply = async (
   form.append('assessment', assessment);
   form.append('payment_voucher_file', fileListToString(payment_voucher_file));
   form.append('type', 'plan');
+  form.append('user_id', user_id.toString());
 
   return await axios({
     method: 'POST',
@@ -68,11 +71,13 @@ const apply = async (
   });
 };
 
-const dean_audit = async (plan_id: string, record_id: string) => {
+const dean_audit = async (plan_id: string, record_id: string, user_id: number) => {
   const form = new FormData();
   form.append('method', 'dean_audit');
   form.append('plan_id', plan_id);
   form.append('type', 'plan');
+  form.append('user_id', user_id.toString());
+
   return await axios({
     method: 'POST',
     data: form,
@@ -80,11 +85,13 @@ const dean_audit = async (plan_id: string, record_id: string) => {
   });
 };
 
-const audit = async (plan_id: string, record_id: string) => {
+const audit = async (plan_id: string, record_id: string, user_id: number) => {
   const form = new FormData();
   form.append('method', 'audit');
   form.append('plan_id', plan_id);
   form.append('type', 'plan');
+  form.append('user_id', user_id.toString());
+
   return await axios({
     method: 'POST',
     data: form,
@@ -92,11 +99,13 @@ const audit = async (plan_id: string, record_id: string) => {
   });
 };
 
-const finance_dean_audit = async (plan_id: string, record_id: string) => {
+const finance_dean_audit = async (plan_id: string, record_id: string, user_id: number) => {
   const form = new FormData();
   form.append('method', 'finance_dean_audit');
   form.append('plan_id', plan_id);
   form.append('type', 'plan');
+  form.append('user_id', user_id.toString());
+
   return await axios({
     method: 'POST',
     data: form,
@@ -109,6 +118,7 @@ const process = async (
   record_id: string,
   assessment_date: string,
   payment_file: string,
+  user_id: number
 ) => {
   const form = new FormData();
   form.append('method', 'process');
@@ -116,6 +126,8 @@ const process = async (
   form.append('assessment_date', assessment_date);
   form.append('payment_file', fileListToString(payment_file));
   form.append('type', 'plan');
+  form.append('user_id', user_id.toString());
+
 
   return await axios({
     method: 'POST',
@@ -382,6 +394,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                     id,
                     values.assessment,
                     values.payment_voucher_file,
+                    initialState?.id
                   );
                 } else if (
                   formRef.current?.getFieldValue('payment_voucher_file')[0]
@@ -464,25 +477,34 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                if (values.audit) await runDeanAudit(plan_id, id);
+                if (values.audit) await runDeanAudit(plan_id, id, initialState?.id);
                 else await runBack(plan_id, id);
                 return true;
               }
             }}
           >
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
+            {
+              int_status(plan.status) > current ?
+              <ApprovalCard 
+                approveModel="paymentPlan" 
+                approveStatus="dean_audit"
+                approveModelId={id} 
+              />:
+              <ProFormRadio.Group
+                name="audit"
+                options={[
+                  {
+                    label: '审核通过',
+                    value: true,
+                  },
+                  {
+                    label: '审核驳回',
+                    value: false,
+                  },
+                ]}
+              />  
+            }
+            
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="audit"
@@ -492,25 +514,33 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                if (values.audit) await runAudit(plan_id, id);
+                if (values.audit) await runAudit(plan_id, id, initialState?.id);
                 else await runBack(plan_id, id);
                 return true;
               }
             }}
           >
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
+            {
+              int_status(plan.status) > current ?
+              <ApprovalCard 
+                approveModel="paymentPlan" 
+                approveStatus="audit"
+                approveModelId={id} 
+              />:
+              <ProFormRadio.Group
+                name="audit"
+                options={[
+                  {
+                    label: '审核通过',
+                    value: true,
+                  },
+                  {
+                    label: '审核驳回',
+                    value: false,
+                  },
+                ]}
+              />
+            }
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="finance_dean_audit"
@@ -520,31 +550,39 @@ const PaymentRecordDetailPage: React.FC = () => {
                 message.error('你无权进行此操作');
               } else {
                 const values = formRef.current?.getFieldsValue();
-                if (values.audit) await runFinanceDeanAudit(plan_id, id);
+                if (values.audit) await runFinanceDeanAudit(plan_id, id, initialState?.id);
                 else await runBack(plan_id, id);
                 return true;
               }
             }}
           >
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
+            {
+              int_status(plan.status) > current ?
+              <ApprovalCard 
+                approveModel="paymentPlan" 
+                approveStatus="finance_dean_audit"
+                approveModelId={id} 
+              />:
+              <ProFormRadio.Group
+                name="audit"
+                options={[
+                  {
+                    label: '审核通过',
+                    value: true,
+                  },
+                  {
+                    label: '审核驳回',
+                    value: false,
+                  },
+                ]}
+              />
+            }
           </StepsForm.StepForm>
           <StepsForm.StepForm<{
             checkbox: string;
           }>
             name="process"
-            title={plan.is_pay === 'true' ? '付款' : '收款'}
+            title="收付款"
             onFinish={async () => {
               if (!access.canProcessPaymentRecord) {
                 message.error('你无权进行此操作');
@@ -559,6 +597,7 @@ const PaymentRecordDetailPage: React.FC = () => {
                     id,
                     values.assessment_date.format('YYYY-MM-DD'),
                     values.payment_file,
+                    initialState?.id
                   );
                 } else if (
                   formRef.current?.getFieldValue('payment_file')[0].status ===

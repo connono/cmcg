@@ -158,6 +158,14 @@ export default (initialState: API.UserToken) => {
     canPurchaseConsumableRecord ||
     canApproveConsumableRecord ||
     canEngineerApproveConsumableRecord;
+  const canAuditPaymentDocument =
+    permissions && permissions.has('can_audit_payment_document');
+  const canCreateAdvanceRecords =
+    permissions && permissions.has('can_create_advance_records');
+  const canApproveAdvanceRecords =
+    permissions && permissions.has('can_approve_advance_records');
+  const canPaybackAdvanceRecords =
+    permissions && permissions.has('can_payback_advance_records');
 
   return {
     canSeeHome,
@@ -236,5 +244,9 @@ export default (initialState: API.UserToken) => {
     canUploadPaymentDocument,
     canDeletePaymentDocument,
     canSeeConsumableView,
+    canAuditPaymentDocument,
+    canCreateAdvanceRecords,
+    canApproveAdvanceRecords,
+    canPaybackAdvanceRecords,
   };
 };

@@ -3,13 +3,13 @@ import {
   ActionType,
   LightFilter,
   PageContainer,
-  ProDescriptionsItemProps,
   ProFormSelect,
   ProFormText,
   ProTable,
+  ProColumns,
 } from '@ant-design/pro-components';
-import { useAccess, useRequest } from '@umijs/max';
-import { Button, Divider, Input, Popconfirm, message } from 'antd';
+import { Button, message } from 'antd';
+import { useRequest } from '@umijs/max';
 import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -18,62 +18,141 @@ const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
 };
 
-const stopConsumableItem = async (id: any, stop_reason: string) => {
-  const form = new FormData();
-  form.append('stop_reason', stop_reason);
-  return await axios({
-    method: 'POST',
-    data: form,
-    url: `${SERVER_HOST}/consumable/directory/stop/${id}`,
-  });
-};
+const columns: ProColumns<any>[] = [
+  {
+    title: '平台ID',
+    render: (_: any, record: any) => (
+      <div style={{ width: '100px' }}>{record.platform_id}</div>
+    ),
+  },
+  {
+    title: '申请科室',
+    dataIndex: 'department',
+  },
+  {
+    title: '耗材名称',
+    dataIndex: 'consumable',
+  },
+  {
+    title: '型号',
+    dataIndex: 'model',
+  },
+  {
+    title: '采购单价',
+    dataIndex: 'price',
+  },
+  {
+    title: '申请日期',
+    dataIndex: 'apply_date',
+  },
+  {
+    title: '年用量',
+    dataIndex: 'count_year',
+  },
+  {
+    title: '注册证号',
+    dataIndex: 'registration_num',
+  },
+  {
+    title: '供应商',
+    dataIndex: 'company',
+  },
+  {
+    title: '生产厂家',
+    dataIndex: 'manufacturer',
+  },
+  {
+    title: '浙江分类',
+    dataIndex: 'category_zj',
+  },
+  {
+    title: '一级目录',
+    dataIndex: 'parent_directory',
+  },
+  {
+    title: '二级目录',
+    dataIndex: 'child_directory',
+  },
+  {
+    title: '采购类型',
+    dataIndex: 'apply_type',
+    valueEnum: {
+      'bid_product': { text: '中标产品' },
+      'sunshine_purchase': { text: '阳光采购' },
+      'self_purchase': { text: '自行采购' },
+      'offline_purchase': { text: '线下采购' },
+      'volume_purchase': { text: '带量采购' },
+    },
+  },
+  {
+    title: '便民药房',
+    dataIndex: 'in_drugstore',
+    valueEnum: {
+      true: { text: '便民药房' },
+      false: { text: '非便民药房' },
+    },
+  },
+  {
+    title: '状态',
+    dataIndex: 'to_state',
+    render: (_, record) => {
+      const state = record?.to_state;
+      if (state === 'in_use') {
+        return (
+          <span className="ant-status-success">
+            使用中
+          </span>
+        );
+      }
+    },
+  }
+];
 
-const ConsumableListPage: React.FC<unknown> = () => {
+const ConsumableListPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
-  const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
-  const [stopReason, setStopReason] = useState<string>('');
   const [isChange, setIsChange] = useState<boolean>(false);
-  const access = useAccess();
 
-  const getConsumableList = async (params: any) => {
-    const pageCurrent = isChange ? 1 : params.current;
-    const data = await axios({
-      method: 'GET',
-      params: {
-        ...filter,
-        isPaginate: true,
-      },
-      url: `${SERVER_HOST}/consumable/directory/index?page=${pageCurrent}`,
-    })
-      .then((result) => {
-        setIsChange(false);
-        setData(result.data.data);
-        return {
-          data: result.data.data,
-          success: true,
-          total: result.data.meta.total,
-        };
-      })
-      .catch((err) => {
-        message.error(err);
+  useEffect(() => {
+    actionRef.current?.reload();
+  }, [filter]);
+
+  const getConsumableListList = async (params: any) => {
+    try {
+      const pageCurrent = isChange ? 1 : params.current;
+      const response = await axios.get(`${SERVER_HOST}/consumables/history`, {
+        params: {
+          ...filter,
+          isPaginate: true,
+          page: pageCurrent,
+          event_type: 'snapshot:usage',
+          states: 'in_use',
+        },
       });
-    return data;
+  
+      // 数据映射：将 attributes 字段提升到顶层
+      const mappedData = response.data.data.map((item: any) => ({
+        ...item,
+        ...item.attributes,
+        id: item.id,
+        serial_number: item.id,
+      }));
+  
+      setIsChange(false);
+      return {
+        data: mappedData,
+        success: true,
+        total: response.data.total,
+      };
+    } catch (err: any) {
+      message.error(err.message || '获取数据失败');
+      return { data: [], success: false, total: 0 };
+    }
   };
 
   const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
     manual: true,
     onSuccess: () => {},
-    onError: (error: any) => {
-      message.error(error.message);
-    },
-  });
-
-  const { run: runStopConsumableItem } = useRequest(stopConsumableItem, {
-    manual: true,
-    onSuccess: () => {
-      message.success('中止成功');
-    },
     onError: (error: any) => {
       message.error(error.message);
     },
@@ -90,201 +169,19 @@ const ConsumableListPage: React.FC<unknown> = () => {
     return data;
   };
 
-  //@ts-ignore
-  const columns: ProDescriptionsItemProps = [
-    {
-      title: '申请编号',
-      width: 100,
-      dataIndex: 'consumable_apply_id',
-    },
-    {
-      title: '平台ID',
-      render: (text, record) => (
-        <div style={{ width: '100px' }}>{record.platform_id}</div>
-      ),
-    },
-    {
-      title: '申请科室',
-      dataIndex: 'department',
-      width: 80,
-    },
-    {
-      title: '耗材名称',
-      dataIndex: 'consumable',
-      width: 100,
-    },
-    {
-      title: '型号',
-      dataIndex: 'model',
-      width: 100,
-    },
-    {
-      title: '采购单价',
-      dataIndex: 'price',
-      width: 50,
-    },
-    {
-      title: '合同日期',
-      dataIndex: 'start_date',
-      width: 60,
-    },
-    {
-      title: '失效日期',
-      dataIndex: 'exp_date',
-    },
-    {
-      title: '注册证号',
-      dataIndex: 'registration_num',
-    },
-    {
-      title: '供应商',
-      dataIndex: 'company',
-      width: 100,
-    },
-    {
-      title: '生产厂家',
-      dataIndex: 'manufacturer',
-      width: 100,
-    },
-    {
-      title: '浙江分类',
-      dataIndex: 'category_zj',
-    },
-    {
-      title: '一级目录',
-      dataIndex: 'parent_directory',
-    },
-    {
-      title: '二级目录',
-      dataIndex: 'child_directory',
-    },
-    {
-      title: '采购类型',
-      dataIndex: 'apply_type',
-      valueEnum: {
-        0: { text: '中标产品' },
-        1: { text: '阳光采购' },
-        2: { text: '自行采购' },
-        3: { text: '线下采购' },
-        4: { text: '带量采购' },
-      },
-    },
-    {
-      title: '是否为便民药房',
-      dataIndex: 'in_drugstore',
-      valueEnum: {
-        0: { text: '便民药房' },
-        1: { text: '非便民药房' },
-      },
-    },
-    {
-      title: '停用日期',
-      dataIndex: 'stop_date',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      valueEnum: {
-        0: { text: '启用' },
-        1: { text: '待重新采购' },
-        2: { text: '待审批' },
-        3: { text: '待医工科审核' },
-        4: { text: '中止' },
-      },
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (text, record, _, action) => (
-        <>
-          {record.status === '0' ? null : (
-            <a
-              onClick={() => {
-                window.open(
-                  `/#/consumable/list/index/detail#update&${record.consumable_apply_id}`,
-                  '_blank',
-                );
-              }}
-            >
-              录入
-            </a>
-          )}
-          <Divider type="vertical" />
-          <a
-            onClick={() => {
-              // console.log(`/#/consumable/list/index/history#${record.consumable_apply_id}`)
-              window.open(
-                `/#/consumable/list/index/history#${record.consumable_apply_id}`,
-                '_blank',
-              );
-            }}
-          >
-            查看动态详情
-          </a>
-          <Divider type="vertical" />
-          {record.status === '4' ? null : (
-            <Popconfirm
-              key="back"
-              placement="topLeft"
-              title={
-                <div>
-                  <p>确定要中止吗？</p>
-                  <Input
-                    value={stopReason}
-                    onChange={(e: any) => {
-                      setStopReason(e.target.value);
-                    }}
-                    placeholder="请输入中止原因"
-                  />
-                </div>
-              }
-              onConfirm={async () => {
-                const id = record.id;
-                if (access.canStopConsumableList) {
-                  await runStopConsumableItem(id, stopReason);
-                  action?.reload();
-                }
-              }}
-              okText="确定"
-              cancelText="取消"
-            >
-              <a key="back">中止</a>
-            </Popconfirm>
-          )}
-        </>
-      ),
-    },
-  ];
-
-  useEffect(() => {
-    actionRef.current?.reload();
-  }, [filter]);
-
   return (
-    <PageContainer
-      header={{
-        title: '耗材目录列表',
-      }}
-    >
+    <PageContainer header={{ title: '耗材申请' }}>
       <ProTable
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        // @ts-ignore
-        request={getConsumableList}
+        request={getConsumableListList}
         rowKey="serial_number"
         search={false}
-        options={{
-          setting: {
-            listsHeight: 400,
-          },
-        }}
-        pagination={{
-          pageSize: 15,
-        }}
+        options={false}
+        pagination={{ pageSize: 15 }}
         dateFormatter="string"
-        headerTitle="耗材目录列表"
+        headerTitle="耗材申请"
         toolbar={{
           filter: (
             <LightFilter
@@ -302,34 +199,11 @@ const ConsumableListPage: React.FC<unknown> = () => {
                 );
               }}
               onValuesChange={(value) => {
-                setFilter({
-                  serial_number: _.isUndefined(value.serial_number)
-                    ? filter.serial_number
-                    : value.serial_number,
-                  platform_id: _.isUndefined(value.platform_id)
-                    ? filter.platform_id
-                    : value.platform_id,
-                  consumable: _.isUndefined(value.consumable)
-                    ? filter.consumable
-                    : value.consumable,
-                  company: _.isUndefined(value.company)
-                    ? filter.company
-                    : value.company,
-                  apply_type: value.apply_type
-                    ? value.apply_type === 'all'
-                      ? null
-                      : value.apply_type
-                    : filter.apply_type,
-                  status: value.status
-                    ? value.status === 'all'
-                      ? null
-                      : value.status
-                    : filter.status,
-                  department: value.department
-                    ? value.department === 'all'
-                      ? null
-                      : value.department
-                    : filter.department,
+                setFilter((prev: any) => {
+                  return {
+                    ...prev,
+                    ...value,
+                  };
                 });
                 setIsChange(true);
               }}
@@ -342,7 +216,7 @@ const ConsumableListPage: React.FC<unknown> = () => {
                 label="申请科室"
                 fieldProps={{
                   showSearch: true,
-                  filterOption: (input: any, option: any) =>
+                  filterOption: (input: string, option: any) =>
                     (option?.label ?? '').includes(input),
                 }}
                 request={departments}
@@ -352,11 +226,11 @@ const ConsumableListPage: React.FC<unknown> = () => {
                 name="apply_type"
                 label="采购类型"
                 valueEnum={{
-                  0: { text: '中标产品' },
-                  1: { text: '阳光采购' },
-                  2: { text: '自行采购' },
-                  3: { text: '线下采购' },
-                  4: { text: '带量采购' },
+                  'bid_product': { text: '中标产品' },
+                  'sunshine_purchase': { text: '阳光采购' },
+                  'self_purchase': { text: '自行采购' },
+                  'offline_purchase': { text: '线下采购' },
+                  'volume_purchase': { text: '带量采购' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
@@ -364,24 +238,15 @@ const ConsumableListPage: React.FC<unknown> = () => {
                 name="status"
                 label="状态"
                 valueEnum={{
-                  0: { text: '待询价' },
-                  1: { text: '待分管院长审批' },
-                  2: { text: '待医工科审核' },
-                  3: { text: '完成' },
+                  applied: { text: '已申请' },
+                  selection_input: { text: '申请审核' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
             </LightFilter>
           ),
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'count',
-                label: <div>一共有{_.size(data)}条记录</div>,
-              },
-            ],
-          },
+          actions: [
+          ],
         }}
       />
     </PageContainer>

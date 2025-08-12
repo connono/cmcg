@@ -119,7 +119,7 @@ export const ItemTypes = {
 };
 
 // export const SERVER_HOST = 'http://192.168.56.56/api/v1';
-// export const APPLICATION_HOST = 'http://localhost:8001/#';
+export const APPLICATION_HOST = 'http://localhost:8001/#';
 
 export const SERVER_HOST = 'http://10.10.0.27:8000/api/v1';
-export const APPLICATION_HOST = 'http://10.10.0.27';
+// export const APPLICATION_HOST = 'http://10.10.0.27';

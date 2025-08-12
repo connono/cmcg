@@ -27,6 +27,7 @@ import {
   preview,
   upload,
 } from '../../../utils/file-uploader';
+import ApprovalCard from '@/components/ApprovalCard';
 
 const applyOptions = [
   {
@@ -204,9 +205,10 @@ const install = async (
   });
 };
 
-const engineerApprove = async (id: string, isAdvance: boolean) => {
+const engineerApprove = async (id: string, isAdvance: boolean, user_id: number) => {
   const form = new FormData();
   form.append('isAdvance', isAdvance.toString());
+  form.append('user_id', user_id.toString());
 
   return await axios({
     method: 'POST',
@@ -1197,40 +1199,53 @@ const EquipmentDetailPage: React.FC = () => {
               } else {
                 const values = formRef.current?.getFieldsValue();
                 if (values.audit)
-                  await runEngineerApprove(id, values.isAdvance);
+                  await runEngineerApprove(id, values.isAdvance, initialState?.id);
                 else await runBackEquipmentItem(id);
               }
             }}
           >
-            <ProFormRadio.Group
-              name="isAdvance"
-              label="是否垫付："
-              rules={[{ required: true }]}
-              disabled={current < equipmentItem.status}
-              options={[
-                {
-                  label: '是',
-                  value: true,
-                },
-                {
-                  label: '否',
-                  value: false,
-                },
-              ]}
-            />
-            <ProFormRadio.Group
-              name="audit"
-              options={[
-                {
-                  label: '审核通过',
-                  value: true,
-                },
-                {
-                  label: '审核驳回',
-                  value: false,
-                },
-              ]}
-            />
+            {
+              equipmentItem.status > current ?
+              <ApprovalCard
+                approveModel='EquipmentApplyRecord'
+                approveModelId={id}
+                approveStatus='engineer_approve'
+                otherInformation={[{title: '是否垫付', value: equipmentItem.isAdvance}]}
+              />:
+              <div>
+                <ProFormRadio.Group
+                  name="isAdvance"
+                  label="是否垫付："
+                  rules={[{ required: true }]}
+                  disabled={current < equipmentItem.status}
+                  options={[
+                    {
+                      label: '是',
+                      value: true,
+                    },
+                    {
+                      label: '否',
+                      value: false,
+                    },
+                  ]}
+                />
+                <ProFormRadio.Group
+                  name="audit"
+                  options={[
+                    {
+                      label: '审核通过',
+                      value: true,
+                    },
+                    {
+                      label: '审核驳回',
+                      value: false,
+                    },
+                  ]}
+                />  
+              </div>
+                
+            }
+            
           </StepsForm.StepForm>
           <StepsForm.StepForm
             name="rk"

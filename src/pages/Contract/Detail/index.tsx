@@ -12,7 +12,7 @@ import {
   ProFormUploadButton,
   StepsForm,
 } from '@ant-design/pro-components';
-import { Access, history, useAccess, useRequest } from '@umijs/max';
+import { useModel, Access, history, useAccess, useRequest } from '@umijs/max';
 import {
   Button,
   Divider,
@@ -27,6 +27,8 @@ import * as docx from 'docx-preview';
 import { saveAs } from 'file-saver';
 import React, { useEffect, useRef, useState } from 'react';
 import { upload } from '../../../utils/file-uploader';
+import ApprovalCard from '@/components/ApprovalCard';
+import _ from 'lodash';
 
 const int_status = (status: string) => {
   switch (status) {
@@ -41,9 +43,10 @@ const int_status = (status: string) => {
   }
 };
 
-const approve = async (id: string, method: string) => {
+const approve = async (id: string, method: string, user_id: number) => {
   const form = new FormData();
   form.append('method', method);
+  form.append('user_id', user_id.toString());
   return await axios({
     method: 'POST',
     data: form,
@@ -83,6 +86,7 @@ const ContractDetailPage: React.FC = () => {
   const [contract, setContract] = useState<any>({});
   const formRef = useRef<ProFormInstance>();
   const [show, setShow] = useState(false);
+  const { initialState } = useModel('@@initialState');
 
   const { run: runApprove } = useRequest(approve, {
     manual: true,
@@ -245,26 +249,30 @@ const ContractDetailPage: React.FC = () => {
             } else {
               const values = formRef.current?.getFieldsValue();
               if (values.audit) {
-                await runApprove(id, contract.status);
+                await runApprove(id, contract.status, initialState?.id);
               } else {
                 await runDeleteItem(id);
               }
             }
           }}
         >
-          <ProFormRadio.Group
-            name="audit"
-            options={[
-              {
-                label: '审核通过',
-                value: true,
-              },
-              {
-                label: '审核驳回（直接删除合同）',
-                value: false,
-              },
-            ]}
-          />
+          {
+              int_status(contract.status) > current ?
+              <ApprovalCard approveModel="Contract" approveModelId={id} approveStatus="approve" />:
+              <ProFormRadio.Group
+                name="audit"
+                options={[
+                  {
+                    label: '审核通过',
+                    value: true,
+                  },
+                  {
+                    label: '审核驳回（直接删除合同）',
+                    value: false,
+                  },
+                ]}
+              />
+          }
         </StepsForm.StepForm>
         <StepsForm.StepForm
           name="upload"

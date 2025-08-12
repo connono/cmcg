@@ -3,13 +3,13 @@ import {
   ActionType,
   LightFilter,
   PageContainer,
-  ProDescriptionsItemProps,
   ProFormSelect,
   ProFormText,
   ProTable,
+  ProColumns,
 } from '@ant-design/pro-components';
-import { Access, history, useAccess, useRequest } from '@umijs/max';
 import { Button, message } from 'antd';
+import { useRequest } from '@umijs/max';
 import axios from 'axios';
 import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -18,36 +18,173 @@ const getAllDepartments = async () => {
   return await axios.get(`${SERVER_HOST}/department/index`);
 };
 
-const ConsumableApplyPage: React.FC<unknown> = () => {
+const columns: ProColumns<any>[] = [
+  {
+    title: '平台ID',
+    render: (_: any, record: any) => (
+      <div style={{ width: '100px' }}>{record.platform_id}</div>
+    ),
+  },
+  {
+    title: '申请科室',
+    dataIndex: 'department',
+  },
+  {
+    title: '耗材名称',
+    dataIndex: 'consumable',
+  },
+  {
+    title: '型号',
+    dataIndex: 'model',
+  },
+  {
+    title: '采购单价',
+    dataIndex: 'price',
+  },
+  {
+    title: '申请日期',
+    dataIndex: 'apply_date',
+  },
+  {
+    title: '年用量',
+    dataIndex: 'count_year',
+  },
+  {
+    title: '注册证号',
+    dataIndex: 'registration_num',
+  },
+  {
+    title: '供应商',
+    dataIndex: 'company',
+  },
+  {
+    title: '生产厂家',
+    dataIndex: 'manufacturer',
+  },
+  {
+    title: '浙江分类',
+    dataIndex: 'category_zj',
+  },
+  {
+    title: '一级目录',
+    dataIndex: 'parent_directory',
+  },
+  {
+    title: '二级目录',
+    dataIndex: 'child_directory',
+  },
+  {
+    title: '采购类型',
+    dataIndex: 'apply_type',
+    valueEnum: {
+      'bid_product': { text: '中标产品' },
+      'sunshine_purchase': { text: '阳光采购' },
+      'self_purchase': { text: '自行采购' },
+      'offline_purchase': { text: '线下采购' },
+      'volume_purchase': { text: '带量采购' },
+    },
+  },
+  {
+    title: '便民药房',
+    dataIndex: 'in_drugstore',
+    valueEnum: {
+      true: { text: '便民药房' },
+      false: { text: '非便民药房' },
+    },
+  },
+  {
+    title: '状态',
+    dataIndex: 'to_state',
+    render: (_, record) => {
+      const state = record?.to_state;
+      if (state === 'selection_input') {
+        return (
+          <span className="ant-status-processing">
+            录入耗材信息
+          </span>
+        );
+      } else if (state === 'medical_engineering_review') {
+        return (
+          <span className="ant-status-processing">
+            医工科复核
+          </span>
+        );
+      } else if (state === 'sunshine_president_review') {
+        return (
+          <span className="ant-status-processing">
+            采购分管院长审核
+          </span>
+        );
+      } else if (state === 'selection_finish') {
+        return (
+          <span className="ant-status-success">
+            遴选完成
+          </span>
+        );
+      }
+    },
+  },  
+  {
+    title: '操作',
+    valueType: 'option',
+    render: (_: any, record: any) => (
+      <>
+        <a
+          onClick={() => {
+            const state = record?.to_state;
+            window.open(
+              `/#/consumable/list/select/detail#${state}&${record.id}&${record.consumable_id}`,
+              '_blank',
+            );
+          }}
+        >
+          录入
+        </a>
+      </>
+    ),
+  },
+];
+
+const ConsumableTrendPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
-  const [data, setData] = useState<any>([]);
   const [filter, setFilter] = useState<any>({});
   const [isChange, setIsChange] = useState<boolean>(false);
-  const access = useAccess();
 
-  const getConsumableApplyList = async (params: any) => {
-    const pageCurrent = isChange ? 1 : params.current;
-    const data = await axios({
-      method: 'GET',
-      params: {
-        ...filter,
-        isPaginate: true,
-      },
-      url: `${SERVER_HOST}/consumable/apply/index?page=${pageCurrent}`,
-    })
-      .then((result) => {
-        setIsChange(false);
-        setData(result.data.data);
-        return {
-          data: result.data.data,
-          success: true,
-          total: result.data.meta.total,
-        };
-      })
-      .catch((err) => {
-        message.error(err);
+  useEffect(() => {
+    actionRef.current?.reload();
+  }, [filter]);
+
+  const getConsumableTrendList = async (params: any) => {
+    try {
+      const pageCurrent = isChange ? 1 : params.current;
+      const response = await axios.get(`${SERVER_HOST}/consumables/history`, {
+        params: {
+          ...filter,
+          isPaginate: true,
+          page: pageCurrent,
+          event_type: 'snapshot:selection',
+          states: 'selection_input,medical_engineering_review,sunshine_president_review,selection_finish,access_leader_review',
+        },
       });
-    return data;
+  
+      // 数据映射：将 attributes 字段提升到顶层
+      const mappedData = response.data.data.map((item: any) => ({
+        ...item,
+        ...item.attributes,
+        id: item.id,
+        serial_number: item.id,
+      }));
+  
+      setIsChange(false);
+      return {
+        data: mappedData,
+        success: true,
+        total: response.data.total,
+      };
+    } catch (err: any) {
+      message.error(err.message || '获取数据失败');
+      return { data: [], success: false, total: 0 };
+    }
   };
 
   const { run: runGetAllDepartments } = useRequest(getAllDepartments, {
@@ -69,153 +206,19 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
     return data;
   };
 
-  //@ts-ignore
-  const columns: ProDescriptionsItemProps = [
-    {
-      title: '申请编号',
-      width: 100,
-      dataIndex: 'serial_number',
-    },
-    {
-      title: '平台ID',
-      render: (text, record) => (
-        <div style={{ width: '100px' }}>{record.platform_id}</div>
-      ),
-    },
-    {
-      title: '申请科室',
-      dataIndex: 'department',
-      width: 80,
-    },
-    {
-      title: '耗材名称',
-      dataIndex: 'consumable',
-      width: 100,
-    },
-    {
-      title: '型号',
-      dataIndex: 'model',
-      width: 100,
-    },
-    {
-      title: '采购单价',
-      dataIndex: 'price',
-      width: 50,
-    },
-    {
-      title: '申请日期',
-      dataIndex: 'apply_date',
-      width: 60,
-    },
-    {
-      title: '年用量',
-      dataIndex: 'count_year',
-      width: 50,
-    },
-    {
-      title: '注册证号',
-      dataIndex: 'registration_num',
-    },
-    {
-      title: '供应商',
-      dataIndex: 'company',
-      width: 100,
-    },
-    {
-      title: '生产厂家',
-      dataIndex: 'manufacturer',
-      width: 100,
-    },
-    {
-      title: '浙江分类',
-      dataIndex: 'category_zj',
-    },
-    {
-      title: '一级目录',
-      dataIndex: 'parent_directory',
-    },
-    {
-      title: '二级目录',
-      dataIndex: 'child_directory',
-    },
-    {
-      title: '采购类型',
-      dataIndex: 'apply_type',
-      valueEnum: {
-        0: { text: '中标产品' },
-        1: { text: '阳光采购' },
-        2: { text: '自行采购' },
-        3: { text: '线下采购' },
-        4: { text: '带量采购' },
-      },
-    },
-    {
-      title: '便民药房',
-      dataIndex: 'in_drugstore',
-      valueEnum: {
-        0: { text: '便民药房' },
-        1: { text: '非便民药房' },
-      },
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      valueEnum: {
-        0: { text: '待询价' },
-        1: { text: '待分管院长审批' },
-        2: { text: '待医工科审核' },
-        3: { text: '完成' },
-      },
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (text, record) => (
-        <>
-          <a
-            onClick={() => {
-              window.open(
-                `/#/consumable/list/apply/detail#update&${record.serial_number}`,
-                '_blank',
-              );
-            }}
-          >
-            录入
-          </a>
-        </>
-      ),
-    },
-  ];
-
-  useEffect(() => {
-    actionRef.current?.reload();
-  }, [filter]);
-
   return (
-    <PageContainer
-      header={{
-        title: '申请列表',
-      }}
-    >
+    <PageContainer header={{ title: '耗材申请' }}>
       <ProTable
         columns={columns}
         cardBordered
         actionRef={actionRef}
-        // @ts-ignore
-        request={getConsumableApplyList}
+        request={getConsumableTrendList}
         rowKey="serial_number"
         search={false}
-        options={{
-          setting: {
-            listsHeight: 400,
-          },
-        }}
-        pagination={{
-          pageSize: 15,
-        }}
+        options={false}
+        pagination={{ pageSize: 15 }}
         dateFormatter="string"
-        headerTitle="申请列表"
+        headerTitle="耗材申请"
         toolbar={{
           filter: (
             <LightFilter
@@ -233,34 +236,11 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
                 );
               }}
               onValuesChange={(value) => {
-                setFilter({
-                  serial_number: _.isUndefined(value.serial_number)
-                    ? filter.serial_number
-                    : value.serial_number,
-                  platform_id: _.isUndefined(value.platform_id)
-                    ? filter.platform_id
-                    : value.platform_id,
-                  consumable: _.isUndefined(value.consumable)
-                    ? filter.consumable
-                    : value.consumable,
-                  company: _.isUndefined(value.company)
-                    ? filter.company
-                    : value.company,
-                  apply_type: value.apply_type
-                    ? value.apply_type === 'all'
-                      ? null
-                      : value.apply_type
-                    : filter.apply_type,
-                  status: value.status
-                    ? value.status === 'all'
-                      ? null
-                      : value.status
-                    : filter.status,
-                  department: value.department
-                    ? value.department === 'all'
-                      ? null
-                      : value.department
-                    : filter.department,
+                setFilter((prev: any) => {
+                  return {
+                    ...prev,
+                    ...value,
+                  };
                 });
                 setIsChange(true);
               }}
@@ -273,7 +253,7 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
                 label="申请科室"
                 fieldProps={{
                   showSearch: true,
-                  filterOption: (input: any, option: any) =>
+                  filterOption: (input: string, option: any) =>
                     (option?.label ?? '').includes(input),
                 }}
                 request={departments}
@@ -283,11 +263,11 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
                 name="apply_type"
                 label="采购类型"
                 valueEnum={{
-                  0: { text: '中标产品' },
-                  1: { text: '阳光采购' },
-                  2: { text: '自行采购' },
-                  3: { text: '线下采购' },
-                  4: { text: '带量采购' },
+                  'bid_product': { text: '中标产品' },
+                  'sunshine_purchase': { text: '阳光采购' },
+                  'self_purchase': { text: '自行采购' },
+                  'offline_purchase': { text: '线下采购' },
+                  'volume_purchase': { text: '带量采购' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
@@ -295,36 +275,23 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
                 name="status"
                 label="状态"
                 valueEnum={{
-                  0: { text: '待询价' },
-                  1: { text: '待分管院长审批' },
-                  2: { text: '待医工科审核' },
-                  3: { text: '完成' },
+                  applied: { text: '已申请' },
+                  selection_input: { text: '申请审核' },
                   all: { text: '全部', status: 'all' },
                 }}
               />
             </LightFilter>
           ),
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'count',
-                label: <div>一共有{_.size(data)}条记录</div>,
-              },
-            ],
-          },
           actions: [
-            <Access key="can_apply_repair" accessible={access.canApplyRepair}>
-              <Button
-                key="button"
-                onClick={async () => {
-                  history.push('/consumable/list/apply/detail#create');
-                }}
-                type="primary"
-              >
-                新建
-              </Button>
-            </Access>,
+            <Button
+              key="button"
+              type="primary"
+              onClick={() => {
+                window.open('/#/consumable/list/apply/detail#create', '_blank');
+              }}
+            >
+              新建
+            </Button>,
           ],
         }}
       />
@@ -332,4 +299,4 @@ const ConsumableApplyPage: React.FC<unknown> = () => {
   );
 };
 
-export default ConsumableApplyPage;
+export default ConsumableTrendPage;

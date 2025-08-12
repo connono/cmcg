@@ -1,3 +1,5 @@
+import ApprovalCard from '@/components/ApprovalCard';
+import ApprovalList from '@/components/ApprovalList';
 import PreviewListModal from '@/components/PreviewListModal';
 import PreviewListVisible from '@/components/PreviewListVisible';
 import { SERVER_HOST } from '@/constants';
@@ -10,8 +12,9 @@ import {
   ProFormRadio,
   ProFormUploadButton,
   StepsForm,
+  ProFormTextArea,
 } from '@ant-design/pro-components';
-import { history, useAccess, useRequest } from '@umijs/max';
+import { history, useAccess, useModel, useRequest } from '@umijs/max';
 import { Button, FloatButton, Steps, Table, message } from 'antd';
 import axios from 'axios';
 import { saveAs } from 'file-saver';
@@ -20,16 +23,18 @@ import { useEffect, useRef, useState } from 'react';
 
 const int_status = (status: string) => {
   switch (status) {
-    case 'finance_audit':
-      return 0;
     case 'dean_audit':
+      return 0;
+    case 'audit':
       return 1;
-    case 'finance_dean_audit':
+    case 'finance_audit':
       return 2;
-    case 'upload':
+    case 'finance_dean_audit':
       return 3;
-    case 'finish':
+    case 'upload':
       return 4;
+    case 'finish':
+      return 5;
     default:
       return -1;
   }
@@ -45,9 +50,12 @@ const getDocumentItem = async (id: string) => {
   );
 };
 
-const audit = async (record_id: string) => {
+const audit = async (record_id: string, user_id: number) => {
+  const form = new FormData();
+  form.append('user_id', user_id.toString());
   return await axios({
     method: 'POST',
+    data: form,
     url: `${SERVER_HOST}/payment/document/records/update/${record_id}`,
   });
 };
@@ -65,6 +73,21 @@ const uploadDocument = async (
   });
 };
 
+const reject = async (
+  record_id: string,
+  user_id: number,
+  reject_reason: string,
+) => {
+  const form = new FormData();
+  form.append('user_id', user_id.toString());
+  form.append('reject_reason', reject_reason);
+  return await axios({
+    method: 'POST',
+    data: form,
+    url: `${SERVER_HOST}/payment/document/record/reject/${record_id}`,
+  });
+}
+
 const PaymentDocumentDetailPage: React.FC = () => {
   console.log(history.location.state);
   // const [paymentRecord, setPaymentRecord] = useState({});
@@ -78,6 +101,7 @@ const PaymentDocumentDetailPage: React.FC = () => {
   const [paymentDocumentItem, setPaymentDocumentItem] = useState({});
   const access = useAccess();
   const [xlsx, setXlsx] = useState();
+  const {initialState} = useModel('@@initialState')
 
   const { run: runGetItem } = useRequest(getItem, {
     manual: true,
@@ -106,6 +130,17 @@ const PaymentDocumentDetailPage: React.FC = () => {
   });
 
   const { run: runAudit } = useRequest(audit, {
+    manual: true,
+    onSuccess: () => {
+      message.success('审批成功，正在返回列表...');
+      history.push('/purchase/paymentDocument');
+    },
+    onError: (error: any) => {
+      message.error(error.message);
+    },
+  });
+
+  const { run: runReject } = useRequest(reject, {
     manual: true,
     onSuccess: () => {
       message.success('审批成功，正在返回列表...');
@@ -255,12 +290,20 @@ const PaymentDocumentDetailPage: React.FC = () => {
         title: '制单管理',
       }}
     >
-      {paymentDocumentItem.payment_document_file ? (
-        <PreviewListVisible
-          title="制单附件"
-          fileListString={paymentDocumentItem.payment_document_file}
-          open={true}
-        />
+      { paymentDocumentItem.payment_document_file ? (
+        <div>
+          <ApprovalList 
+            approveModel='PaymentDocument'
+            approveModelId={id}
+            statusList={['申请', '分管院长审批', '财务会计复核', '财务科长审批', '财务院长审批']}
+          />
+          <PreviewListVisible
+            title="制单附件"
+            fileListString={paymentDocumentItem.payment_document_file}
+            open={true}
+          />  
+        </div>
+        
       ) : (
         <div>
           <Table dataSource={dataSource} columns={columns} />
@@ -318,56 +361,150 @@ const PaymentDocumentDetailPage: React.FC = () => {
               <StepsForm.StepForm<{
                 name: string;
               }>
-                name="1"
-                title="财务科长审批"
-                onFinish={async () => {
-                  if (!access.canFinanceAuditPaymentDocument) {
-                    message.error('你无权进行此操作');
-                  } else {
-                    await runAudit(id);
-                  }
-                }}
-              >
-                <ProFormRadio.Group
-                  name="audit"
-                  options={[
-                    {
-                      label: '审核通过',
-                      value: true,
-                    },
-                    {
-                      label: '审核驳回',
-                      value: false,
-                    },
-                  ]}
-                />
-              </StepsForm.StepForm>
-              <StepsForm.StepForm<{
-                name: string;
-              }>
-                name="2"
+                name="0"
                 title="分管院长审批"
                 onFinish={async () => {
                   if (!access.canDeanAuditPaymentDocument) {
                     message.error('你无权进行此操作');
                   } else {
-                    await runAudit(id);
+                    const values = formRef.current?.getFieldsValue();
+                    if(values.audit){
+                      await runAudit(id, initialState?.id);
+                    }else{
+                      await runReject(id, initialState?.id, values.reject_reason)
+                    }
                   }
                 }}
               >
-                <ProFormRadio.Group
-                  name="audit"
-                  options={[
-                    {
-                      label: '审核通过',
-                      value: true,
-                    },
-                    {
-                      label: '审核驳回',
-                      value: false,
-                    },
-                  ]}
-                />
+                {
+                  int_status(paymentDocumentItem.status) > current ?
+                  <ApprovalCard
+                    approveModel="paymentDocument" 
+                    approveStatus="dean_audit"
+                    approveModelId={id} 
+                  />:
+                  (
+                    <div>
+                      <ProFormRadio.Group
+                        name="audit"
+                        options={[
+                          {
+                            label: '审核通过',
+                            value: true,
+                          },
+                          {
+                            label: '审核驳回',
+                            value: false,
+                          },
+                        ]}
+                      />
+                      <ProFormTextArea
+                        name="reject_reason"
+                        label="拒绝理由"
+                        placeholder="请输入拒绝理由"
+                      />     
+                    </div>
+                  )
+                }
+                
+              </StepsForm.StepForm>
+              <StepsForm.StepForm<{
+                name: string;
+              }>
+                name="1"
+                title="财务会计复核"
+                onFinish={async () => {
+                  if (!access.canAuditPaymentDocument) {
+                    message.error('你无权进行此操作');
+                  } else {
+                    const values = formRef.current?.getFieldsValue();
+                    if(values.audit){
+                      await runAudit(id, initialState?.id);
+                    }else{
+                      await runReject(id, initialState?.id, values.reject_reason)
+                    }
+                  }
+                }}
+              >
+                {
+                  int_status(paymentDocumentItem.status) > current ?
+                  <ApprovalCard
+                    approveModel="paymentDocument" 
+                    approveStatus="audit"
+                    approveModelId={id} 
+                  />:
+                  (
+                    <div>
+                      <ProFormRadio.Group
+                        name="audit"
+                        options={[
+                          {
+                            label: '审核通过',
+                            value: true,
+                          },
+                          {
+                            label: '审核驳回',
+                            value: false,
+                          },
+                        ]}
+                      />
+                      <ProFormTextArea
+                        name="reject_reason"
+                        label="拒绝理由"
+                        placeholder="请输入拒绝理由"
+                      />     
+                    </div>
+                  )
+                }
+              </StepsForm.StepForm>
+              <StepsForm.StepForm<{
+                name: string;
+              }>
+                name="2"
+                title="财务科长审批"
+                onFinish={async () => {
+                  if (!access.canFinanceAuditPaymentDocument) {
+                    message.error('你无权进行此操作');
+                  } else {
+                    const values = formRef.current?.getFieldsValue();
+                    if(values.audit){
+                      await runAudit(id, initialState?.id);
+                    }else{
+                      await runReject(id, initialState?.id, values.reject_reason)
+                    }
+                  }
+                }}
+              >
+                {
+                  int_status(paymentDocumentItem.status) > current ?
+                  <ApprovalCard
+                    approveModel="paymentDocument" 
+                    approveStatus="finance_audit"
+                    approveModelId={id} 
+                  />:
+                  (
+                    <div>
+                      <ProFormRadio.Group
+                        name="audit"
+                        options={[
+                          {
+                            label: '审核通过',
+                            value: true,
+                          },
+                          {
+                            label: '审核驳回',
+                            value: false,
+                          },
+                        ]}
+                      />
+                      <ProFormTextArea
+                        name="reject_reason"
+                        label="拒绝理由"
+                        placeholder="请输入拒绝理由"
+                      />     
+                    </div>
+                  )
+                }
               </StepsForm.StepForm>
               <StepsForm.StepForm<{
                 name: string;
@@ -378,23 +515,45 @@ const PaymentDocumentDetailPage: React.FC = () => {
                   if (!access.canFinanceDeanAuditPaymentDocument) {
                     message.error('你无权进行此操作');
                   } else {
-                    await runAudit(id);
+                    const values = formRef.current?.getFieldsValue();
+                    if(values.audit){
+                      await runAudit(id, initialState?.id);
+                    }else{
+                      await runReject(id, initialState?.id, values.reject_reason)
+                    }
                   }
                 }}
               >
-                <ProFormRadio.Group
-                  name="audit"
-                  options={[
-                    {
-                      label: '审核通过',
-                      value: true,
-                    },
-                    {
-                      label: '审核驳回',
-                      value: false,
-                    },
-                  ]}
-                />
+                {
+                  int_status(paymentDocumentItem.status) > current ?
+                  <ApprovalCard
+                    approveModel="paymentDocument" 
+                    approveStatus="finance_dean_audit"
+                    approveModelId={id} 
+                  />:
+                  (
+                    <div>
+                      <ProFormRadio.Group
+                        name="audit"
+                        options={[
+                          {
+                            label: '审核通过',
+                            value: true,
+                          },
+                          {
+                            label: '审核驳回',
+                            value: false,
+                          },
+                        ]}
+                      />
+                      <ProFormTextArea
+                        name="reject_reason"
+                        label="拒绝理由"
+                        placeholder="请输入拒绝理由"
+                      />     
+                    </div>
+                  )
+                }
               </StepsForm.StepForm>
               <StepsForm.StepForm
                 name="upload"

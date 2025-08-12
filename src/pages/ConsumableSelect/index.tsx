@@ -1,3 +1,4 @@
+import { SERVER_HOST } from '@/constants';
 import { PageContainer } from '@ant-design/pro-components';
 import { useRequest } from '@umijs/max';
 import { Button, Col, Form, Input, Row, Space, message } from 'antd';
@@ -7,13 +8,13 @@ import React, { useEffect, useState } from 'react';
 
 const getConsumable = async (product_id: string) => {
   return axios.get(
-    `http://10.10.0.27:8000/api/v1/consumable/net/index?product_id=${product_id}`,
+    `${SERVER_HOST}/consumable/net/index?product_id=${product_id}`,
   );
 };
 
 const getList = async (product_id: string) => {
   return axios.get(
-    `http://10.10.0.27:8000/api/v1/consumable/net/select?product_id=${product_id}`,
+    `${SERVER_HOST}/consumable/net/select?product_id=${product_id}`,
   );
 };
 
@@ -222,7 +223,7 @@ const ConsumableSelectPage: React.FC = () => {
                   <td width={120}>{consumable.consumable}</td>
                   <td width={120}>{consumable.model}</td>
                   <td width={120}>{consumable.company}</td>
-                  <td width={120}>{consumable.price}</td>
+                  <td width={120}>{consumable.price === 0 ? consumable.tempory_price : consumable.price}</td>
                   <td width={120}>{consumable.registration_num}</td>
                   <td width={120}>{count}</td>
                 </tr>
@@ -305,7 +306,7 @@ const ConsumableSelectPage: React.FC = () => {
                   {item.specification}
                 </td>
                 <td width={20} colSpan={1}>
-                  {item.price}
+                  {item.price === 0 ? item.tempory_price : item.price}
                 </td>
                 <td width={120} colSpan={2}>
                   {item.product_id}

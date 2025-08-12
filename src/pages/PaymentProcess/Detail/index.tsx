@@ -25,6 +25,7 @@ import {
   fileStringToAntdFileList,
   upload,
 } from '../../../utils/file-uploader';
+import ApprovalList from '@/components/ApprovalList';
 
 const int_status = (status: string) => {
   if (!status) return -1;
@@ -591,11 +592,19 @@ const PaymentRecordDetailPage: React.FC = () => {
 
           <StepsForm.StepForm name="audit" title="审核">
             {paymentDocumentItem.payment_document_file ? (
-              <PreviewListVisible
-                title="制单附件"
-                fileListString={paymentDocumentItem.payment_document_file}
-                open={true}
-              />
+              <div>
+                <ApprovalList
+                  approveModel='PaymentDocument'
+                  approveModelId={paymentDocumentItem.id}
+                  statusList={['申请', '分管院长审批', '财务会计复核', '财务科长审批', '财务院长审批']}
+                />
+                <PreviewListVisible
+                  title="制单附件"
+                  fileListString={paymentDocumentItem.payment_document_file}
+                  open={true}
+                />  
+              </div>
+              
             ) : (
               <Table dataSource={dataSource} columns={columns} />
             )}
